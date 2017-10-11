@@ -1,0 +1,40 @@
+{
+  "name": "nettrine/dbal",
+  "description": "Dbal",
+  "keywords": ["nette", "doctrine", "dbal"],
+  "type": "library",
+  "license": ["MIT"],
+  "homepage": "https://github.com/nettrine/dbal",
+  "authors": [
+    {
+      "name": "Milan Felix Sulc",
+      "homepage": "https://f3l1x.io"
+    }
+  ],
+  "require": {
+    "php": ">=5.6",
+    "nette/di": "^2.4.9",
+    "doctrine/dbal": "^2.6"
+  },
+  "require-dev": {
+    "ninjify/qa": "~0.4.0",
+    "ninjify/nunjuck": "~0.1.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "Nettrine\\Dbal\\": "src/"
+    }
+  },
+  "scripts": {
+    "qa": [
+      "linter src tests",
+      "codesniffer src tests"
+    ],
+    "tester": [
+      "tester -s -p php --colors 1 -c tests/php-unix.ini tests/cases"
+    ],
+    "tester-coverage": [
+      "tester -s -p php --colors 1 -c tests/php-unix.ini -d extension=xdebug.so --coverage ./coverage.xml --coverage-src ./src tests/cases"
+    ]
+  }
+}

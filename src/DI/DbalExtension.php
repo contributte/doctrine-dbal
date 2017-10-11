@@ -14,10 +14,8 @@ final class DbalExtension extends CompilerExtension
 	public function loadConfiguration()
 	{
 		$builder = $this->getContainerBuilder();
-
 		$builder->addDefinition($this->prefix('connection'))
 			->setClass(Connection::class);
 	}
-
 
 }

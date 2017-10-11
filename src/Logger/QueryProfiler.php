@@ -9,14 +9,17 @@ use Tracy\IBarPanel;
 class QueryProfiler implements IBarPanel, SQLLogger
 {
 
+	/** @var int */
 	private $totalTime = 0;
 
+	/** @var mixed[] */
 	private $queries = [];
 
 	/**
-	 * @param string
-	 * @param array
-	 * @param array
+	 * @param string $sql
+	 * @param array|NULL $params
+	 * @param array|NULL $types
+	 * @return void
 	 */
 	public function startQuery($sql, array $params = NULL, array $types = NULL)
 	{
@@ -24,7 +27,6 @@ class QueryProfiler implements IBarPanel, SQLLogger
 
 		$this->queries[] = [$sql, $params, NULL, $types];
 	}
-
 
 	/**
 	 * @return array
@@ -39,10 +41,7 @@ class QueryProfiler implements IBarPanel, SQLLogger
 		return $this->queries[$key] + array_fill_keys(range(0, 4), NULL);
 	}
 
-
-
 	/***************** Tracy\IBarPanel ********************/
-
 
 	/**
 	 * @return string
@@ -58,7 +57,6 @@ class QueryProfiler implements IBarPanel, SQLLogger
 			. '</span>';
 	}
 
-
 	/**
 	 * @return string
 	 */
@@ -68,13 +66,12 @@ class QueryProfiler implements IBarPanel, SQLLogger
 			return '';
 		}
 
-		return
-			sprintf('<h1>Queries: %s %s, %s</h1>',
-				count($this->queries),
-				($this->totalTime ? ', time: ' . sprintf('%0.3f', $this->totalTime * 1000) . ' ms' : ''),
-				'x'
-			);
-
+		return sprintf(
+			'<h1>Queries: %s %s, %s</h1>',
+			count($this->queries),
+			($this->totalTime ? ', time: ' . sprintf('%0.3f', $this->totalTime * 1000) . ' ms' : ''),
+			'x'
+		);
 	}
 
 }
