@@ -8,7 +8,7 @@ use Doctrine\DBAL\Connection;
 use Nette\DI\Compiler;
 use Nette\DI\Container;
 use Nette\DI\ContainerLoader;
-use Nettrine\Dbal\DI\DbalExtension;
+use Nettrine\DBAL\DI\DbalExtension;
 use Tester\Assert;
 use Tester\FileMock;
 
@@ -20,7 +20,8 @@ test(function () {
 		$compiler->addExtension('dbal', new DbalExtension());
 		$compiler->loadConfig(FileMock::create('
 			dbal:
-				foo: bar 
+				connection:
+					driver: mysqli
 		', 'neon'));
 	}, '1a');
 
