@@ -9,7 +9,7 @@ use Tracy\IBarPanel;
 class QueryProfiler implements IBarPanel, SQLLogger
 {
 
-	/** @var int */
+	/** @var float */
 	private $totalTime = 0;
 
 	/** @var mixed[] */

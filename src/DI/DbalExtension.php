@@ -2,12 +2,10 @@
 
 namespace Nettrine\DBAL\DI;
 
-use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
-use Doctrine\DBAL\Logging\SQLLogger;
 use Doctrine\DBAL\Portability\Connection as PortabilityConnection;
 use Nette\DI\CompilerExtension;
 use Nette\PhpGenerator\ClassType;
@@ -50,9 +48,7 @@ final class DbalExtension extends CompilerExtension
 		$builder = $this->getContainerBuilder();
 
 		$this->loadDoctrineConfiguration();
-		$builder->addDefinition($this->prefix('eventManager'))
-			->setClass(EventManager::class)
-			->setAutowired(FALSE);
+
 		$this->loadConnection();
 
 		$builder->addDefinition($this->prefix('panel'))
@@ -60,61 +56,55 @@ final class DbalExtension extends CompilerExtension
 			->setAutowired(FALSE);
 	}
 
+	/**
+	 * @return void
+	 */
 	public function loadDoctrineConfiguration()
 	{
 		$builder = $this->getContainerBuilder();
-		$config = $this->validateConfig($this->defaults);
+		$this->validateConfig($this->defaults);
+		$config = $this->validateConfig($this->defaults['configuration'], $this->config['configuration']);
 
 		$configuration = $builder->addDefinition($this->prefix('configuration'))
 			->setClass(Configuration::class)
 			->setAutowired(FALSE);
 
-		$configurationConfig = $config['configuration'];
-
 		// SqlLogger
-		if ($configurationConfig['sqlLogger'] !== NULL) {
-			Validators::assert(
-				$configurationConfig['sqlLogger'],
-				SQLLogger::class,
-				'configuration.sqlLogger'
-			);
-			$configuration->addSetup('setSQLLogger', [$configurationConfig['sqlLogger']]);
+		if ($config['sqlLogger'] !== NULL) {
+			$configuration->addSetup('setSQLLogger', [$config['sqlLogger']]);
 		}
 
 		// ResultCacheImpl
-		if ($configurationConfig['resultCacheImpl'] !== NULL) {
-			Validators::assert(
-				$configurationConfig['resultCacheImpl'],
-				Cache::class,
-				'configuration.resultCacheImpl'
-			);
-			$configuration->addSetup('setResultCacheImpl', [$configurationConfig['resultCacheImpl']]);
+		if ($config['resultCacheImpl'] !== NULL) {
+			$configuration->addSetup('setResultCacheImpl', [$config['resultCacheImpl']]);
 		}
 
 		// FilterSchemaAssetsExpression
-		if ($configurationConfig['filterSchemaAssetsExpression'] !== NULL) {
-			Validators::assert(
-				$configurationConfig['filterSchemaAssetsExpression'],
-				'string',
-				'configuration.filterSchemaAssetsExpression'
-			);
-			$configuration->addSetup('setFilterSchemaAssetsExpression', [$configurationConfig['resultCacheImpl']]);
+		if ($config['filterSchemaAssetsExpression'] !== NULL) {
+			$configuration->addSetup('setFilterSchemaAssetsExpression', [$config['resultCacheImpl']]);
 		}
 
 		// AutoCommit
-		Validators::assert($configurationConfig['autoCommit'], 'bool', 'configuration.autoCommit');
-		$configuration->addSetup('setAutoCommit', [$configurationConfig['autoCommit']]);
+		Validators::assert($config['autoCommit'], 'bool', 'configuration.autoCommit');
+		$configuration->addSetup('setAutoCommit', [$config['autoCommit']]);
 	}
 
+	/**
+	 * @return void
+	 */
 	public function loadConnection()
 	{
 		$builder = $this->getContainerBuilder();
-		$config = $this->validateConfig($this->defaults);
+		$config = $this->validateConfig($this->defaults['connection'], $this->config['connection']);
+
+		$builder->addDefinition($this->prefix('eventManager'))
+			->setClass(EventManager::class)
+			->setAutowired(FALSE);
 
 		$builder->addDefinition($this->prefix('connection'))
 			->setClass(Connection::class)
 			->setFactory(DriverManager::class . '::getConnection', [
-				$this->config['connection'],
+				$config,
 				'@' . $this->prefix('configuration'),
 				'@' . $this->prefix('eventManager'),
 			]);

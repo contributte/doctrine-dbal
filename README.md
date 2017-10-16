@@ -30,36 +30,16 @@ extensions:
     dbal: Nettrine\Dbal\DI\DbalExtension
 ```
 
-```
-services:
-    database.configuration.logger:
-        class: Doctrine\DBAL\Logging\LoggerChain
-        autowired: no
-        setup:
-            - addLogger(Nettrine\Dbal\Logger\FileLogger(%tempDir%/doctrine.log))
-            - addLogger(Nettrine\Dbal\Logger\TracyDumpLogger())
+Minimal configuration:
 
-    database.configuration:
-        class: Doctrine\DBAL\Configuration
-        autowired: off
-        setup:
-            - setSQLLogger(@database.configuration.logger)
-
-    database.connection:
-        class: Doctrine\DBAL\Connection
-        factory: Doctrine\DBAL\DriverManager::getConnection([
-            driver: %database.driver%,
-            host: %database.host%,
-            dbname: %database.dbname%,
-            servicename: %database.sid%,
-            user: %database.user%,
-            password: %database.password%,
-            charset: %database.charset%,
-            wrapperClass: 'Doctrine\DBAL\Portability\Connection',
-            portability: Doctrine\DBAL\Portability\Connection::PORTABILITY_ALL,
-            fetch_case: PDO::CASE_LOWER,
-            persistent: true
-        ],  @database.configuration)
+```yaml
+dbal:
+	connection:
+		host: localhost
+		driver: mysqli
+		dbname: nettrine
+		user: root
+		password: root
 ```
 
 ## Maintainers

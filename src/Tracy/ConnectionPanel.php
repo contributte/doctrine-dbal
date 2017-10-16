@@ -26,9 +26,8 @@ class ConnectionPanel implements IBarPanel
 	 */
 	public function getTab()
 	{
-		ob_start(function () {
-		});
-		$elapsedTime = 000;
+		ob_start();
+		$connected = $this->connection->isConnected();
 		require __DIR__ . '/templates/tab.phtml';
 		return ob_get_clean();
 	}
@@ -40,26 +39,10 @@ class ConnectionPanel implements IBarPanel
 	 */
 	public function getPanel()
 	{
-
-
-		//		$container = $this->container;
-		//		$registry = $this->getContainerProperty('registry');
-		//		$file = (new \ReflectionClass($container))->getFileName();
-		//		$tags = [];
-		//		$meta = $this->getContainerProperty('meta');
-		//		$services = $meta[Container::SERVICES];
-		//		ksort($services);
-		//		if (isset($meta[Container::TAGS])) {
-		//			foreach ($meta[Container::TAGS] as $tag => $tmp) {
-		//				foreach ($tmp as $service => $val) {
-		//					$tags[$service][$tag] = $val;
-		//				}
-		//			}
-		//		}
-
-		ob_start(function () {
-		});
-		$params = $this->connection->getParams();
+		ob_start();
+		$parameters = $this->connection->getParams();
+		$parameters['password'] = '****';
+		$connected = $this->connection->isConnected();
 		require __DIR__ . '/templates/panel.phtml';
 		return ob_get_clean();
 	}
