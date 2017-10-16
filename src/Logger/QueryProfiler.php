@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Model\Database\Logger;
+namespace Nettrine\DBAL\Logger;
 
 use Doctrine\DBAL\Logging\SQLLogger;
 use Tracy\Debugger;

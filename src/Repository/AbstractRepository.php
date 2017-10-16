@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Model\Database\Repository;
+namespace Nettrine\DBAL\Repository;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;

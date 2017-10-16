@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Model\Database;
+namespace Nettrine\DBAL\Utils;
 
 use Doctrine\DBAL\Driver\Statement;
 
