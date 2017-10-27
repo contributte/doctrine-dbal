@@ -10,6 +10,8 @@ use Doctrine\DBAL\Portability\Connection as PortabilityConnection;
 use Nette\DI\CompilerExtension;
 use Nette\PhpGenerator\ClassType;
 use Nette\Utils\Validators;
+use Nettrine\DBAL\Command\CreateDatabaseCommand;
+use Nettrine\DBAL\Command\DropDatabaseCommand;
 use Nettrine\DBAL\Tracy\ConnectionPanel;
 use PDO;
 
@@ -46,6 +48,14 @@ final class DbalExtension extends CompilerExtension
 	public function loadConfiguration()
 	{
 		$builder = $this->getContainerBuilder();
+
+		//Commands
+		$builder->addDefinition($this->prefix('createDatabaseCommand'))
+			->setFactory(CreateDatabaseCommand::class)
+			->setAutowired(FALSE);
+		$builder->addDefinition($this->prefix('dropDatabaseCommand'))
+			->setFactory(DropDatabaseCommand::class)
+			->setAutowired(FALSE);
 
 		$this->loadDoctrineConfiguration();
 
