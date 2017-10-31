@@ -34,12 +34,12 @@ Minimal configuration:
 
 ```yaml
 dbal:
-	connection:
-		host: localhost
-		driver: mysqli
-		dbname: nettrine
-		user: root
-		password: root
+  connection:
+    host: localhost
+    driver: mysqli
+    dbname: nettrine
+    user: root
+    password: root
 ```
 
 ## Maintainers
