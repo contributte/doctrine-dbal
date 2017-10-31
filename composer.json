@@ -1,6 +1,6 @@
 {
   "name": "nettrine/dbal",
-  "description": "Dbal",
+  "description": "Well-integrated Doctrine2 DBAL for Nette Framework",
   "keywords": ["nette", "doctrine", "dbal"],
   "type": "library",
   "license": ["MIT"],
