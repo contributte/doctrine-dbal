@@ -108,8 +108,7 @@ final class DbalExtension extends CompilerExtension
 		$config = $this->validateConfig($this->defaults['connection'], $this->config['connection']);
 
 		$builder->addDefinition($this->prefix('eventManager'))
-			->setClass(EventManager::class)
-			->setAutowired(FALSE);
+			->setClass(EventManager::class);
 
 		$builder->addDefinition($this->prefix('connection'))
 			->setClass(Connection::class)
