@@ -7,7 +7,12 @@ use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Portability\Connection as PortabilityConnection;
+use Doctrine\DBAL\Tools\Console\Command\ImportCommand;
+use Doctrine\DBAL\Tools\Console\Command\ReservedWordsCommand;
+use Doctrine\DBAL\Tools\Console\Command\RunSqlCommand;
+use Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper;
 use Nette\DI\CompilerExtension;
+use Nette\DI\Statement;
 use Nette\PhpGenerator\ClassType;
 use Nette\Utils\Validators;
 use Nettrine\DBAL\Command\CreateDatabaseCommand;
@@ -49,6 +54,23 @@ final class DbalExtension extends CompilerExtension
 	{
 		$builder = $this->getContainerBuilder();
 
+		$this->loadDoctrineConfiguration();
+
+		$this->loadConnection();
+
+		$builder->addDefinition($this->prefix('panel'))
+			->setFactory(ConnectionPanel::class)
+			->setAutowired(FALSE);
+
+		// Skip if it's not CLI mode
+		if (PHP_SAPI !== 'cli')
+			return;
+
+		// Helpers
+		$builder->addDefinition($this->prefix('connectionHelper'))
+			->setClass(ConnectionHelper::class)
+			->setAutowired(FALSE);
+
 		//Commands
 		$builder->addDefinition($this->prefix('createDatabaseCommand'))
 			->setFactory(CreateDatabaseCommand::class)
@@ -56,13 +78,14 @@ final class DbalExtension extends CompilerExtension
 		$builder->addDefinition($this->prefix('dropDatabaseCommand'))
 			->setFactory(DropDatabaseCommand::class)
 			->setAutowired(FALSE);
-
-		$this->loadDoctrineConfiguration();
-
-		$this->loadConnection();
-
-		$builder->addDefinition($this->prefix('panel'))
-			->setFactory(ConnectionPanel::class)
+		$builder->addDefinition($this->prefix('dropDatabaseCommand'))
+			->setFactory(ImportCommand::class)
+			->setAutowired(FALSE);
+		$builder->addDefinition($this->prefix('dropDatabaseCommand'))
+			->setFactory(ReservedWordsCommand::class)
+			->setAutowired(FALSE);
+		$builder->addDefinition($this->prefix('dropDatabaseCommand'))
+			->setFactory(RunSqlCommand::class)
 			->setAutowired(FALSE);
 	}
 
@@ -134,6 +157,25 @@ final class DbalExtension extends CompilerExtension
 			'$this->getService(?)->addPanel($this->getService(?));',
 			['tracy.bar', $this->prefix('panel')]
 		);
+	}
+
+	/**
+	 * Decorate services
+	 *
+	 * @return void
+	 */
+	public function beforeCompile()
+	{
+		// Skip if it's not CLI mode
+		if (PHP_SAPI !== 'cli')
+			return;
+
+		$builder = $this->getContainerBuilder();
+		$application = $builder->getDefinition('console.application'); //TODO contributte/console
+
+		// Register helpers
+		$connectionHelper = '@' . $this->prefix('connectionHelper');
+		$application->addSetup(new Statement('$service->getHelperSet()->set(?)', [$connectionHelper]));
 	}
 
 }
