@@ -78,13 +78,13 @@ final class DbalExtension extends CompilerExtension
 		$builder->addDefinition($this->prefix('dropDatabaseCommand'))
 			->setFactory(DropDatabaseCommand::class)
 			->setAutowired(FALSE);
-		$builder->addDefinition($this->prefix('dropDatabaseCommand'))
+		$builder->addDefinition($this->prefix('importCommand'))
 			->setFactory(ImportCommand::class)
 			->setAutowired(FALSE);
-		$builder->addDefinition($this->prefix('dropDatabaseCommand'))
+		$builder->addDefinition($this->prefix('reservedWordsCommand'))
 			->setFactory(ReservedWordsCommand::class)
 			->setAutowired(FALSE);
-		$builder->addDefinition($this->prefix('dropDatabaseCommand'))
+		$builder->addDefinition($this->prefix('runSqlCommand'))
 			->setFactory(RunSqlCommand::class)
 			->setAutowired(FALSE);
 	}
