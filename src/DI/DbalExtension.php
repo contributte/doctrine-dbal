@@ -5,7 +5,6 @@ namespace Nettrine\DBAL\DI;
 use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Portability\Connection as PortabilityConnection;
 use Doctrine\DBAL\Tools\Console\Command\ImportCommand;
 use Doctrine\DBAL\Tools\Console\Command\ReservedWordsCommand;
@@ -15,6 +14,7 @@ use Nette\DI\CompilerExtension;
 use Nette\DI\Statement;
 use Nette\PhpGenerator\ClassType;
 use Nette\Utils\Validators;
+use Nettrine\DBAL\ConnectionFactory;
 use Nettrine\DBAL\Tracy\ConnectionPanel;
 use PDO;
 use Symfony\Component\Console\Application;
@@ -43,6 +43,7 @@ final class DbalExtension extends CompilerExtension
 			'portability' => PortabilityConnection::PORTABILITY_ALL,
 			'fetchCase' => PDO::CASE_LOWER,
 			'persistent' => TRUE,
+			'types' => [],
 		],
 	];
 
@@ -126,9 +127,12 @@ final class DbalExtension extends CompilerExtension
 		$builder->addDefinition($this->prefix('eventManager'))
 			->setClass(EventManager::class);
 
+		$builder->addDefinition($this->prefix('connectionFactory'))
+			->setClass(ConnectionFactory::class, [$config['types']]);
+
 		$builder->addDefinition($this->prefix('connection'))
 			->setClass(Connection::class)
-			->setFactory(DriverManager::class . '::getConnection', [
+			->setFactory('@' . $this->prefix('connectionFactory') . '::createConnection', [
 				$config,
 				'@' . $this->prefix('configuration'),
 				'@' . $this->prefix('eventManager'),
@@ -165,6 +169,9 @@ final class DbalExtension extends CompilerExtension
 
 		$builder = $this->getContainerBuilder();
 		$application = $builder->getDefinitionByType(Application::class);
+		if(!$application){
+			return;
+		}
 
 		// Register helpers
 		$connectionHelper = '@' . $this->prefix('connectionHelper');
