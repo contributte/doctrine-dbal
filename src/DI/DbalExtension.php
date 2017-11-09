@@ -15,8 +15,6 @@ use Nette\DI\CompilerExtension;
 use Nette\DI\Statement;
 use Nette\PhpGenerator\ClassType;
 use Nette\Utils\Validators;
-use Nettrine\DBAL\Command\CreateDatabaseCommand;
-use Nettrine\DBAL\Command\DropDatabaseCommand;
 use Nettrine\DBAL\Tracy\ConnectionPanel;
 use PDO;
 
@@ -72,12 +70,6 @@ final class DbalExtension extends CompilerExtension
 			->setAutowired(FALSE);
 
 		//Commands
-		$builder->addDefinition($this->prefix('createDatabaseCommand'))
-			->setFactory(CreateDatabaseCommand::class)
-			->setAutowired(FALSE);
-		$builder->addDefinition($this->prefix('dropDatabaseCommand'))
-			->setFactory(DropDatabaseCommand::class)
-			->setAutowired(FALSE);
 		$builder->addDefinition($this->prefix('importCommand'))
 			->setFactory(ImportCommand::class)
 			->setAutowired(FALSE);
