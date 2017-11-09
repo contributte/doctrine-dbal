@@ -17,6 +17,7 @@ use Nette\PhpGenerator\ClassType;
 use Nette\Utils\Validators;
 use Nettrine\DBAL\Tracy\ConnectionPanel;
 use PDO;
+use Symfony\Component\Console\Application;
 
 final class DbalExtension extends CompilerExtension
 {
@@ -31,14 +32,14 @@ final class DbalExtension extends CompilerExtension
 		],
 		'connection' => [
 			'url' => NULL,
-			'driver' => NULL,
-			'driverClass' => NULL, //Null or class implement Doctrine\DBAL\Driver
+			'driver' => 'pdo_mysql',
+			'driverClass' => NULL,
 			'host' => NULL,
 			'dbname' => NULL,
 			'servicename' => NULL,
 			'user' => NULL,
 			'password' => NULL,
-			'charset' => NULL,
+			'charset' => 'UTF8',
 			'portability' => PortabilityConnection::PORTABILITY_ALL,
 			'fetchCase' => PDO::CASE_LOWER,
 			'persistent' => TRUE,
@@ -163,7 +164,7 @@ final class DbalExtension extends CompilerExtension
 			return;
 
 		$builder = $this->getContainerBuilder();
-		$application = $builder->getDefinition('console.application'); //TODO contributte/console
+		$application = $builder->getDefinitionByType(Application::class);
 
 		// Register helpers
 		$connectionHelper = '@' . $this->prefix('connectionHelper');
