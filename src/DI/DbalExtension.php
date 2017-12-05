@@ -168,13 +168,13 @@ final class DbalExtension extends CompilerExtension
 			return;
 
 		$builder = $this->getContainerBuilder();
-		$application = $builder->getDefinitionByType(Application::class);
-		if(!$application){
+		$application = $builder->getByType(Application::class, FALSE);
+		if (!$application)
 			return;
-		}
+		$application = $builder->getDefinition($application);
 
 		// Register helpers
-		$connectionHelper = '@' . $this->prefix('connectionHelper');
+		$connectionHelper = $this->prefix('@connectionHelper');
 		$application->addSetup(new Statement('$service->getHelperSet()->set(?)', [$connectionHelper]));
 	}
 
