@@ -17,13 +17,13 @@ use Nette\Utils\Validators;
 use Nettrine\DBAL\ConnectionFactory;
 use Nettrine\DBAL\Tracy\ConnectionPanel;
 use PDO;
-use Symfony\Component\Console\Application;
 
 final class DbalExtension extends CompilerExtension
 {
 
 	/** @var mixed[] */
 	private $defaults = [
+		'debug' => FALSE,
 		'configuration' => [
 			'sqlLogger' => NULL,
 			'resultCacheImpl' => NULL,
@@ -48,52 +48,44 @@ final class DbalExtension extends CompilerExtension
 	];
 
 	/**
+	 * Register services
+	 *
 	 * @return void
 	 */
 	public function loadConfiguration()
 	{
 		$builder = $this->getContainerBuilder();
+		$config = $this->validateConfig($this->defaults);
 
 		$this->loadDoctrineConfiguration();
+		$this->loadConnectionConfiguration();
 
-		$this->loadConnection();
-
-		$builder->addDefinition($this->prefix('panel'))
-			->setFactory(ConnectionPanel::class)
-			->setAutowired(FALSE);
+		if ($config['debug'] === TRUE) {
+			$builder->addDefinition($this->prefix('panel'))
+				->setFactory(ConnectionPanel::class)
+				->setAutowired(FALSE);
+		}
 
 		// Skip if it's not CLI mode
-		if (PHP_SAPI !== 'cli')
-			return;
-
-		// Helpers
-		$builder->addDefinition($this->prefix('connectionHelper'))
-			->setClass(ConnectionHelper::class)
-			->setAutowired(FALSE);
-
-		//Commands
-		$builder->addDefinition($this->prefix('importCommand'))
-			->setFactory(ImportCommand::class)
-			->setAutowired(FALSE);
-		$builder->addDefinition($this->prefix('reservedWordsCommand'))
-			->setFactory(ReservedWordsCommand::class)
-			->setAutowired(FALSE);
-		$builder->addDefinition($this->prefix('runSqlCommand'))
-			->setFactory(RunSqlCommand::class)
-			->setAutowired(FALSE);
+		if (PHP_SAPI === 'cli') {
+			if (class_exists('Symfony\Component\Console\Application')) {
+				$this->loadConsoleConfiguration();
+			}
+		}
 	}
 
 	/**
+	 * Register Doctrine Configuration
+	 *
 	 * @return void
 	 */
 	public function loadDoctrineConfiguration()
 	{
 		$builder = $this->getContainerBuilder();
-		$this->validateConfig($this->defaults);
 		$config = $this->validateConfig($this->defaults['configuration'], $this->config['configuration']);
 
 		$configuration = $builder->addDefinition($this->prefix('configuration'))
-			->setClass(Configuration::class)
+			->setFactory(Configuration::class)
 			->setAutowired(FALSE);
 
 		// SqlLogger
@@ -119,19 +111,19 @@ final class DbalExtension extends CompilerExtension
 	/**
 	 * @return void
 	 */
-	public function loadConnection()
+	public function loadConnectionConfiguration()
 	{
 		$builder = $this->getContainerBuilder();
 		$config = $this->validateConfig($this->defaults['connection'], $this->config['connection']);
 
 		$builder->addDefinition($this->prefix('eventManager'))
-			->setClass(EventManager::class);
+			->setFactory(EventManager::class);
 
 		$builder->addDefinition($this->prefix('connectionFactory'))
-			->setClass(ConnectionFactory::class, [$config['types']]);
+			->setFactory(ConnectionFactory::class, [$config['types']]);
 
 		$builder->addDefinition($this->prefix('connection'))
-			->setClass(Connection::class)
+			->setFactory(Connection::class)
 			->setFactory('@' . $this->prefix('connectionFactory') . '::createConnection', [
 				$config,
 				'@' . $this->prefix('configuration'),
@@ -140,20 +132,31 @@ final class DbalExtension extends CompilerExtension
 	}
 
 	/**
-	 * @param ClassType $class
+	 * Register Symfony Console services
+	 *
 	 * @return void
 	 */
-	public function afterCompile(ClassType $class)
+	public function loadConsoleConfiguration()
 	{
-		//		$config = $this->compiler->getExtension()->getConfig();
-		//		if ($config['debug'] !== TRUE)
-		//			return;
+		$builder = $this->getContainerBuilder();
 
-		$initialize = $class->getMethod('initialize');
-		$initialize->addBody(
-			'$this->getService(?)->addPanel($this->getService(?));',
-			['tracy.bar', $this->prefix('panel')]
-		);
+		// Helpers
+		$builder->addDefinition($this->prefix('connectionHelper'))
+			->setFactory(ConnectionHelper::class)
+			->setAutowired(FALSE);
+
+		//Commands
+		$builder->addDefinition($this->prefix('importCommand'))
+			->setFactory(ImportCommand::class)
+			->setAutowired(FALSE);
+
+		$builder->addDefinition($this->prefix('reservedWordsCommand'))
+			->setFactory(ReservedWordsCommand::class)
+			->setAutowired(FALSE);
+
+		$builder->addDefinition($this->prefix('runSqlCommand'))
+			->setFactory(RunSqlCommand::class)
+			->setAutowired(FALSE);
 	}
 
 	/**
@@ -164,18 +167,37 @@ final class DbalExtension extends CompilerExtension
 	public function beforeCompile()
 	{
 		// Skip if it's not CLI mode
-		if (PHP_SAPI !== 'cli')
-			return;
+		if (PHP_SAPI !== 'cli') return;
 
 		$builder = $this->getContainerBuilder();
-		$application = $builder->getByType(Application::class, FALSE);
-		if (!$application)
-			return;
+
+		// Lookup for Symfony Console Application
+		$application = $builder->getByType('Symfony\Component\Console\Application', FALSE);
+		if (!$application) return;
 		$application = $builder->getDefinition($application);
 
 		// Register helpers
 		$connectionHelper = $this->prefix('@connectionHelper');
 		$application->addSetup(new Statement('$service->getHelperSet()->set(?)', [$connectionHelper]));
+	}
+
+	/**
+	 * Update initialize method
+	 *
+	 * @param ClassType $class
+	 * @return void
+	 */
+	public function afterCompile(ClassType $class)
+	{
+		$config = $this->validateConfig($this->defaults);
+
+		if ($config['debug'] === TRUE) {
+			$initialize = $class->getMethod('initialize');
+			$initialize->addBody(
+				'$this->getService(?)->addPanel($this->getService(?));',
+				['tracy.bar', $this->prefix('panel')]
+			);
+		}
 	}
 
 }
