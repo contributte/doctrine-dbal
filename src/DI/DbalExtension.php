@@ -6,12 +6,7 @@ use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Portability\Connection as PortabilityConnection;
-use Doctrine\DBAL\Tools\Console\Command\ImportCommand;
-use Doctrine\DBAL\Tools\Console\Command\ReservedWordsCommand;
-use Doctrine\DBAL\Tools\Console\Command\RunSqlCommand;
-use Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper;
 use Nette\DI\CompilerExtension;
-use Nette\DI\Statement;
 use Nette\PhpGenerator\ClassType;
 use Nette\Utils\Validators;
 use Nettrine\DBAL\ConnectionFactory;
@@ -64,13 +59,6 @@ final class DbalExtension extends CompilerExtension
 			$builder->addDefinition($this->prefix('panel'))
 				->setFactory(ConnectionPanel::class)
 				->setAutowired(FALSE);
-		}
-
-		// Skip if it's not CLI mode
-		if (PHP_SAPI === 'cli') {
-			if (class_exists('Symfony\Component\Console\Application')) {
-				$this->loadConsoleConfiguration();
-			}
 		}
 	}
 
@@ -129,56 +117,6 @@ final class DbalExtension extends CompilerExtension
 				'@' . $this->prefix('configuration'),
 				'@' . $this->prefix('eventManager'),
 			]);
-	}
-
-	/**
-	 * Register Symfony Console services
-	 *
-	 * @return void
-	 */
-	public function loadConsoleConfiguration()
-	{
-		$builder = $this->getContainerBuilder();
-
-		// Helpers
-		$builder->addDefinition($this->prefix('connectionHelper'))
-			->setFactory(ConnectionHelper::class)
-			->setAutowired(FALSE);
-
-		//Commands
-		$builder->addDefinition($this->prefix('importCommand'))
-			->setFactory(ImportCommand::class)
-			->setAutowired(FALSE);
-
-		$builder->addDefinition($this->prefix('reservedWordsCommand'))
-			->setFactory(ReservedWordsCommand::class)
-			->setAutowired(FALSE);
-
-		$builder->addDefinition($this->prefix('runSqlCommand'))
-			->setFactory(RunSqlCommand::class)
-			->setAutowired(FALSE);
-	}
-
-	/**
-	 * Decorate services
-	 *
-	 * @return void
-	 */
-	public function beforeCompile()
-	{
-		// Skip if it's not CLI mode
-		if (PHP_SAPI !== 'cli') return;
-
-		$builder = $this->getContainerBuilder();
-
-		// Lookup for Symfony Console Application
-		$application = $builder->getByType('Symfony\Component\Console\Application', FALSE);
-		if (!$application) return;
-		$application = $builder->getDefinition($application);
-
-		// Register helpers
-		$connectionHelper = $this->prefix('@connectionHelper');
-		$application->addSetup(new Statement('$service->getHelperSet()->set(?)', [$connectionHelper]));
 	}
 
 	/**
