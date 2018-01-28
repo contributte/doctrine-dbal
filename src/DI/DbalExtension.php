@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 
 namespace Nettrine\DBAL\DI;
 
@@ -47,7 +47,7 @@ final class DbalExtension extends CompilerExtension
 	 *
 	 * @return void
 	 */
-	public function loadConfiguration()
+	public function loadConfiguration(): void
 	{
 		$builder = $this->getContainerBuilder();
 		$config = $this->validateConfig($this->defaults);
@@ -67,7 +67,7 @@ final class DbalExtension extends CompilerExtension
 	 *
 	 * @return void
 	 */
-	public function loadDoctrineConfiguration()
+	public function loadDoctrineConfiguration(): void
 	{
 		$builder = $this->getContainerBuilder();
 		$config = $this->validateConfig($this->defaults['configuration'], $this->config['configuration']);
@@ -99,7 +99,7 @@ final class DbalExtension extends CompilerExtension
 	/**
 	 * @return void
 	 */
-	public function loadConnectionConfiguration()
+	public function loadConnectionConfiguration(): void
 	{
 		$builder = $this->getContainerBuilder();
 		$config = $this->validateConfig($this->defaults['connection'], $this->config['connection']);
@@ -125,10 +125,9 @@ final class DbalExtension extends CompilerExtension
 	 * @param ClassType $class
 	 * @return void
 	 */
-	public function afterCompile(ClassType $class)
+	public function afterCompile(ClassType $class): void
 	{
 		$config = $this->validateConfig($this->defaults);
-
 		if ($config['debug'] === TRUE) {
 			$initialize = $class->getMethod('initialize');
 			$initialize->addBody(

@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 
 namespace Nettrine\DBAL\Tracy;
 
@@ -24,7 +24,7 @@ class ConnectionPanel implements IBarPanel
 	 *
 	 * @return string
 	 */
-	public function getTab()
+	public function getTab(): string
 	{
 		ob_start();
 		$connected = $this->connection->isConnected();
@@ -37,7 +37,7 @@ class ConnectionPanel implements IBarPanel
 	 *
 	 * @return string
 	 */
-	public function getPanel()
+	public function getPanel(): string
 	{
 		ob_start();
 		$parameters = $this->connection->getParams();

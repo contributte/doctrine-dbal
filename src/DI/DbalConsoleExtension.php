@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 
 namespace Nettrine\DBAL\DI;
 
@@ -18,7 +18,7 @@ class DbalConsoleExtension extends CompilerExtension
 	 *
 	 * @return void
 	 */
-	public function loadConfiguration()
+	public function loadConfiguration(): void
 	{
 		if (!class_exists('Symfony\Component\Console\Application'))
 			throw new ServiceCreationException('Missing Symfony\Component\Console\Application service');
@@ -53,7 +53,7 @@ class DbalConsoleExtension extends CompilerExtension
 	 *
 	 * @return void
 	 */
-	public function beforeCompile()
+	public function beforeCompile(): void
 	{
 		// Skip if it's not CLI mode
 		if (PHP_SAPI !== 'cli')

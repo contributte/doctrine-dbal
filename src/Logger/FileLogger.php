@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 
 namespace Nettrine\DBAL\Logger;
 
@@ -11,7 +11,7 @@ final class FileLogger extends AbstractLogger
 	/**
 	 * @param string $file
 	 */
-	public function __construct($file)
+	public function __construct(string $file)
 	{
 		$this->file = $file;
 	}
@@ -19,7 +19,7 @@ final class FileLogger extends AbstractLogger
 	/**
 	 * @return void
 	 */
-	public function stopQuery()
+	public function stopQuery(): void
 	{
 		$query = parent::stopQuery();
 

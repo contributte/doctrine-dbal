@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 
 namespace Nettrine\DBAL\Logger;
 
@@ -10,10 +10,9 @@ final class TracyDumpLogger extends AbstractLogger
 	/**
 	 * @return void
 	 */
-	public function stopQuery()
+	public function stopQuery(): void
 	{
 		$query = parent::stopQuery();
-
 		Debugger::barDump($query, 'DBAL');
 	}
 

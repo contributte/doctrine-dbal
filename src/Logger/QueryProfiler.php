@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 
 namespace Nettrine\DBAL\Logger;
 
@@ -21,17 +21,16 @@ class QueryProfiler implements IBarPanel, SQLLogger
 	 * @param array|NULL $types
 	 * @return void
 	 */
-	public function startQuery($sql, array $params = NULL, array $types = NULL)
+	public function startQuery($sql, array $params = NULL, array $types = NULL): void
 	{
 		Debugger::timer('doctrine');
-
 		$this->queries[] = [$sql, $params, NULL, $types];
 	}
 
 	/**
 	 * @return array
 	 */
-	public function stopQuery()
+	public function stopQuery(): array
 	{
 		$keys = array_keys($this->queries);
 		$key = end($keys);
@@ -46,7 +45,7 @@ class QueryProfiler implements IBarPanel, SQLLogger
 	/**
 	 * @return string
 	 */
-	public function getTab()
+	public function getTab(): string
 	{
 		return '<span title="Doctrine 2">'
 			. '<svg viewBox="0 0 2048 2048"><path fill="#aaa" d="M1024 896q237 0 443-43t325-127v170q0 69-103 128t-280 93.5-385 34.5-385-34.5-280-93.5-103-128v-170q119 84 325 127t443 43zm0 768q237 0 443-43t325-127v170q0 69-103 128t-280 93.5-385 34.5-385-34.5-280-93.5-103-128v-170q119 84 325 127t443 43zm0-384q237 0 443-43t325-127v170q0 69-103 128t-280 93.5-385 34.5-385-34.5-280-93.5-103-128v-170q119 84 325 127t443 43zm0-1152q208 0 385 34.5t280 93.5 103 128v128q0 69-103 128t-280 93.5-385 34.5-385-34.5-280-93.5-103-128v-128q0-69 103-128t280-93.5 385-34.5z"></path></svg>'
@@ -60,12 +59,11 @@ class QueryProfiler implements IBarPanel, SQLLogger
 	/**
 	 * @return string
 	 */
-	public function getPanel()
+	public function getPanel(): string
 	{
 		if (empty($this->queries)) {
 			return '';
 		}
-
 		return sprintf(
 			'<h1>Queries: %s %s, %s</h1>',
 			count($this->queries),

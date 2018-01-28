@@ -1,9 +1,15 @@
 {
   "name": "nettrine/dbal",
   "description": "Well-integrated Doctrine2 DBAL for Nette Framework",
-  "keywords": ["nette", "doctrine", "dbal"],
+  "keywords": [
+    "nette",
+    "doctrine",
+    "dbal"
+  ],
   "type": "library",
-  "license": ["MIT"],
+  "license": [
+    "MIT"
+  ],
   "homepage": "https://github.com/nettrine/dbal",
   "authors": [
     {
@@ -12,12 +18,12 @@
     }
   ],
   "require": {
-    "php": ">=5.6",
+    "php": ">=7.1",
     "nette/di": "~2.4.9",
     "doctrine/dbal": "~2.5.13 || ~2.6.0"
   },
   "require-dev": {
-    "ninjify/qa": "~0.4.0",
+    "ninjify/qa": "~0.7.0",
     "ninjify/nunjuck": "~0.2.0",
     "tracy/tracy": "~2.4.10",
     "contributte/console": "^0.2.0"

@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 
 /**
  * Test: DI\DbalExtension
@@ -15,9 +15,9 @@ use Tester\FileMock;
 
 require_once __DIR__ . '/../../bootstrap.php';
 
-test(function () {
+test(function (): void {
 	$loader = new ContainerLoader(TEMP_DIR, TRUE);
-	$class = $loader->load(function (Compiler $compiler) {
+	$class = $loader->load(function (Compiler $compiler): void {
 		$compiler->addExtension('dbal', new DbalExtension());
 		$compiler->loadConfig(FileMock::create('
 			dbal:
