@@ -21,6 +21,7 @@ test(function (): void {
 		$compiler->addExtension('dbal', new DbalExtension());
 		$compiler->loadConfig(FileMock::create('
 			dbal:
+				debug: true
 				connection:
 					driver: pdo_sqlite
 		', 'neon'));

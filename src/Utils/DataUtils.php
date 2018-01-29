@@ -11,9 +11,9 @@ final class DataUtils
 	 * @param Statement $statement
 	 * @param string $key
 	 * @param string $value
-	 * @return array
+	 * @return mixed[]
 	 */
-	public static function toPairs(Statement $statement, $key = NULL, $value = NULL): array
+	public static function toPairs(Statement $statement, ?string $key = NULL, ?string $value = NULL): array
 	{
 		$rows = $statement->fetchAll();
 

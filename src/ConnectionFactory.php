@@ -54,10 +54,10 @@ class ConnectionFactory
 	 */
 	public function createConnection(
 		array $params,
-		Configuration $config = NULL,
-		EventManager $eventManager = NULL,
+		?Configuration $config = NULL,
+		?EventManager $eventManager = NULL,
 		array $mappingTypes = []
-	)
+	): Connection
 	{
 		if (!$this->initialized) {
 			$this->initializeTypes();
@@ -92,7 +92,7 @@ class ConnectionFactory
 	 * @return AbstractPlatform
 	 * @throws DBALException
 	 */
-	private function getDatabasePlatform(Connection $connection)
+	private function getDatabasePlatform(Connection $connection): AbstractPlatform
 	{
 		try {
 			return $connection->getDatabasePlatform();
@@ -114,7 +114,7 @@ class ConnectionFactory
 	/**
 	 * @return void
 	 */
-	private function initializeTypes()
+	private function initializeTypes(): void
 	{
 		foreach ($this->typesConfig as $type => $typeConfig) {
 			if (Type::hasType($type)) {

@@ -1,6 +1,6 @@
 <?php declare(strict_types = 1);
 
-namespace Nettrine\DBAL\Tracy;
+namespace Nettrine\DBAL\Tracy\ConnectionPanel;
 
 use Doctrine\DBAL\Connection;
 use Tracy\IBarPanel;
@@ -29,6 +29,7 @@ class ConnectionPanel implements IBarPanel
 		ob_start();
 		$connected = $this->connection->isConnected();
 		require __DIR__ . '/templates/tab.phtml';
+
 		return ob_get_clean();
 	}
 
@@ -44,6 +45,7 @@ class ConnectionPanel implements IBarPanel
 		$parameters['password'] = '****';
 		$connected = $this->connection->isConnected();
 		require __DIR__ . '/templates/panel.phtml';
+
 		return ob_get_clean();
 	}
 

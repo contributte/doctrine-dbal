@@ -2,45 +2,12 @@
 
 namespace Nettrine\DBAL\Logger;
 
-use Doctrine\DBAL\Logging\SQLLogger;
-use Tracy\Debugger;
 use Tracy\IBarPanel;
+use function count;
+use function sprintf;
 
-class QueryProfiler implements IBarPanel, SQLLogger
+class QueryProfiler extends AbstractLogger implements IBarPanel
 {
-
-	/** @var float */
-	private $totalTime = 0;
-
-	/** @var mixed[] */
-	private $queries = [];
-
-	/**
-	 * @param string $sql
-	 * @param array|NULL $params
-	 * @param array|NULL $types
-	 * @return void
-	 */
-	public function startQuery($sql, array $params = NULL, array $types = NULL): void
-	{
-		Debugger::timer('doctrine');
-		$this->queries[] = [$sql, $params, NULL, $types];
-	}
-
-	/**
-	 * @return array
-	 */
-	public function stopQuery(): array
-	{
-		$keys = array_keys($this->queries);
-		$key = end($keys);
-		$this->queries[$key][2] = $time = Debugger::timer('doctrine');
-		$this->totalTime += $time;
-
-		return $this->queries[$key] + array_fill_keys(range(0, 4), NULL);
-	}
-
-	/***************** Tracy\IBarPanel ********************/
 
 	/**
 	 * @return string
@@ -64,11 +31,11 @@ class QueryProfiler implements IBarPanel, SQLLogger
 		if (empty($this->queries)) {
 			return '';
 		}
+
 		return sprintf(
-			'<h1>Queries: %s %s, %s</h1>',
+			'<h1>Queries: %s / %s</h1>',
 			count($this->queries),
-			($this->totalTime ? ', time: ' . sprintf('%0.3f', $this->totalTime * 1000) . ' ms' : ''),
-			'x'
+			($this->totalTime ? ', time: ' . sprintf('%0.3f', $this->totalTime * 1000) . ' ms' : '')
 		);
 	}
 

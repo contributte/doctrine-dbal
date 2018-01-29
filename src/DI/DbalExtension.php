@@ -7,10 +7,13 @@ use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Portability\Connection as PortabilityConnection;
 use Nette\DI\CompilerExtension;
+use Nette\DI\ContainerBuilder;
 use Nette\PhpGenerator\ClassType;
 use Nette\Utils\Validators;
 use Nettrine\DBAL\ConnectionFactory;
-use Nettrine\DBAL\Tracy\ConnectionPanel;
+use Nettrine\DBAL\Tracy\BlueScreen\DbalBlueScreen;
+use Nettrine\DBAL\Tracy\ConnectionPanel\ConnectionPanel;
+use Nettrine\DBAL\Tracy\QueryPanel\QueryPanel;
 use PDO;
 
 final class DbalExtension extends CompilerExtension
@@ -56,8 +59,11 @@ final class DbalExtension extends CompilerExtension
 		$this->loadConnectionConfiguration();
 
 		if ($config['debug'] === TRUE) {
-			$builder->addDefinition($this->prefix('panel'))
+			$builder->addDefinition($this->prefix('connectionPanel'))
 				->setFactory(ConnectionPanel::class)
+				->setAutowired(FALSE);
+			$builder->addDefinition($this->prefix('queryPanel'))
+				->setFactory(QueryPanel::class)
 				->setAutowired(FALSE);
 		}
 	}
@@ -132,7 +138,15 @@ final class DbalExtension extends CompilerExtension
 			$initialize = $class->getMethod('initialize');
 			$initialize->addBody(
 				'$this->getService(?)->addPanel($this->getService(?));',
-				['tracy.bar', $this->prefix('panel')]
+				['tracy.bar', $this->prefix('connectionPanel')]
+			);
+			$initialize->addBody(
+				'$this->getService(?)->addPanel($this->getService(?));',
+				['tracy.bar', $this->prefix('queryPanel')]
+			);
+			$initialize->addBody(
+				'$this->getService(?)->addPanel(new ?);',
+				['tracy.blueScreen', ContainerBuilder::literal(DbalBlueScreen::class)]
 			);
 		}
 	}
