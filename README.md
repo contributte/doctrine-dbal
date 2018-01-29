@@ -23,24 +23,20 @@ Doctrine DBAL for Nette Framework.
 composer require nettrine/dbal
 ```
 
-## Usage
+## Versions
 
-```yaml
-extensions:
-    dbal: Nettrine\Dbal\DI\DbalExtension
-```
+| State       | Version     | Branch   | PHP      |
+|-------------|-------------|----------|----------|
+| development | dev-master  | `master` | `>= 7.1` |
+| stable      | `^0.1`      | `master` | `>= 7.1` |
 
-Minimal configuration:
+## Overview
 
-```yaml
-dbal:
-  connection:
-    host: localhost
-    driver: mysqli
-    dbname: nettrine
-    user: root
-    password: root
-```
+- [Installation - how to install](https://github.com/nettrine/dbal/blob/master/.docs/#installation)
+- [Configuration - basic setup](https://github.com/nettrine/dbal/blob/master/.docs/#configuration)
+- [Usage](https://github.com/nettrine/dbal/blob/master/.docs/#usage)
+- [Bridges](https://github.com/nettrine/dbal/blob/master/.docs/#bridges)
+    - [Symfony\Console](https://github.com/nettrine/dbal/blob/master/.docs/#symfony-console)
 
 ## Maintainers
 
