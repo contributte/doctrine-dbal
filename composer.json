@@ -19,12 +19,12 @@
   ],
   "require": {
     "php": ">=7.1",
-    "nette/di": "~2.4.9",
-    "doctrine/dbal": "~2.5.13 || ~2.6.0"
+    "nette/di": "~2.4.10",
+    "doctrine/dbal": "~2.6.3"
   },
   "require-dev": {
-    "ninjify/qa": "~0.7.0",
-    "ninjify/nunjuck": "~0.2.0",
+    "ninjify/qa": "^0.7.0",
+    "ninjify/nunjuck": "^0.2.0",
     "tracy/tracy": "~2.4.10",
     "contributte/console": "^0.2.0"
   },
