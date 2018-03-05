@@ -69,15 +69,14 @@ tiny integration for Nette Framework.
 
 ```yaml
 extensions:
+    # Console
+    console: Contributte\Console\DI\ConsoleExtension
+
+    # Dbal
     dbal: Nettrine\Dbal\DI\DbalExtension
     dbal.console: Nettrine\Dbal\DI\DbalConsoleExtension
 ```
 
 From this moment when you type `bin/console`, there'll be registered commands from Doctrine DBAL.
 
-Commands:
-
-    - `doctrine:database:create`
-    - `doctrine:database:drop`
-
-Heavily inspired by doctrine/doctrineBundle.
+![Commands](assets/commands.png)
