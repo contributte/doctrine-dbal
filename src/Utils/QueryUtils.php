@@ -8,7 +8,6 @@ final class QueryUtils
 	/**
 	 * @copyright https://github.com/nextras/dbal/blob/master/src/Bridges/NetteTracy/ConnectionPanel.php#L112
 	 * @copyright Nextras DBAL
-	 *
 	 * @param string $sql
 	 * @return string
 	 */
