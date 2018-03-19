@@ -2,7 +2,6 @@
 
 namespace Nettrine\DBAL\DI;
 
-use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Portability\Connection as PortabilityConnection;
@@ -11,6 +10,7 @@ use Nette\DI\ContainerBuilder;
 use Nette\PhpGenerator\ClassType;
 use Nette\Utils\Validators;
 use Nettrine\DBAL\ConnectionFactory;
+use Nettrine\DBAL\Events\EventManager;
 use Nettrine\DBAL\Tracy\BlueScreen\DbalBlueScreen;
 use Nettrine\DBAL\Tracy\ConnectionPanel\ConnectionPanel;
 use Nettrine\DBAL\Tracy\QueryPanel\QueryPanel;
@@ -18,6 +18,8 @@ use PDO;
 
 final class DbalExtension extends CompilerExtension
 {
+
+	public const TAG_NETTRINE_LISTENER = 'nettrine.listener';
 
 	/** @var mixed[] */
 	private $defaults = [
@@ -126,6 +128,22 @@ final class DbalExtension extends CompilerExtension
 	}
 
 	/**
+	 * Decorate services
+	 *
+	 * @return void
+	 */
+	public function beforeCompile(): void
+	{
+		$builder = $this->getContainerBuilder();
+
+		$eventManager = $builder->getDefinition($this->prefix('eventManager'));
+
+		foreach ($builder->findByTag(self::TAG_NETTRINE_LISTENER) as $serviceName => $tag) {
+			$eventManager->addSetup('addLazyEventListener', ['@' . $serviceName]);
+		}
+	}
+
+	/**
 	 * Update initialize method
 	 *
 	 * @param ClassType $class
@@ -134,6 +152,7 @@ final class DbalExtension extends CompilerExtension
 	public function afterCompile(ClassType $class): void
 	{
 		$config = $this->validateConfig($this->defaults);
+
 		if ($config['debug'] === TRUE) {
 			$initialize = $class->getMethod('initialize');
 			$initialize->addBody(
