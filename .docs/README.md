@@ -60,6 +60,23 @@ dbal:
         persistent: TRUE
         types: []
 ```
+
+### Types
+
+Here is a example how to custom type. For more information, follow the official documention.
+
+- http://docs.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html
+- http://docs.doctrine-project.org/projects/doctrine-orm/en/latest/cookbook/custom-mapping-types.html
+
+```
+dbal:
+    connection:
+        types:
+            my_type:
+                class: App\YourType
+                commented: false/true
+```
+
 ## Bridges
 
 ### Symfony\Console
