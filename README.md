@@ -28,7 +28,7 @@ composer require nettrine/dbal
 | State       | Version     | Branch   | PHP      |
 |-------------|-------------|----------|----------|
 | development | dev-master  | `master` | `>= 7.1` |
-| stable      | `^0.1`      | `master` | `>= 7.1` |
+| stable      | `^0.2`      | `master` | `>= 7.1` |
 
 ## Overview
 
