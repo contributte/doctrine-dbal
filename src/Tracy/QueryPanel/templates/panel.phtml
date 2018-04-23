@@ -1,0 +1,54 @@
+<?php
+
+use Nettrine\DBAL\Utils\QueryUtils;
+use Tracy\Dumper;   
+
+$totalTime = $qs = NULL;
+foreach ($queries as $query) {
+	$totalTime += $query->duration;
+
+	$qs .= '<tr><td>' . number_format($query->duration * 1000, 3, '.', ' ');
+	$qs .= '</td><td class="tracy-dbal-sql">' . QueryUtils::highlight($query->sql);
+	$qs .= '</td></tr>';
+}
+
+?>
+<style>
+    #tracy-debug td.tracy-dbal-sql {
+        background: white !important
+    }
+
+    #tracy-debug .tracy-dbal-source {
+        color: #999 !important
+    }
+
+    #tracy-debug .tracy-dbal tr table {
+        margin: 8px 0;
+        max-height: 150px;
+        overflow: auto
+    }
+</style>
+
+<?php
+if (count($this->queries) <= 0) {
+	echo "<h1>No queries</h1>";
+} else {
+	?>
+    <h1>Queries:
+		<?= count($this->queries) ?>
+		<?= ($totalTime === NULL ? '' : ', time: ' . number_format($totalTime * 1000, 1, '.', ' ') . ' ms'); ?>
+    </h1>
+<?php } ?>
+
+
+<div class="tracy-inner nettrine-dbal">
+	<?= Dumper::toHtml($parameters, [Dumper::COLLAPSE => TRUE]); ?>
+
+    <table>
+        <tr>
+            <th>Time&nbsp;ms</th>
+            <th>SQL Statement</th>
+        </tr>
+		<?= $qs ?>
+    </table>
+</div>

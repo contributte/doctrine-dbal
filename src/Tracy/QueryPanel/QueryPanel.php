@@ -3,10 +3,10 @@
 namespace Nettrine\DBAL\Tracy\QueryPanel;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Logging\LoggerChain;
 use Doctrine\DBAL\SQLParserUtils;
 use Doctrine\DBAL\SQLParserUtilsException;
 use Nettrine\DBAL\Logger\AbstractLogger;
-use Nettrine\DBAL\Utils\QueryUtils;
 use Tracy\IBarPanel;
 
 class QueryPanel extends AbstractLogger implements IBarPanel
@@ -84,28 +84,14 @@ class QueryPanel extends AbstractLogger implements IBarPanel
 	 */
 	public function getPanel(): ?string
 	{
-		if (!$this->queries) return NULL;
+		ob_start();
+		$parameters = $this->connection->getParams();
+		$parameters['password'] = '****';
+		$connected = $this->connection->isConnected();
+		$queries = $this->queries;
+		require __DIR__ . '/templates/panel.phtml';
 
-		$totalTime = $s = NULL;
-		foreach ($this->queries as $query) {
-			$totalTime += $query->duration;
-
-			$s .= '<tr><td>' . number_format($query->duration * 1000, 3, '.', ' ');
-			$s .= '</td><td class="tracy-dbal-sql">' . QueryUtils::highlight($query->sql);
-			$s .= '</td></tr>';
-		}
-
-		return '<style> #tracy-debug td.tracy-dbal-sql { background: white !important }
-			#tracy-debug .tracy-dbal-source { color: #999 !important }
-			#tracy-debug .tracy-dbal tr table { margin: 8px 0; max-height: 150px; overflow:auto } </style>
-			<h1>Queries: ' . count($this->queries)
-			. ($totalTime === NULL ? '' : ', time: ' . number_format($totalTime * 1000, 1, '.', ' ') . ' ms') . ', '
-			. '</h1>
-			<div class="tracy-inner tracy-dbal">
-			<table>
-				<tr><th>Time&nbsp;ms</th><th>SQL Statement</th></tr>' . $s . '
-			</table>
-			</div>';
+		return ob_get_clean();
 	}
 
 }

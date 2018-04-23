@@ -4,6 +4,7 @@ namespace Nettrine\DBAL\DI;
 
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Logging\LoggerChain;
 use Doctrine\DBAL\Portability\Connection as PortabilityConnection;
 use Nette\DI\CompilerExtension;
 use Nette\DI\ContainerBuilder;
@@ -12,7 +13,6 @@ use Nette\Utils\Validators;
 use Nettrine\DBAL\ConnectionFactory;
 use Nettrine\DBAL\Events\EventManager;
 use Nettrine\DBAL\Tracy\BlueScreen\DbalBlueScreen;
-use Nettrine\DBAL\Tracy\ConnectionPanel\ConnectionPanel;
 use Nettrine\DBAL\Tracy\QueryPanel\QueryPanel;
 use PDO;
 
@@ -61,9 +61,6 @@ final class DbalExtension extends CompilerExtension
 		$this->loadConnectionConfiguration();
 
 		if ($config['debug'] === TRUE) {
-			$builder->addDefinition($this->prefix('connectionPanel'))
-				->setFactory(ConnectionPanel::class)
-				->setAutowired(FALSE);
 			$builder->addDefinition($this->prefix('queryPanel'))
 				->setFactory(QueryPanel::class)
 				->setAutowired(FALSE);
@@ -80,13 +77,18 @@ final class DbalExtension extends CompilerExtension
 		$builder = $this->getContainerBuilder();
 		$config = $this->validateConfig($this->defaults['configuration'], $this->config['configuration']);
 
-		$configuration = $builder->addDefinition($this->prefix('configuration'))
-			->setFactory(Configuration::class)
-			->setAutowired(FALSE);
+		$logger = $builder->addDefinition($this->prefix('logger'))
+			->setClass(LoggerChain::class)
+			->setAutowired('self');
 
-		// SqlLogger
+		$configuration = $builder->addDefinition($this->prefix('configuration'));
+		$configuration->setFactory(Configuration::class)
+			->setAutowired(FALSE)
+			->addSetup('setSQLLogger', [$this->prefix('@logger')]);
+
+		// SqlLogger (append to chain)
 		if ($config['sqlLogger'] !== NULL) {
-			$configuration->addSetup('setSQLLogger', [$config['sqlLogger']]);
+			$logger->addSetup('addLogger', [$config['sqlLogger']]);
 		}
 
 		// ResultCacheImpl
@@ -157,11 +159,11 @@ final class DbalExtension extends CompilerExtension
 			$initialize = $class->getMethod('initialize');
 			$initialize->addBody(
 				'$this->getService(?)->addPanel($this->getService(?));',
-				['tracy.bar', $this->prefix('connectionPanel')]
+				['tracy.bar', $this->prefix('queryPanel')]
 			);
 			$initialize->addBody(
-				'$this->getService(?)->addPanel($this->getService(?));',
-				['tracy.bar', $this->prefix('queryPanel')]
+				'$this->getService(?)->getConfiguration()->getSqlLogger()->addLogger($this->getService(?));',
+				[$this->prefix('connection'), $this->prefix('queryPanel')]
 			);
 			$initialize->addBody(
 				'$this->getService(?)->addPanel(new ?);',
