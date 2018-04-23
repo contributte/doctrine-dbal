@@ -3,7 +3,6 @@
 namespace Nettrine\DBAL\Tracy\QueryPanel;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Logging\LoggerChain;
 use Doctrine\DBAL\SQLParserUtils;
 use Doctrine\DBAL\SQLParserUtilsException;
 use Nettrine\DBAL\Logger\AbstractLogger;
@@ -36,7 +35,7 @@ class QueryPanel extends AbstractLogger implements IBarPanel
 	{
 		if ($params && $this->connection) {
 			try {
-				list($sql, $params, $types) = SQLParserUtils::expandListParameters($sql, $params, $types);
+				list($sql, $params, $types) = SQLParserUtils::expandListParameters($sql, $params ?: [], $types ?: []);
 			} catch (SQLParserUtilsException $e) {
 				// Do nothing
 			}

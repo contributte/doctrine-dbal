@@ -12,7 +12,7 @@ class EventManager extends DoctrineEventManager
 	/** @var Container */
 	protected $container;
 
-	/** @var mixed[][] */
+	/** @var mixed[] */
 	protected $lazy = [];
 
 	/**
@@ -42,7 +42,11 @@ class EventManager extends DoctrineEventManager
 	 */
 	public function getListeners($event = NULL): array
 	{
-		$this->loadLazy($event);
+		if ($event) {
+			$this->loadLazy($event);
+		} else {
+			$this->loadLazyAll();
+		}
 
 		return parent::getListeners($event);
 	}
@@ -65,6 +69,9 @@ class EventManager extends DoctrineEventManager
 	public function addLazyEventListener(array $events, string $serviceName): void
 	{
 		foreach ($events as $event) {
+			if (!isset($this->lazy[$event])) {
+				$this->lazy[$event] = [];
+			}
 			$this->lazy[$event] = $serviceName;
 		}
 	}
@@ -82,6 +89,19 @@ class EventManager extends DoctrineEventManager
 		}
 
 		unset($this->lazy[$event]);
+	}
+
+	/**
+	 * @return void
+	 */
+	protected function loadLazyAll(): void
+	{
+		foreach ($this->lazy as $event => $services) {
+			foreach ($services as $service) {
+				$this->addEventListener($event, $this->container->getService($service));
+			}
+			unset($this->lazy[$event]);
+		}
 	}
 
 }
