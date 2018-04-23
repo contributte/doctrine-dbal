@@ -36,7 +36,8 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Tests\\Nettrine\\DBAL\\": "tests/cases/"
+      "Tests\\Nettrine\\DBAL\\": "tests/cases/",
+      "Tests\\Fixtures\\": "tests/fixtures/"
     }
   },
   "scripts": {

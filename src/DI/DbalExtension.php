@@ -2,6 +2,7 @@
 
 namespace Nettrine\DBAL\DI;
 
+use Doctrine\Common\EventSubscriber;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Logging\LoggerChain;
@@ -9,17 +10,20 @@ use Doctrine\DBAL\Portability\Connection as PortabilityConnection;
 use Nette\DI\CompilerExtension;
 use Nette\DI\ContainerBuilder;
 use Nette\PhpGenerator\ClassType;
+use Nette\Utils\AssertionException;
 use Nette\Utils\Validators;
 use Nettrine\DBAL\ConnectionFactory;
-use Nettrine\DBAL\Events\EventManager;
+use Nettrine\DBAL\Events\ContainerAwareEventManager;
+use Nettrine\DBAL\Events\DebugEventManager;
 use Nettrine\DBAL\Tracy\BlueScreen\DbalBlueScreen;
 use Nettrine\DBAL\Tracy\QueryPanel\QueryPanel;
 use PDO;
+use ReflectionClass;
 
 final class DbalExtension extends CompilerExtension
 {
 
-	public const TAG_NETTRINE_LISTENER = 'nettrine.listener';
+	public const TAG_NETTRINE_SUBSCRIBER = 'nettrine.subscriber';
 
 	/** @var mixed[] */
 	private $defaults = [
@@ -32,6 +36,8 @@ final class DbalExtension extends CompilerExtension
 		],
 		'connection' => [
 			'url' => NULL,
+			'pdo' => NULL,
+			'memory' => NULL,
 			'driver' => 'pdo_mysql',
 			'driverClass' => NULL,
 			'host' => NULL,
@@ -112,10 +118,11 @@ final class DbalExtension extends CompilerExtension
 	public function loadConnectionConfiguration(): void
 	{
 		$builder = $this->getContainerBuilder();
+		$globalConfig = $this->validateConfig($this->defaults);
 		$config = $this->validateConfig($this->defaults['connection'], $this->config['connection']);
 
 		$builder->addDefinition($this->prefix('eventManager'))
-			->setFactory(EventManager::class);
+			->setFactory(ContainerAwareEventManager::class);
 
 		$builder->addDefinition($this->prefix('connectionFactory'))
 			->setFactory(ConnectionFactory::class, [$config['types']]);
@@ -127,6 +134,13 @@ final class DbalExtension extends CompilerExtension
 				'@' . $this->prefix('configuration'),
 				'@' . $this->prefix('eventManager'),
 			]);
+
+		if ($globalConfig['debug'] === TRUE) {
+			$builder->getDefinition($this->prefix('eventManager'))
+				->setAutowired(FALSE);
+			$builder->addDefinition($this->prefix('eventManager.debug'))
+				->setClass(DebugEventManager::class . [$this->prefix('@eventManager')]);
+		}
 	}
 
 	/**
@@ -138,10 +152,30 @@ final class DbalExtension extends CompilerExtension
 	{
 		$builder = $this->getContainerBuilder();
 
-		$eventManager = $builder->getDefinition($this->prefix('eventManager'));
+		// Idea by @enumag
+		// https://github.com/Arachne/EventManager/blob/master/src/DI/EventManagerExtension.php
 
-		foreach ($builder->findByTag(self::TAG_NETTRINE_LISTENER) as $serviceName => $tag) {
-			$eventManager->addSetup('addLazyEventListener', ['@' . $serviceName]);
+		$eventManager = $builder->getDefinition($this->prefix('eventManager'));
+		foreach ($builder->findByTag(self::TAG_NETTRINE_SUBSCRIBER) as $serviceName => $tag) {
+			$class = $builder->getDefinition($serviceName)->getClass();
+
+			if (!is_subclass_of($class, EventSubscriber::class)) {
+				throw new AssertionException(
+					sprintf(
+						'Subscriber "%s" doesn\'t implement "%s".',
+						$serviceName,
+						EventSubscriber::class
+					)
+				);
+			}
+			$eventManager->addSetup(
+				'?->addEventListener(?, ?)',
+				[
+					'@self',
+					(new ReflectionClass($class))->newInstanceWithoutConstructor()->getSubscribedEvents(),
+					$serviceName, // Intentionally without @ for laziness.
+				]
+			);
 		}
 	}
 

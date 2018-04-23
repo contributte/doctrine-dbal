@@ -5,6 +5,7 @@
 - [Installation - how to install](#installation)
 - [Configuration - basic setup](#configuration)
 - [Usage](#usage)
+- [Events](#events)
 - [Bridges](#bridges)
     - [Symfony\Console](#symfony-console)
 
@@ -47,6 +48,8 @@ dbal:
     
     connection:
         url: NULL
+        pdo: NULL
+        memory: NULL
         driver: pdo_mysql
         driverClass: NULL
         host: NULL
@@ -75,6 +78,50 @@ dbal:
             my_type:
                 class: App\YourType
                 commented: false/true
+```
+
+## Events
+
+You can use native [Doctrine DBAL event system](https://www.doctrine-project.org/projects/doctrine-dbal/en/2.7/reference/events.html#events).
+
+```yaml
+services:
+    subscriber1:
+      class: App\PostConnectSubscriber
+      tags: [nettrine.subscriber]
+```
+
+Register and create your own subscribers. There're services, so constructor injection will works. There're also
+loaded lazily, don't worry about performance.
+
+```php
+namespace App;
+
+use Doctrine\Common\EventSubscriber;
+use Doctrine\DBAL\Event\ConnectionEventArgs;
+use Doctrine\DBAL\Events;
+
+final class PostConnectSubscriber implements EventSubscriber
+{
+	public function postConnect(ConnectionEventArgs $args): void
+	{
+		// Magic goes here...
+	}
+
+	public function getSubscribedEvents(): array
+	{
+		return [Events::postConnect];
+	}
+
+}
+```
+
+Don't waste time to tag single service and tag them all together using decorator.
+
+```yaml
+decorator:
+    Doctrine\Common\EventSubscriber:
+      tags: [nettrine.subscriber]
 ```
 
 ## Bridges

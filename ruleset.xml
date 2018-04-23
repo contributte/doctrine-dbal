@@ -17,7 +17,8 @@
         <properties>
             <property name="rootNamespaces" type="array" value="
                 src=>Nettrine\DBAL,
-                tests/cases=>Tests\Nettrine\DBAL
+                tests/cases=>Tests\Nettrine\DBAL,
+                tests/fixtures=>Tests\Fixtures
             "/>
         </properties>
     </rule>

@@ -35,6 +35,7 @@ composer require nettrine/dbal
 - [Installation - how to install](https://github.com/nettrine/dbal/blob/master/.docs/#installation)
 - [Configuration - basic setup](https://github.com/nettrine/dbal/blob/master/.docs/#configuration)
 - [Usage](https://github.com/nettrine/dbal/blob/master/.docs/#usage)
+- [Events](https://github.com/nettrine/dbal/blob/master/.docs/#events)
 - [Bridges](https://github.com/nettrine/dbal/blob/master/.docs/#bridges)
     - [Symfony\Console](https://github.com/nettrine/dbal/blob/master/.docs/#symfony-console)
 
