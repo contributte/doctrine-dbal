@@ -139,7 +139,7 @@ final class DbalExtension extends CompilerExtension
 			$builder->getDefinition($this->prefix('eventManager'))
 				->setAutowired(FALSE);
 			$builder->addDefinition($this->prefix('eventManager.debug'))
-				->setClass(DebugEventManager::class . [$this->prefix('@eventManager')]);
+				->setClass(DebugEventManager::class, [$this->prefix('@eventManager')]);
 		}
 	}
 
