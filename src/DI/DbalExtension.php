@@ -2,6 +2,7 @@
 
 namespace Nettrine\DBAL\DI;
 
+use Doctrine\Common\EventManager;
 use Doctrine\Common\EventSubscriber;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
@@ -124,6 +125,13 @@ final class DbalExtension extends CompilerExtension
 		$builder->addDefinition($this->prefix('eventManager'))
 			->setFactory(ContainerAwareEventManager::class);
 
+		if ($globalConfig['debug'] === TRUE) {
+			$builder->getDefinition($this->prefix('eventManager'))
+				->setAutowired(FALSE);
+			$builder->addDefinition($this->prefix('eventManager.debug'))
+				->setFactory(DebugEventManager::class, [$this->prefix('@eventManager')]);
+		}
+
 		$builder->addDefinition($this->prefix('connectionFactory'))
 			->setFactory(ConnectionFactory::class, [$config['types']]);
 
@@ -132,15 +140,8 @@ final class DbalExtension extends CompilerExtension
 			->setFactory('@' . $this->prefix('connectionFactory') . '::createConnection', [
 				$config,
 				'@' . $this->prefix('configuration'),
-				'@' . $this->prefix('eventManager'),
+				$builder->getDefinitionByType(EventManager::class),
 			]);
-
-		if ($globalConfig['debug'] === TRUE) {
-			$builder->getDefinition($this->prefix('eventManager'))
-				->setAutowired(FALSE);
-			$builder->addDefinition($this->prefix('eventManager.debug'))
-				->setClass(DebugEventManager::class, [$this->prefix('@eventManager')]);
-		}
 	}
 
 	/**

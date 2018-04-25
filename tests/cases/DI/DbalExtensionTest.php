@@ -8,6 +8,7 @@ use Nette\DI\Compiler;
 use Nette\DI\Container;
 use Nette\DI\ContainerLoader;
 use Nettrine\DBAL\DI\DbalExtension;
+use Nettrine\DBAL\Events\DebugEventManager;
 use Tests\Nettrine\DBAL\TestCase;
 
 final class DbalExtensionTest extends TestCase
@@ -68,6 +69,27 @@ final class DbalExtensionTest extends TestCase
 				'firstname' => 'Sam',
 			],
 		], $select->fetchAll());
+	}
+
+
+	/**
+	 * @return void
+	 */
+	public function testDebugMode(): void
+	{
+		$loader = new ContainerLoader(TEMP_PATH, TRUE);
+		$class = $loader->load(function (Compiler $compiler): void {
+			$compiler->addExtension('dbal', new DbalExtension());
+			$compiler->addConfig(['dbal' => ['debug' => TRUE]]);
+		}, '1b');
+
+		/** @var Container $container */
+		$container = new $class();
+
+		/** @var Connection $connection */
+		$connection = $container->getByType(Connection::class);
+
+		$this->assertInstanceOf(DebugEventManager::class, $connection->getEventManager());
 	}
 
 }
