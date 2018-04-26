@@ -1,24 +1,18 @@
 <?xml version="1.0"?>
 <ruleset name="Nettrine">
-    <!-- Extending rulesets -->
-    <rule ref="vendor/ninjify/coding-standard/ruleset.xml">
-        <exclude name="SlevomatCodingStandard.ControlStructures.AssignmentInCondition"/>
-        <exclude name="SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalFunctions"/>
-        <exclude name="SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalConstants.NonFullyQualified"/>
+    <!-- Contributte Coding Standard -->
+    <rule ref="./vendor/ninjify/coding-standard/contributte.xml">
+        <exclude name="SlevomatCodingStandard.Commenting.ForbiddenAnnotations.AnnotationForbidden"/>
         <exclude name="SlevomatCodingStandard.ControlStructures.EarlyExit"/>
-        <exclude name="SlevomatCodingStandard.ControlStructures.RequireNullCoalesceOperator"/>
-        <exclude name="Generic.CodeAnalysis.EmptyStatement.DetectedCatch"/>
-        <exclude name="SlevomatCodingStandard.Commenting.DisallowOneLinePropertyDocComment"/>
-        <exclude name="SlevomatCodingStandard.Classes.SuperfluousAbstractClassNaming"/>
     </rule>
-    <rule ref="SlevomatCodingStandard.Commenting.RequireOneLinePropertyDocComment"/>
-    <!-- Nettrine -->
+
+    <!-- Specific -->
     <rule ref="SlevomatCodingStandard.Files.TypeNameMatchesFileName">
         <properties>
             <property name="rootNamespaces" type="array" value="
                 src=>Nettrine\DBAL,
-                tests/cases=>Tests\Nettrine\DBAL,
-                tests/fixtures=>Tests\Fixtures
+                tests/cases=>Tests\Nettrine\DBAL\Cases,
+                tests/fixtures=>Tests\Nettrine\DBAL\Fixtures
             "/>
         </properties>
     </rule>

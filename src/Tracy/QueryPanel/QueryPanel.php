@@ -17,9 +17,6 @@ class QueryPanel extends AbstractLogger implements IBarPanel
 	/** @var Connection */
 	protected $connection;
 
-	/**
-	 * @param Connection $connection
-	 */
 	public function __construct(Connection $connection)
 	{
 		$this->connection = $connection;
@@ -29,9 +26,8 @@ class QueryPanel extends AbstractLogger implements IBarPanel
 	 * @param mixed $sql
 	 * @param mixed[] $params
 	 * @param mixed[] $types
-	 * @return void
 	 */
-	public function startQuery($sql, ?array $params = NULL, ?array $types = NULL): void
+	public function startQuery($sql, ?array $params = null, ?array $types = null): void
 	{
 		if ($params && $this->connection) {
 			try {
@@ -43,7 +39,7 @@ class QueryPanel extends AbstractLogger implements IBarPanel
 			$query = vsprintf(str_replace('?', '%s', $sql), call_user_func(function () use ($params, $types) {
 				$quotedParams = [];
 				foreach ($params as $typeIndex => $value) {
-					$type = isset($types[$typeIndex]) ? $types[$typeIndex] : NULL;
+					$type = $types[$typeIndex] ?? null;
 					$quotedParams[] = $this->connection->quote($value, $type);
 				}
 
@@ -58,8 +54,6 @@ class QueryPanel extends AbstractLogger implements IBarPanel
 
 	/**
 	 * HTML for tab
-	 *
-	 * @return string
 	 */
 	public function getTab(): string
 	{
@@ -78,8 +72,6 @@ class QueryPanel extends AbstractLogger implements IBarPanel
 
 	/**
 	 * HTML for panel
-	 *
-	 * @return string|NULL
 	 */
 	public function getPanel(): ?string
 	{

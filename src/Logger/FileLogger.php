@@ -2,28 +2,26 @@
 
 namespace Nettrine\DBAL\Logger;
 
+use stdClass;
+
 final class FileLogger extends AbstractLogger
 {
 
 	/** @var string */
 	private $file;
 
-	/**
-	 * @param string $file
-	 */
 	public function __construct(string $file)
 	{
 		$this->file = $file;
 	}
 
-	/**
-	 * @return void
-	 */
-	public function stopQuery(): void
+	public function stopQuery(): stdClass
 	{
 		$query = parent::stopQuery();
 
 		file_put_contents($this->file, sprintf('[%s ms] %s', $query->ms, $query->sql) . "\n", FILE_APPEND);
+
+		return $query;
 	}
 
 }

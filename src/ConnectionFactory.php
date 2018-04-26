@@ -33,7 +33,7 @@ class ConnectionFactory
 	private $commentedTypes = [];
 
 	/** @var bool */
-	private $initialized = FALSE;
+	private $initialized = false;
 
 	/**
 	 * @param mixed[] $typesConfig
@@ -47,15 +47,12 @@ class ConnectionFactory
 	 * Create a connection by name.
 	 *
 	 * @param mixed[] $params
-	 * @param Configuration $config
-	 * @param EventManager $eventManager
 	 * @param mixed[] $mappingTypes
-	 * @return Connection
 	 */
 	public function createConnection(
 		array $params,
-		?Configuration $config = NULL,
-		?EventManager $eventManager = NULL,
+		?Configuration $config = null,
+		?EventManager $eventManager = null,
 		array $mappingTypes = []
 	): Connection
 	{
@@ -88,8 +85,6 @@ class ConnectionFactory
 	 * and the platform version is unknown.
 	 * For details have a look at DoctrineBundle issue #673.
 	 *
-	 * @param  Connection $connection
-	 * @return AbstractPlatform
 	 * @throws DBALException
 	 */
 	private function getDatabasePlatform(Connection $connection): AbstractPlatform
@@ -111,9 +106,6 @@ class ConnectionFactory
 		}
 	}
 
-	/**
-	 * @return void
-	 */
 	private function initializeTypes(): void
 	{
 		foreach ($this->typesConfig as $type => $typeConfig) {
@@ -126,7 +118,7 @@ class ConnectionFactory
 				$this->commentedTypes[] = $type;
 			}
 		}
-		$this->initialized = TRUE;
+		$this->initialized = true;
 	}
 
 }

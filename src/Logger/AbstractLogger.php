@@ -18,24 +18,20 @@ abstract class AbstractLogger implements SQLLogger
 	 * @param mixed $sql
 	 * @param mixed[] $params
 	 * @param mixed[] $types
-	 * @return void
 	 */
-	public function startQuery($sql, ?array $params = NULL, ?array $types = NULL): void
+	public function startQuery($sql, ?array $params = null, ?array $types = null): void
 	{
 		$this->queries[] = (object) [
 			'sql' => $sql,
-			'start' => microtime(TRUE),
-			'end' => NULL,
-			'duration' => NULL,
-			'ms' => NULL,
+			'start' => microtime(true),
+			'end' => null,
+			'duration' => null,
+			'ms' => null,
 			'params' => $params,
 			'types' => $types,
 		];
 	}
 
-	/**
-	 * @return stdClass
-	 */
 	public function stopQuery(): stdClass
 	{
 		// Find latest query
@@ -44,7 +40,7 @@ abstract class AbstractLogger implements SQLLogger
 		$query = $this->queries[$key];
 
 		// Update duration
-		$query->end = microtime(TRUE);
+		$query->end = microtime(true);
 		$query->duration = $query->end - $query->start;
 		$query->ms = sprintf('%0.1f', $query->duration * 1000);
 

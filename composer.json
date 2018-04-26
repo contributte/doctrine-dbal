@@ -13,21 +13,21 @@
   "homepage": "https://github.com/nettrine/dbal",
   "authors": [
     {
-      "name": "Milan Felix Sulc",
+      "name": "Milan Felix Šulc",
       "homepage": "https://f3l1x.io"
     }
   ],
   "require": {
     "php": ">=7.1",
-    "nette/di": "~2.4.10",
+    "nette/di": "~2.4.11",
     "doctrine/dbal": "~2.6.3"
   },
   "require-dev": {
-    "ninjify/qa": "~0.7.0",
+    "ninjify/qa": "^0.8.0",
     "phpunit/phpunit": "^7.0.2",
     "mockery/mockery": "^1.0",
     "contributte/console": "^0.2.0",
-    "tracy/tracy": "^2.4"
+    "tracy/tracy": "~2.4.13"
   },
   "autoload": {
     "psr-4": {
@@ -36,10 +36,12 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Tests\\Nettrine\\DBAL\\": "tests/cases/",
-      "Tests\\Fixtures\\": "tests/fixtures/"
+      "Tests\\Nettrine\\DBAL\\Cases\\": "tests/cases/",
+      "Tests\\Nettrine\\DBAL\\Fixtures\\": "tests/fixtures/"
     }
   },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
   "scripts": {
     "qa": [
       "linter src tests",

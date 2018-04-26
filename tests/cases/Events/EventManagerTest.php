@@ -1,6 +1,6 @@
 <?php declare(strict_types = 1);
 
-namespace Tests\Nettrine\DBAL\Events;
+namespace Tests\Nettrine\DBAL\Cases\Events;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Schema;
@@ -8,19 +8,16 @@ use Nette\DI\Compiler;
 use Nette\DI\Container;
 use Nette\DI\ContainerLoader;
 use Nettrine\DBAL\DI\DbalExtension;
-use Tests\Fixtures\Subscriber\PostConnectSubscriber;
-use Tests\Nettrine\DBAL\NeonLoader;
-use Tests\Nettrine\DBAL\TestCase;
+use Tests\Nettrine\DBAL\Cases\NeonLoader;
+use Tests\Nettrine\DBAL\Cases\TestCase;
+use Tests\Nettrine\DBAL\Fixtures\Subscriber\PostConnectSubscriber;
 
 final class EventManagerTest extends TestCase
 {
 
-	/**
-	 * @return void
-	 */
 	public function testPostConnectEvent(): void
 	{
-		$loader = new ContainerLoader(TEMP_PATH, TRUE);
+		$loader = new ContainerLoader(TEMP_PATH, true);
 		$class = $loader->load(function (Compiler $compiler): void {
 			$compiler->addExtension('dbal', new DbalExtension());
 			$compiler->addConfig(NeonLoader::load('
@@ -31,10 +28,10 @@ final class EventManagerTest extends TestCase
 			
 			services:
 				sub1: 
-					class: Tests\Fixtures\Subscriber\PostConnectSubscriber
+					class: Tests\Nettrine\DBAL\Fixtures\Subscriber\PostConnectSubscriber
 					tags: [nettrine.subscriber]
 			'));
-		}, '2' . microtime(TRUE));
+		}, '2' . microtime(true));
 
 		/** @var Container $container */
 		$container = new $class();
@@ -52,7 +49,7 @@ final class EventManagerTest extends TestCase
 
 		$schema = new Schema();
 		$posts = $schema->createTable('posts');
-		$posts->addColumn('id', 'integer', ['unsigned' => TRUE, 'autoincrement' => TRUE]);
+		$posts->addColumn('id', 'integer', ['unsigned' => true, 'autoincrement' => true]);
 		$posts->addColumn('username', 'string', ['length' => 32]);
 
 		$queries = $schema->toSql($connection->getDatabasePlatform());

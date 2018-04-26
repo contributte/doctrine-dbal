@@ -1,6 +1,6 @@
 <?php declare(strict_types = 1);
 
-namespace Tests\Nettrine\DBAL\DI;
+namespace Tests\Nettrine\DBAL\Cases\DI;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
@@ -9,17 +9,14 @@ use Nette\DI\Container;
 use Nette\DI\ContainerLoader;
 use Nettrine\DBAL\DI\DbalExtension;
 use Nettrine\DBAL\Events\DebugEventManager;
-use Tests\Nettrine\DBAL\TestCase;
+use Tests\Nettrine\DBAL\Cases\TestCase;
 
 final class DbalExtensionTest extends TestCase
 {
 
-	/**
-	 * @return void
-	 */
 	public function testRegister(): void
 	{
-		$loader = new ContainerLoader(TEMP_PATH, TRUE);
+		$loader = new ContainerLoader(TEMP_PATH, true);
 		$class = $loader->load(function (Compiler $compiler): void {
 			$compiler->addExtension('dbal', new DbalExtension());
 			$compiler->addConfig(['dbal' => ['connection' => ['driver' => 'pdo_sqlite']]]);
@@ -71,16 +68,12 @@ final class DbalExtensionTest extends TestCase
 		], $select->fetchAll());
 	}
 
-
-	/**
-	 * @return void
-	 */
 	public function testDebugMode(): void
 	{
-		$loader = new ContainerLoader(TEMP_PATH, TRUE);
+		$loader = new ContainerLoader(TEMP_PATH, true);
 		$class = $loader->load(function (Compiler $compiler): void {
 			$compiler->addExtension('dbal', new DbalExtension());
-			$compiler->addConfig(['dbal' => ['debug' => TRUE]]);
+			$compiler->addConfig(['dbal' => ['debug' => true]]);
 		}, '1b');
 
 		/** @var Container $container */

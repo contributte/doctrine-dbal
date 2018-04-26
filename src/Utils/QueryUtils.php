@@ -6,10 +6,10 @@ final class QueryUtils
 {
 
 	/**
+	 * Highlight given SQL parts
+	 *
 	 * @copyright https://github.com/nextras/dbal/blob/master/src/Bridges/NetteTracy/ConnectionPanel.php#L112
 	 * @copyright Nextras DBAL
-	 * @param string $sql
-	 * @return string
 	 */
 	public static function highlight(string $sql): string
 	{
@@ -20,9 +20,13 @@ final class QueryUtils
 		$sql = preg_replace_callback(sprintf('#(/\\*.+?\\*/)|(?<=[\\s,(])(%s)(?=[\\s,)])|(?<=[\\s,(=])(%s)(?=[\\s,)=])#is', $keywords1, $keywords2), function ($matches) {
 			if (!empty($matches[1])) { // comment
 				return '<em style="color:gray">' . $matches[1] . '</em>';
-			} elseif (!empty($matches[2])) { // most important keywords
+			}
+
+			if (!empty($matches[2])) { // most important keywords
 				return '<strong style="color:#2D44AD">' . $matches[2] . '</strong>';
-			} elseif (!empty($matches[3])) { // other keywords
+			}
+
+			if (!empty($matches[3])) { // other keywords
 				return '<strong>' . $matches[3] . '</strong>';
 			}
 		}, $sql);

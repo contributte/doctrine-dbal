@@ -3,17 +3,15 @@
 namespace Nettrine\DBAL\Utils;
 
 use Doctrine\DBAL\Driver\Statement;
+use LogicException;
 
 final class DataUtils
 {
 
 	/**
-	 * @param Statement $statement
-	 * @param string $key
-	 * @param string $value
 	 * @return mixed[]
 	 */
-	public static function toPairs(Statement $statement, ?string $key = NULL, ?string $value = NULL): array
+	public static function toPairs(Statement $statement, ?string $key = null, ?string $value = null): array
 	{
 		$rows = $statement->fetchAll();
 
@@ -23,9 +21,9 @@ final class DataUtils
 
 		$keys = array_keys((array) reset($rows));
 		if (!count($keys)) {
-			throw new \LogicException('Result set does not contain any column.');
+			throw new LogicException('Result set does not contain any column.');
 
-		} elseif ($key === NULL && $value === NULL) {
+		} elseif ($key === null && $value === null) {
 			if (count($keys) === 1) {
 				list($value) = $keys;
 			} else {
@@ -34,13 +32,13 @@ final class DataUtils
 		}
 
 		$return = [];
-		if ($key === NULL) {
+		if ($key === null) {
 			foreach ($rows as $row) {
-				$return[] = ($value === NULL ? $row : $row[$value]);
+				$return[] = ($value === null ? $row : $row[$value]);
 			}
 		} else {
 			foreach ($rows as $row) {
-				$return[is_object($row[$key]) ? (string) $row[$key] : $row[$key]] = ($value === NULL ? $row : $row[$value]);
+				$return[is_object($row[$key]) ? (string) $row[$key] : $row[$key]] = ($value === null ? $row : $row[$value]);
 			}
 		}
 

@@ -1,6 +1,6 @@
 <?php declare(strict_types = 1);
 
-namespace Tests\Nettrine\DBAL;
+namespace Tests\Nettrine\DBAL\Cases;
 
 use Mockery;
 use PHPUnit\Framework\TestCase as PHPUnitTestCase;
@@ -8,9 +8,6 @@ use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 abstract class TestCase extends PHPUnitTestCase
 {
 
-	/**
-	 * @return void
-	 */
 	protected function setUp(): void
 	{
 		parent::setUp();
@@ -22,9 +19,6 @@ abstract class TestCase extends PHPUnitTestCase
 		}
 	}
 
-	/**
-	 * @return void
-	 */
 	protected function tearDown(): void
 	{
 		Mockery::close();

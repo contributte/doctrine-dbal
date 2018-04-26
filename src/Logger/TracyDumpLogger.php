@@ -8,9 +8,6 @@ use Tracy\Debugger;
 final class TracyDumpLogger extends AbstractLogger
 {
 
-	/**
-	 * @return stdClass
-	 */
 	public function stopQuery(): stdClass
 	{
 		$query = parent::stopQuery();

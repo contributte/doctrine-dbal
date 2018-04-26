@@ -5,6 +5,7 @@ namespace Nettrine\DBAL\Events;
 use Doctrine\Common\EventArgs;
 use Doctrine\Common\EventManager as DoctrineEventManager;
 use Nette\DI\Container;
+use RuntimeException;
 
 class ContainerAwareEventManager extends DoctrineEventManager
 {
@@ -18,9 +19,6 @@ class ContainerAwareEventManager extends DoctrineEventManager
 	/** @var mixed[EventSubscriber[]] */
 	protected $listeners = [];
 
-	/**
-	 * @param Container $container
-	 */
 	public function __construct(Container $container)
 	{
 		$this->container = $container;
@@ -28,14 +26,12 @@ class ContainerAwareEventManager extends DoctrineEventManager
 
 	/**
 	 * @param string $eventName
-	 * @param EventArgs|NULL $eventArgs
-	 * @return void
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingParameterTypeHint
 	 */
-	public function dispatchEvent($eventName, ?EventArgs $eventArgs = NULL): void
+	public function dispatchEvent($eventName, ?EventArgs $eventArgs = null): void
 	{
 		if (isset($this->listeners[$eventName])) {
-			$eventArgs = $eventArgs === NULL ? EventArgs::getEmptyInstance() : $eventArgs;
+			$eventArgs = $eventArgs === null ? EventArgs::getEmptyInstance() : $eventArgs;
 
 			$initialized = isset($this->initialized[$eventName]);
 
@@ -47,7 +43,7 @@ class ContainerAwareEventManager extends DoctrineEventManager
 				$listener->$eventName($eventArgs);
 			}
 
-			$this->initialized[$eventName] = TRUE;
+			$this->initialized[$eventName] = true;
 		}
 	}
 
@@ -56,14 +52,13 @@ class ContainerAwareEventManager extends DoctrineEventManager
 	 * @return object[]
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingParameterTypeHint
 	 */
-	public function getListeners($event = NULL): array
+	public function getListeners($event = null): array
 	{
 		return $event ? $this->listeners[$event] : $this->listeners;
 	}
 
 	/**
 	 * @param string $event
-	 * @return bool
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingParameterTypeHint
 	 */
 	public function hasListeners($event): bool
@@ -76,14 +71,13 @@ class ContainerAwareEventManager extends DoctrineEventManager
 	 *
 	 * @param string|string[] $events The event(s) to listen on.
 	 * @param string|object $listener The listener object.
-	 * @return void
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingParameterTypeHint
 	 */
 	public function addEventListener($events, $listener): void
 	{
 		if (is_string($listener)) {
 			if ($this->initialized) {
-				throw new \RuntimeException('Adding lazy-loading listeners after construction is not supported.');
+				throw new RuntimeException('Adding lazy-loading listeners after construction is not supported.');
 			}
 			$hash = 'service@' . $listener;
 		} else {
@@ -102,7 +96,6 @@ class ContainerAwareEventManager extends DoctrineEventManager
 	 *
 	 * @param string|string[] $events
 	 * @param string|object $listener
-	 * @return void
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingParameterTypeHint
 	 */
 	public function removeEventListener($events, $listener): void

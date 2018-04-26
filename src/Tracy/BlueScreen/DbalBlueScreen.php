@@ -20,7 +20,6 @@ class DbalBlueScreen
 {
 
 	/**
-	 * @param Throwable $e
 	 * @return mixed[]|null
 	 */
 	public function __invoke(Throwable $e): ?array
@@ -29,7 +28,7 @@ class DbalBlueScreen
 			if (($prev = $e->getPrevious()) && ($item = Helpers::findTrace($e->getTrace(), DBALException::class . '::driverExceptionDuringQuery'))) {
 				/** @var Driver $driver */
 				$driver = $item['args'][0];
-				$params = isset($item['args'][3]) ? $item['args'][3] : [];
+				$params = $item['args'][3] ?? [];
 
 				return [
 					'tab' => 'SQL',
@@ -60,10 +59,10 @@ class DbalBlueScreen
 			return isset($sql) ? [
 				'tab' => 'SQL',
 				'panel' => QueryUtils::highlight($sql),
-			] : NULL;
+			] : null;
 		}
 
-		return NULL;
+		return null;
 	}
 
 }

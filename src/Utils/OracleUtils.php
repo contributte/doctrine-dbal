@@ -8,11 +8,6 @@ use Nette\Utils\Paginator;
 final class OracleUtils
 {
 
-	/**
-	 * @param QueryBuilder $builder
-	 * @param Paginator $paginator
-	 * @return string
-	 */
 	public static function limitSql(QueryBuilder $builder, Paginator $paginator): string
 	{
 		$sql = $builder->getSQL();

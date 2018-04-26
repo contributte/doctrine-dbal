@@ -28,36 +28,34 @@ final class DbalExtension extends CompilerExtension
 
 	/** @var mixed[] */
 	private $defaults = [
-		'debug' => FALSE,
+		'debug' => false,
 		'configuration' => [
-			'sqlLogger' => NULL,
-			'resultCacheImpl' => NULL,
-			'filterSchemaAssetsExpression' => NULL,
-			'autoCommit' => TRUE,
+			'sqlLogger' => null,
+			'resultCacheImpl' => null,
+			'filterSchemaAssetsExpression' => null,
+			'autoCommit' => true,
 		],
 		'connection' => [
-			'url' => NULL,
-			'pdo' => NULL,
-			'memory' => NULL,
+			'url' => null,
+			'pdo' => null,
+			'memory' => null,
 			'driver' => 'pdo_mysql',
-			'driverClass' => NULL,
-			'host' => NULL,
-			'dbname' => NULL,
-			'servicename' => NULL,
-			'user' => NULL,
-			'password' => NULL,
+			'driverClass' => null,
+			'host' => null,
+			'dbname' => null,
+			'servicename' => null,
+			'user' => null,
+			'password' => null,
 			'charset' => 'UTF8',
 			'portability' => PortabilityConnection::PORTABILITY_ALL,
 			'fetchCase' => PDO::CASE_LOWER,
-			'persistent' => TRUE,
+			'persistent' => true,
 			'types' => [],
 		],
 	];
 
 	/**
 	 * Register services
-	 *
-	 * @return void
 	 */
 	public function loadConfiguration(): void
 	{
@@ -67,17 +65,15 @@ final class DbalExtension extends CompilerExtension
 		$this->loadDoctrineConfiguration();
 		$this->loadConnectionConfiguration();
 
-		if ($config['debug'] === TRUE) {
+		if ($config['debug'] === true) {
 			$builder->addDefinition($this->prefix('queryPanel'))
 				->setFactory(QueryPanel::class)
-				->setAutowired(FALSE);
+				->setAutowired(false);
 		}
 	}
 
 	/**
 	 * Register Doctrine Configuration
-	 *
-	 * @return void
 	 */
 	public function loadDoctrineConfiguration(): void
 	{
@@ -90,21 +86,21 @@ final class DbalExtension extends CompilerExtension
 
 		$configuration = $builder->addDefinition($this->prefix('configuration'));
 		$configuration->setFactory(Configuration::class)
-			->setAutowired(FALSE)
+			->setAutowired(false)
 			->addSetup('setSQLLogger', [$this->prefix('@logger')]);
 
 		// SqlLogger (append to chain)
-		if ($config['sqlLogger'] !== NULL) {
+		if ($config['sqlLogger'] !== null) {
 			$logger->addSetup('addLogger', [$config['sqlLogger']]);
 		}
 
 		// ResultCacheImpl
-		if ($config['resultCacheImpl'] !== NULL) {
+		if ($config['resultCacheImpl'] !== null) {
 			$configuration->addSetup('setResultCacheImpl', [$config['resultCacheImpl']]);
 		}
 
 		// FilterSchemaAssetsExpression
-		if ($config['filterSchemaAssetsExpression'] !== NULL) {
+		if ($config['filterSchemaAssetsExpression'] !== null) {
 			$configuration->addSetup('setFilterSchemaAssetsExpression', [$config['resultCacheImpl']]);
 		}
 
@@ -113,9 +109,6 @@ final class DbalExtension extends CompilerExtension
 		$configuration->addSetup('setAutoCommit', [$config['autoCommit']]);
 	}
 
-	/**
-	 * @return void
-	 */
 	public function loadConnectionConfiguration(): void
 	{
 		$builder = $this->getContainerBuilder();
@@ -125,9 +118,9 @@ final class DbalExtension extends CompilerExtension
 		$builder->addDefinition($this->prefix('eventManager'))
 			->setFactory(ContainerAwareEventManager::class);
 
-		if ($globalConfig['debug'] === TRUE) {
+		if ($globalConfig['debug'] === true) {
 			$builder->getDefinition($this->prefix('eventManager'))
-				->setAutowired(FALSE);
+				->setAutowired(false);
 			$builder->addDefinition($this->prefix('eventManager.debug'))
 				->setFactory(DebugEventManager::class, [$this->prefix('@eventManager')]);
 		}
@@ -146,8 +139,6 @@ final class DbalExtension extends CompilerExtension
 
 	/**
 	 * Decorate services
-	 *
-	 * @return void
 	 */
 	public function beforeCompile(): void
 	{
@@ -182,15 +173,12 @@ final class DbalExtension extends CompilerExtension
 
 	/**
 	 * Update initialize method
-	 *
-	 * @param ClassType $class
-	 * @return void
 	 */
 	public function afterCompile(ClassType $class): void
 	{
 		$config = $this->validateConfig($this->defaults);
 
-		if ($config['debug'] === TRUE) {
+		if ($config['debug'] === true) {
 			$initialize = $class->getMethod('initialize');
 			$initialize->addBody(
 				'$this->getService(?)->addPanel($this->getService(?));',
