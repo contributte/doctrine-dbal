@@ -42,6 +42,7 @@ final class DbalExtension extends CompilerExtension
 			'driver' => 'pdo_mysql',
 			'driverClass' => null,
 			'host' => null,
+			'port' => null,
 			'dbname' => null,
 			'servicename' => null,
 			'user' => null,
