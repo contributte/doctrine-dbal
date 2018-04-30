@@ -102,7 +102,7 @@ final class DbalExtension extends CompilerExtension
 
 		// FilterSchemaAssetsExpression
 		if ($config['filterSchemaAssetsExpression'] !== null) {
-			$configuration->addSetup('setFilterSchemaAssetsExpression', [$config['resultCacheImpl']]);
+			$configuration->addSetup('setFilterSchemaAssetsExpression', [$config['filterSchemaAssetsExpression']]);
 		}
 
 		// AutoCommit
