@@ -61,7 +61,7 @@ class DbalConsoleExtension extends CompilerExtension
 
 		// Register helpers
 		$connectionHelper = $this->prefix('@connectionHelper');
-		$application->addSetup(new Statement('$service->getHelperSet()->set(?)', [$connectionHelper]));
+		$application->addSetup(new Statement('$service->getHelperSet()->set(?, ?)', [$connectionHelper, 'db']));
 	}
 
 }
