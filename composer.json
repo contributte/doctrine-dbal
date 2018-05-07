@@ -20,7 +20,7 @@
   "require": {
     "php": ">=7.1",
     "nette/di": "~2.4.11",
-    "doctrine/dbal": "~2.6.3"
+    "doctrine/dbal": "^2.6"
   },
   "require-dev": {
     "ninjify/qa": "^0.8.0",
