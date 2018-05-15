@@ -35,14 +35,17 @@ class DbalConsoleExtension extends CompilerExtension
 		//Commands
 		$builder->addDefinition($this->prefix('importCommand'))
 			->setFactory(ImportCommand::class)
+			->addTag('console.command', 'dbal:import')
 			->setAutowired(false);
 
 		$builder->addDefinition($this->prefix('reservedWordsCommand'))
 			->setFactory(ReservedWordsCommand::class)
+			->addTag('console.command', 'dbal:reserved-words')
 			->setAutowired(false);
 
 		$builder->addDefinition($this->prefix('runSqlCommand'))
 			->setFactory(RunSqlCommand::class)
+			->addTag('console.command', 'dbal:run-sql')
 			->setAutowired(false);
 	}
 
