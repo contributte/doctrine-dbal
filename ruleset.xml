@@ -3,7 +3,6 @@
     <!-- Contributte Coding Standard -->
     <rule ref="./vendor/ninjify/coding-standard/contributte.xml">
         <exclude name="SlevomatCodingStandard.Commenting.ForbiddenAnnotations.AnnotationForbidden"/>
-        <exclude name="SlevomatCodingStandard.ControlStructures.EarlyExit"/>
     </rule>
 
     <!-- Specific -->

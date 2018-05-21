@@ -31,7 +31,7 @@ class QueryPanel extends AbstractLogger implements IBarPanel
 	{
 		if ($params && $this->connection) {
 			try {
-				list($sql, $params, $types) = SQLParserUtils::expandListParameters($sql, $params ?: [], $types ?: []);
+				[$sql, $params, $types] = SQLParserUtils::expandListParameters($sql, $params ?: [], $types ?: []);
 			} catch (SQLParserUtilsException $e) {
 				// Do nothing
 			}

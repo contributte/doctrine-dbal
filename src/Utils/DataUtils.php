@@ -25,9 +25,9 @@ final class DataUtils
 
 		} elseif ($key === null && $value === null) {
 			if (count($keys) === 1) {
-				list($value) = $keys;
+				[$value] = $keys;
 			} else {
-				list($key, $value) = $keys;
+				[$key, $value] = $keys;
 			}
 		}
 
