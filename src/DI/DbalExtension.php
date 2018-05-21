@@ -52,6 +52,7 @@ final class DbalExtension extends CompilerExtension
 			'fetchCase' => PDO::CASE_LOWER,
 			'persistent' => true,
 			'types' => [],
+			'typesMapping' => [],
 		],
 	];
 
@@ -127,7 +128,7 @@ final class DbalExtension extends CompilerExtension
 		}
 
 		$builder->addDefinition($this->prefix('connectionFactory'))
-			->setFactory(ConnectionFactory::class, [$config['types']]);
+			->setFactory(ConnectionFactory::class, [$config['types'], $config['typesMapping']]);
 
 		$builder->addDefinition($this->prefix('connection'))
 			->setFactory(Connection::class)

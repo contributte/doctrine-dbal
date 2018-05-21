@@ -62,6 +62,7 @@ dbal:
         fetchCase: PDO::CASE_LOWER
         persistent: TRUE
         types: []
+        typesMapping: []
 ```
 
 ### Types
@@ -75,9 +76,12 @@ Here is a example how to custom type. For more information, follow the official 
 dbal:
     connection:
         types:
-            my_type:
-                class: App\YourType
-                commented: false/true
+            uuid_binary_ordered_time:
+                class: Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType
+                commented: falsee
+                
+        typesMapping:
+            uuid_binary_ordered_time: binary
 ```
 
 ## Events

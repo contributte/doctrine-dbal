@@ -8,7 +8,6 @@
  * (c) Fabien Potencier <fabien@symfony.com>
  * (c) Doctrine Project, Benjamin Eberlei <kontakt@beberlei.de>
  */
-
 namespace Nettrine\DBAL;
 
 use Doctrine\Common\EventManager;
@@ -30,6 +29,9 @@ class ConnectionFactory
 	private $typesConfig = [];
 
 	/** @var mixed[] */
+	private $typesMapping = [];
+
+	/** @var mixed[] */
 	private $commentedTypes = [];
 
 	/** @var bool */
@@ -37,23 +39,23 @@ class ConnectionFactory
 
 	/**
 	 * @param mixed[] $typesConfig
+	 * @param mixed[] $typesMapping
 	 */
-	public function __construct(array $typesConfig)
+	public function __construct(array $typesConfig = [], array $typesMapping = [])
 	{
 		$this->typesConfig = $typesConfig;
+		$this->typesMapping = $typesMapping;
 	}
 
 	/**
 	 * Create a connection by name.
 	 *
 	 * @param mixed[] $params
-	 * @param mixed[] $mappingTypes
 	 */
 	public function createConnection(
 		array $params,
 		?Configuration $config = null,
-		?EventManager $eventManager = null,
-		array $mappingTypes = []
+		?EventManager $eventManager = null
 	): Connection
 	{
 		if (!$this->initialized) {
@@ -62,9 +64,9 @@ class ConnectionFactory
 
 		$connection = DriverManager::getConnection($params, $config, $eventManager);
 
-		if (!empty($mappingTypes)) {
+		if (!empty($this->typesMapping)) {
 			$platform = $this->getDatabasePlatform($connection);
-			foreach ($mappingTypes as $dbType => $doctrineType) {
+			foreach ($this->typesMapping as $dbType => $doctrineType) {
 				$platform->registerDoctrineTypeMapping($dbType, $doctrineType);
 			}
 		}
