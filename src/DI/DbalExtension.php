@@ -40,7 +40,7 @@ final class DbalExtension extends CompilerExtension
 			'filterSchemaAssetsExpression' => null,
 			'autoCommit' => true,
 		],
-		'connection' => [],
+		'connections' => [],
 	];
 
 	/** @var array */
@@ -62,7 +62,6 @@ final class DbalExtension extends CompilerExtension
 		'persistent' => true,
 		'types' => [],
 		'typesMapping' => [],
-		'default' => false,
 	];
 
 
@@ -127,37 +126,30 @@ final class DbalExtension extends CompilerExtension
 	{
 		$builder = $this->getContainerBuilder();
 		$globalConfig = $this->validateConfig($this->defaults);
+
+
 		$connections = [];
 
-
-		try {
-			$connections[self::DEFAULT_CONNECTION_NAME] = $this->validateConfig($this->connectionDefaults, $this->config['connection']);
-			$connections[self::DEFAULT_CONNECTION_NAME]['default'] = true;
-
-		} catch (Nette\InvalidStateException $e) {
-			foreach ($this->config['connection'] as $k => $v) {
-				$connections[$k] = $this->validateConfig($this->connectionDefaults, $v);
-
-				if ($k === self::DEFAULT_CONNECTION_NAME) {
-					$connections[$k]['default'] = true;
-				}
-			}
+		foreach ($this->config['connection'] as $k => $v) {
+			$connections[$k] = $this->validateConfig($this->connectionDefaults, $v);
 		}
 
 
-		if (count(array_filter(array_column($connections, 'default'), function (bool $v): bool {return $v;})) !== 1) {
-			throw new Nette\InvalidStateException('One connection must be default!');
+		if (!array_key_exists(self::DEFAULT_CONNECTION_NAME, $connections)) {
+			throw new Nette\InvalidStateException('Default connection must be set!');
 		}
 
 
 		foreach ($connections as $name => $connection) {
+			$autowired = $name === self::DEFAULT_CONNECTION_NAME ? true : false;
+
 			$builder->addDefinition($this->prefix($name . '.eventManager'))
 				->setFactory(ContainerAwareEventManager::class)
-				->setAutowired($connection['default']);
+				->setAutowired($autowired);
 
 			$builder->addDefinition($this->prefix($name . '.connectionFactory'))
 				->setFactory(ConnectionFactory::class, [$connection['types'], $connection['typesMapping']])
-				->setAutowired($connection['default']);
+				->setAutowired($autowired);
 
 			$builder->addDefinition($this->prefix($name . '.connection'))
 				->setFactory(Connection::class)
@@ -166,23 +158,22 @@ final class DbalExtension extends CompilerExtension
 					'@' . $this->prefix('configuration'),
 					$builder->getDefinitionByType(EventManager::class),
 				])
-				->setAutowired($connection['default']);
+				->setAutowired($autowired);
 
 
 			if ($globalConfig['debug'] === true) {
+				$builder->getDefinition($this->prefix(self::DEFAULT_CONNECTION_NAME . '.eventManager'))
+					->setAutowired(false);
+
 				$builder->addDefinition($this->prefix($name . '.eventManager.debug'))
 					->setFactory(DebugEventManager::class, [$this->prefix('@' . $name . '.eventManager')])
 					->setAutowired(false);
+
+				if ($name === self::DEFAULT_CONNECTION_NAME) {
+					$builder->getDefinition($this->prefix(self::DEFAULT_CONNECTION_NAME . '.eventManager.debug'))
+						->setAutowired(true);
+				}
 			}
-		}
-
-
-		if ($globalConfig['debug'] === true) {
-			$builder->getDefinition($this->prefix(self::DEFAULT_CONNECTION_NAME . '.eventManager'))
-				->setAutowired(false);
-
-			$builder->getDefinition($this->prefix(self::DEFAULT_CONNECTION_NAME . '.eventManager.debug'))
-				->setAutowired(true);
 		}
 	}
 
