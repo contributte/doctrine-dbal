@@ -26,8 +26,9 @@ use ReflectionClass;
 
 final class DbalExtension extends CompilerExtension
 {
-
 	public const TAG_NETTRINE_SUBSCRIBER = 'nettrine.subscriber';
+
+	public const TAG_CONNECTION = 'nettrine.connection';
 
 	public const DEFAULT_CONNECTION_NAME = 'default';
 
@@ -158,7 +159,8 @@ final class DbalExtension extends CompilerExtension
 					'@' . $this->prefix('configuration'),
 					$builder->getDefinition($this->prefix($name . '.eventManager')),
 				])
-				->setAutowired($autowired);
+				->setAutowired($autowired)
+				->addTag(self::TAG_CONNECTION);
 
 
 			if ($globalConfig['debug'] === true) {
