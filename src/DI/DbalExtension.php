@@ -130,7 +130,7 @@ final class DbalExtension extends CompilerExtension
 
 		$connections = [];
 
-		foreach ($this->config['connection'] as $k => $v) {
+		foreach ($this->config['connections'] as $k => $v) {
 			$connections[$k] = $this->validateConfig($this->connectionDefaults, $v);
 		}
 
@@ -156,7 +156,7 @@ final class DbalExtension extends CompilerExtension
 				->setFactory('@' . $this->prefix($name . '.connectionFactory') . '::createConnection', [
 					$connection,
 					'@' . $this->prefix('configuration'),
-					$builder->getDefinitionByType(EventManager::class),
+					$builder->getDefinition($this->prefix($name . '.eventManager')),
 				])
 				->setAutowired($autowired);
 
