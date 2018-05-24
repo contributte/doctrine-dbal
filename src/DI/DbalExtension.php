@@ -1,4 +1,6 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types = 1);
 
 namespace Nettrine\DBAL\DI;
 
@@ -8,6 +10,7 @@ use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Logging\LoggerChain;
 use Doctrine\DBAL\Portability\Connection as PortabilityConnection;
+use Nette;
 use Nette\DI\CompilerExtension;
 use Nette\DI\ContainerBuilder;
 use Nette\PhpGenerator\ClassType;
@@ -26,6 +29,8 @@ final class DbalExtension extends CompilerExtension
 
 	public const TAG_NETTRINE_SUBSCRIBER = 'nettrine.subscriber';
 
+	public const DEFAULT_CONNECTION_NAME = 'default';
+
 	/** @var mixed[] */
 	private $defaults = [
 		'debug' => false,
@@ -35,26 +40,31 @@ final class DbalExtension extends CompilerExtension
 			'filterSchemaAssetsExpression' => null,
 			'autoCommit' => true,
 		],
-		'connection' => [
-			'url' => null,
-			'pdo' => null,
-			'memory' => null,
-			'driver' => 'pdo_mysql',
-			'driverClass' => null,
-			'host' => null,
-			'port' => null,
-			'dbname' => null,
-			'servicename' => null,
-			'user' => null,
-			'password' => null,
-			'charset' => 'UTF8',
-			'portability' => PortabilityConnection::PORTABILITY_ALL,
-			'fetchCase' => PDO::CASE_LOWER,
-			'persistent' => true,
-			'types' => [],
-			'typesMapping' => [],
-		],
+		'connection' => [],
 	];
+
+	/** @var array */
+	private $connectionDefaults = [
+		'url' => null,
+		'pdo' => null,
+		'memory' => null,
+		'driver' => 'pdo_mysql',
+		'driverClass' => null,
+		'host' => null,
+		'port' => null,
+		'dbname' => null,
+		'servicename' => null,
+		'user' => null,
+		'password' => null,
+		'charset' => 'UTF8',
+		'portability' => PortabilityConnection::PORTABILITY_ALL,
+		'fetchCase' => PDO::CASE_LOWER,
+		'persistent' => true,
+		'types' => [],
+		'typesMapping' => [],
+		'default' => false,
+	];
+
 
 	/**
 	 * Register services
@@ -73,6 +83,7 @@ final class DbalExtension extends CompilerExtension
 				->setAutowired(false);
 		}
 	}
+
 
 	/**
 	 * Register Doctrine Configuration
@@ -111,32 +122,68 @@ final class DbalExtension extends CompilerExtension
 		$configuration->addSetup('setAutoCommit', [$config['autoCommit']]);
 	}
 
+
 	public function loadConnectionConfiguration(): void
 	{
 		$builder = $this->getContainerBuilder();
 		$globalConfig = $this->validateConfig($this->defaults);
-		$config = $this->validateConfig($this->defaults['connection'], $this->config['connection']);
+		$connections = [];
 
-		$builder->addDefinition($this->prefix('eventManager'))
-			->setFactory(ContainerAwareEventManager::class);
 
-		if ($globalConfig['debug'] === true) {
-			$builder->getDefinition($this->prefix('eventManager'))
-				->setAutowired(false);
-			$builder->addDefinition($this->prefix('eventManager.debug'))
-				->setFactory(DebugEventManager::class, [$this->prefix('@eventManager')]);
+		try {
+			$connections[self::DEFAULT_CONNECTION_NAME] = $this->validateConfig($this->connectionDefaults, $this->config['connection']);
+			$connections[self::DEFAULT_CONNECTION_NAME]['default'] = true;
+
+		} catch (Nette\InvalidStateException $e) {
+			foreach ($this->config['connection'] as $k => $v) {
+				$connections[$k] = $this->validateConfig($this->connectionDefaults, $v);
+
+				if ($k === self::DEFAULT_CONNECTION_NAME) {
+					$connections[$k]['default'] = true;
+				}
+			}
 		}
 
-		$builder->addDefinition($this->prefix('connectionFactory'))
-			->setFactory(ConnectionFactory::class, [$config['types'], $config['typesMapping']]);
 
-		$builder->addDefinition($this->prefix('connection'))
-			->setFactory(Connection::class)
-			->setFactory('@' . $this->prefix('connectionFactory') . '::createConnection', [
-				$config,
-				'@' . $this->prefix('configuration'),
-				$builder->getDefinitionByType(EventManager::class),
-			]);
+		if (count(array_filter(array_column($connections, 'default'), function (bool $v): bool {return $v;})) !== 1) {
+			throw new Nette\InvalidStateException('One connection must be default!');
+		}
+
+
+		foreach ($connections as $name => $connection) {
+			$builder->addDefinition($this->prefix($name . '.eventManager'))
+				->setFactory(ContainerAwareEventManager::class)
+				->setAutowired($connection['default']);
+
+			$builder->addDefinition($this->prefix($name . '.connectionFactory'))
+				->setFactory(ConnectionFactory::class, [$connection['types'], $connection['typesMapping']])
+				->setAutowired($connection['default']);
+
+			$builder->addDefinition($this->prefix($name . '.connection'))
+				->setFactory(Connection::class)
+				->setFactory('@' . $this->prefix($name . '.connectionFactory') . '::createConnection', [
+					$connection,
+					'@' . $this->prefix('configuration'),
+					$builder->getDefinitionByType(EventManager::class),
+				])
+				->setAutowired($connection['default']);
+
+
+			if ($globalConfig['debug'] === true) {
+				$builder->addDefinition($this->prefix($name . '.eventManager.debug'))
+					->setFactory(DebugEventManager::class, [$this->prefix('@' . $name . '.eventManager')])
+					->setAutowired(false);
+			}
+		}
+
+
+		if ($globalConfig['debug'] === true) {
+			$builder->getDefinition($this->prefix(self::DEFAULT_CONNECTION_NAME . '.eventManager'))
+				->setAutowired(false);
+
+			$builder->getDefinition($this->prefix(self::DEFAULT_CONNECTION_NAME . '.eventManager.debug'))
+				->setAutowired(true);
+		}
 	}
 
 	/**
@@ -149,7 +196,7 @@ final class DbalExtension extends CompilerExtension
 		// Idea by @enumag
 		// https://github.com/Arachne/EventManager/blob/master/src/DI/EventManagerExtension.php
 
-		$eventManager = $builder->getDefinition($this->prefix('eventManager'));
+		$eventManager = $builder->getDefinition($this->prefix(self::DEFAULT_CONNECTION_NAME . '.eventManager'));
 		foreach ($builder->findByTag(self::TAG_NETTRINE_SUBSCRIBER) as $serviceName => $tag) {
 			$class = $builder->getDefinition($serviceName)->getClass();
 
@@ -172,6 +219,7 @@ final class DbalExtension extends CompilerExtension
 			);
 		}
 	}
+
 
 	/**
 	 * Update initialize method
@@ -196,5 +244,4 @@ final class DbalExtension extends CompilerExtension
 			);
 		}
 	}
-
 }
