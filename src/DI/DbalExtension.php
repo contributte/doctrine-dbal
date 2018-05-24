@@ -131,8 +131,8 @@ final class DbalExtension extends CompilerExtension
 
 		$connections = [];
 
-		foreach ($this->config['connections'] as $k => $v) {
-			$connections[$k] = $this->validateConfig($this->connectionDefaults, $v);
+		foreach ($globalConfig['connections'] as $k => $v) {
+			$connections[$k] = array_merge($this->connectionDefaults, $v);
 		}
 
 
