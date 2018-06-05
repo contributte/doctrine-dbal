@@ -22,8 +22,10 @@ class DbalBlueScreen
 	/**
 	 * @return mixed[]|null
 	 */
-	public function __invoke(Throwable $e): ?array
+	public function __invoke(?Throwable $e): ?array
 	{
+		if ($e === null) return null;
+
 		if ($e instanceof DriverException) {
 			if (($prev = $e->getPrevious()) && ($item = Helpers::findTrace($e->getTrace(), DBALException::class . '::driverExceptionDuringQuery'))) {
 				/** @var Driver $driver */
