@@ -53,6 +53,7 @@ final class DbalExtension extends CompilerExtension
 			'persistent' => true,
 			'types' => [],
 			'typesMapping' => [],
+			'wrapperClass' => null,
 		],
 	];
 
