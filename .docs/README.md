@@ -63,6 +63,7 @@ dbal:
         persistent: TRUE
         types: []
         typesMapping: []
+        wrapperClass: NULL
 ```
 
 ### Types
