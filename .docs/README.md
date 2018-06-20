@@ -45,7 +45,7 @@ dbal:
         resultCacheImpl: NULL
         filterSchemaAssetsExpression: NULL
         autoCommit: TRUE
-    
+
     connection:
         url: NULL
         pdo: NULL
@@ -73,14 +73,14 @@ Here is a example how to custom type. For more information, follow the official 
 - http://docs.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html
 - http://docs.doctrine-project.org/projects/doctrine-orm/en/latest/cookbook/custom-mapping-types.html
 
-```
+```yaml
 dbal:
     connection:
         types:
             uuid_binary_ordered_time:
                 class: Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType
                 commented: falsee
-                
+
         typesMapping:
             uuid_binary_ordered_time: binary
 ```
@@ -143,7 +143,7 @@ extensions:
 
     # Dbal
     dbal: Nettrine\Dbal\DI\DbalExtension
-    dbal.console: Nettrine\Dbal\DI\DbalConsoleExtension
+    dbal.console: Nettrine\Dbal\DI\DbalConsoleExtension(%consoleMode%)
 ```
 
 From this moment when you type `bin/console`, there'll be registered commands from Doctrine DBAL.
