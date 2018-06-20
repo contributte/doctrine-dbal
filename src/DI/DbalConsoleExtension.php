@@ -31,9 +31,7 @@ class DbalConsoleExtension extends CompilerExtension
 		}
 
 		// Skip if it's not CLI mode
-		if (!$this->cliMode) {
-			return;
-		}
+		if (!$this->cliMode) return;
 
 		$builder = $this->getContainerBuilder();
 
@@ -65,9 +63,7 @@ class DbalConsoleExtension extends CompilerExtension
 	public function beforeCompile(): void
 	{
 		// Skip if it's not CLI mode
-		if (!$this->cliMode) {
-			return;
-		}
+		if (!$this->cliMode) return;
 
 		$builder = $this->getContainerBuilder();
 
