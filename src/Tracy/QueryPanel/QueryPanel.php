@@ -36,6 +36,9 @@ class QueryPanel extends AbstractLogger implements IBarPanel
 				// Do nothing
 			}
 
+			// Escape % before vsprintf (example: LIKE '%ant%')
+			$sql = str_replace('%', '%%', $sql);
+
 			$query = vsprintf(str_replace('?', '%s', $sql), call_user_func(function () use ($params, $types) {
 				$quotedParams = [];
 				foreach ($params as $typeIndex => $value) {
