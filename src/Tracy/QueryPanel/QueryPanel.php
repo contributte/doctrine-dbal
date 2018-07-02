@@ -29,25 +29,29 @@ class QueryPanel extends AbstractLogger implements IBarPanel
 	 */
 	public function startQuery($sql, ?array $params = null, ?array $types = null): void
 	{
-		if ($params && $this->connection) {
+		if ($params) {
 			try {
+				/** @var string $sql */
 				[$sql, $params, $types] = SQLParserUtils::expandListParameters($sql, $params ?: [], $types ?: []);
 			} catch (SQLParserUtilsException $e) {
 				// Do nothing
 			}
 
 			// Escape % before vsprintf (example: LIKE '%ant%')
-			$sql = str_replace('%', '%%', $sql);
+			$sql = str_replace(['%', '?'], ['%%', '%s'], $sql);
 
-			$query = vsprintf(str_replace('?', '%s', $sql), call_user_func(function () use ($params, $types) {
-				$quotedParams = [];
-				foreach ($params as $typeIndex => $value) {
-					$type = $types[$typeIndex] ?? null;
-					$quotedParams[] = $this->connection->quote($value, $type);
-				}
+			$query = vsprintf(
+				$sql,
+				call_user_func(function () use ($params, $types) {
+					$quotedParams = [];
+					foreach ($params as $typeIndex => $value) {
+						$type = $types[$typeIndex] ?? null;
+						$quotedParams[] = $this->connection->quote($value, $type);
+					}
 
-				return $quotedParams;
-			}));
+					return $quotedParams;
+				})
+			);
 		} else {
 			$query = $sql;
 		}
@@ -81,7 +85,7 @@ class QueryPanel extends AbstractLogger implements IBarPanel
 	/**
 	 * HTML for panel
 	 */
-	public function getPanel(): ?string
+	public function getPanel(): string
 	{
 		ob_start();
 		$parameters = $this->connection->getParams();
@@ -90,7 +94,7 @@ class QueryPanel extends AbstractLogger implements IBarPanel
 		$queries = $this->queries;
 		require __DIR__ . '/templates/panel.phtml';
 
-		return ob_get_clean();
+		return (string) ob_get_clean();
 	}
 
 }

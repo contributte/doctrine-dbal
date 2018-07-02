@@ -3,3 +3,6 @@ includes:
 	- temp/phpstan/vendor/phpstan/phpstan-nette/rules.neon
 
 parameters:
+    ignoreErrors:
+        - '#Cannot call method getMessage\(\) on Throwable\|null#'
+        - '~Parameter \#1 \$function of function call_user_func expects callable, array\<int, object\|string\> given.~'

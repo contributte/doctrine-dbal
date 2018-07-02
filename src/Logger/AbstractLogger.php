@@ -11,7 +11,7 @@ abstract class AbstractLogger implements SQLLogger
 	/** @var mixed[] */
 	protected $queries = [];
 
-	/** @var int */
+	/** @var float */
 	protected $totalTime = 0;
 
 	/**

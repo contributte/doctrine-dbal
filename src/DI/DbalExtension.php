@@ -84,7 +84,7 @@ final class DbalExtension extends CompilerExtension
 		$config = $this->validateConfig($this->defaults['configuration'], $this->config['configuration']);
 
 		$logger = $builder->addDefinition($this->prefix('logger'))
-			->setClass(LoggerChain::class)
+			->setType(LoggerChain::class)
 			->setAutowired('self');
 
 		$configuration = $builder->addDefinition($this->prefix('configuration'));
@@ -152,9 +152,9 @@ final class DbalExtension extends CompilerExtension
 
 		$eventManager = $builder->getDefinition($this->prefix('eventManager'));
 		foreach ($builder->findByTag(self::TAG_NETTRINE_SUBSCRIBER) as $serviceName => $tag) {
-			$class = $builder->getDefinition($serviceName)->getClass();
+			$class = $builder->getDefinition($serviceName)->getType();
 
-			if (!is_subclass_of($class, EventSubscriber::class)) {
+			if ($class === null || !is_subclass_of($class, EventSubscriber::class)) {
 				throw new AssertionException(
 					sprintf(
 						'Subscriber "%s" doesn\'t implement "%s".',
@@ -167,7 +167,7 @@ final class DbalExtension extends CompilerExtension
 				'?->addEventListener(?, ?)',
 				[
 					'@self',
-					(new ReflectionClass($class))->newInstanceWithoutConstructor()->getSubscribedEvents(),
+					call_user_func([(new ReflectionClass($class))->newInstanceWithoutConstructor(), 'getSubscribedEvents']),
 					$serviceName, // Intentionally without @ for laziness.
 				]
 			);
