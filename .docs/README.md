@@ -15,7 +15,7 @@ At first you have to setup extension.
 
 ```yaml
 extensions:
-    dbal: Nettrine\Dbal\DI\DbalExtension
+    dbal: Nettrine\DBAL\DI\DbalExtension
 ```
 
 There are also some bridges as Symfony\Console. You'll known in next sections.
