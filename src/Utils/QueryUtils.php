@@ -31,7 +31,7 @@ final class QueryUtils
 			}
 		}, $sql);
 
-		return trim($sql);
+		return trim((string) $sql);
 	}
 
 }

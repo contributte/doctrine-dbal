@@ -7,11 +7,10 @@ Doctrine DBAL for Nette Framework.
 [![Build Status](https://img.shields.io/travis/nettrine/dbal.svg?style=flat-square)](https://travis-ci.org/nettrine/dbal)
 [![Code coverage](https://img.shields.io/coveralls/nettrine/dbal.svg?style=flat-square)](https://coveralls.io/r/nettrine/dbal)
 [![Licence](https://img.shields.io/packagist/l/nettrine/dbal.svg?style=flat-square)](https://packagist.org/packages/nettrine/dbal)
-
 [![Downloads this Month](https://img.shields.io/packagist/dm/nettrine/dbal.svg?style=flat-square)](https://packagist.org/packages/nettrine/dbal)
 [![Downloads total](https://img.shields.io/packagist/dt/nettrine/dbal.svg?style=flat-square)](https://packagist.org/packages/nettrine/dbal)
 [![Latest stable](https://img.shields.io/packagist/v/nettrine/dbal.svg?style=flat-square)](https://packagist.org/packages/nettrine/dbal)
-[![Latest unstable](https://img.shields.io/packagist/vpre/nettrine/dbal.svg?style=flat-square)](https://packagist.org/packages/nettrine/dbal)
+[![PHPStan](https://img.shields.io/badge/PHPStan-enabled-brightgreen.svg?style=flat-square)](https://github.com/phpstan/phpstan)
 
 ## Discussion / Help
 
@@ -27,7 +26,7 @@ composer require nettrine/dbal
 
 | State       | Version     | Branch   | PHP      |
 |-------------|-------------|----------|----------|
-| development | dev-master  | `master` | `>= 7.1` |
+| development | `^0.3`      | `master` | `>= 7.1` |
 | stable      | `^0.2`      | `master` | `>= 7.1` |
 
 ## Overview
@@ -59,7 +58,7 @@ composer require nettrine/dbal
         <a href="https://github.com/benijo">Josef Benjač</a>
       </td>
     </tr>
-  <tbody>
+  </tbody>
 </table>
 
 ---
