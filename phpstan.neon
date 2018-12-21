@@ -1,8 +1,11 @@
 includes:
-	- temp/phpstan/vendor/phpstan/phpstan-nette/extension.neon
-	- temp/phpstan/vendor/phpstan/phpstan-nette/rules.neon
+	- vendor/phpstan/phpstan-deprecation-rules/rules.neon
+	- vendor/phpstan/phpstan-nette/extension.neon
+	- vendor/phpstan/phpstan-nette/rules.neon
 
 parameters:
-    ignoreErrors:
-        - '#Cannot call method getMessage\(\) on Throwable\|null#'
-        - '~Parameter \#1 \$function of function call_user_func expects callable, array\<int, object\|string\> given.~'
+	ignoreErrors:
+		- '#^Cannot call method getMessage\(\) on Throwable\|null\.$#'
+		- "#^Parameter \\#1 \\$function of function call_user_func expects callable, array\\(object, 'getSubscribedEvents'\\) given.#"
+		# No replacement available
+		- '#^Fetching class constant class of deprecated class Doctrine\\DBAL\\Tools\\Console\\Command\\ImportCommand\.$#'

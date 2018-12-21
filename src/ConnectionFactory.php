@@ -96,7 +96,7 @@ class ConnectionFactory
 		} catch (DBALException $driverException) {
 			if ($driverException instanceof DriverException) {
 				throw new DBALException(
-					'An exception occured while establishing a connection to figure out your platform version.' . PHP_EOL .
+					'An exception occurred while establishing a connection to figure out your platform version.' . PHP_EOL .
 					'You can circumvent this by setting a \'server_version\' configuration value' . PHP_EOL . PHP_EOL .
 					'For further information have a look at:' . PHP_EOL .
 					'https://github.com/doctrine/DoctrineBundle/issues/673',
