@@ -36,7 +36,7 @@ class ContainerAwareEventManager extends DoctrineEventManager
 			$initialized = isset($this->initialized[$eventName]);
 
 			foreach ($this->listeners[$eventName] as $hash => $listener) {
-				if (!$initialized && is_string($listener)) {
+				if (!$initialized && !is_object($listener)) {
 					$this->listeners[$eventName][$hash] = $listener = $this->container->getService($listener);
 				}
 
@@ -70,12 +70,12 @@ class ContainerAwareEventManager extends DoctrineEventManager
 	 * Adds an event listener that listens on the specified events.
 	 *
 	 * @param string|string[] $events The event(s) to listen on.
-	 * @param string|object $listener The listener object.
+	 * @param string|int|object $listener The listener object.
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingParameterTypeHint
 	 */
 	public function addEventListener($events, $listener): void
 	{
-		if (is_string($listener)) {
+		if (!is_object($listener)) {
 			if ($this->initialized) {
 				throw new RuntimeException('Adding lazy-loading listeners after construction is not supported.');
 			}
@@ -95,12 +95,12 @@ class ContainerAwareEventManager extends DoctrineEventManager
 	 * Removes an event listener from the specified events.
 	 *
 	 * @param string|string[] $events
-	 * @param string|object $listener
+	 * @param string|int|object $listener
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingParameterTypeHint
 	 */
 	public function removeEventListener($events, $listener): void
 	{
-		if (is_string($listener)) {
+		if (!is_object($listener)) {
 			$hash = 'service@' . $listener;
 		} else {
 			// Picks the hash code related to that listener
