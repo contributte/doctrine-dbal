@@ -10,7 +10,7 @@ use Doctrine\DBAL\Logging\LoggerChain;
 use Doctrine\DBAL\Portability\Connection as PortabilityConnection;
 use Nette\DI\CompilerExtension;
 use Nette\DI\ContainerBuilder;
-use Nette\InvalidArgumentExeption;
+use Nette\InvalidArgumentException;
 use Nette\PhpGenerator\ClassType;
 use Nette\Utils\AssertionException;
 use Nette\Utils\Validators;
@@ -79,7 +79,7 @@ final class DbalExtension extends CompilerExtension
 		}
 
 		if (!array_key_exists(self::DEFAULT_CONNECTION_NAME, $config['connections'])) {
-			throw new InvalidArgumentExeption('Default connection must be set!');
+			throw new InvalidArgumentException('Default connection must be set!');
 		}
 
 		$this->loadDoctrineConfiguration();
