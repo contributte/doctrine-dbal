@@ -43,7 +43,7 @@ final class DbalExtension extends CompilerExtension
 		'connections' => [],
 	];
 
-	/** @var array */
+	/** @var mixed[] */
 	private $connectionDefaults = [
 		'url' => null,
 		'pdo' => null,
