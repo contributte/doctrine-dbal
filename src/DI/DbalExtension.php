@@ -78,7 +78,7 @@ final class DbalExtension extends CompilerExtension
 			$this->validateConfig($this->connectionDefaults, $v);
 		}
 
-		if (count($config['connections']) > 0 && !array_key_exists(self::DEFAULT_CONNECTION_NAME, $config['connections'])) {
+		if (!array_key_exists(self::DEFAULT_CONNECTION_NAME, $config['connections'])) {
 			throw new InvalidArgumentException('Default connection must be set!');
 		}
 
