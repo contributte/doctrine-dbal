@@ -22,9 +22,10 @@ final class EventManagerTest extends TestCase
 			$compiler->addExtension('dbal', new DbalExtension());
 			$compiler->addConfig(NeonLoader::load('
 			dbal:
-				connection:
-					driver: pdo_sqlite
-					host: ":memory:"
+				connections:
+					default:
+						driver: pdo_sqlite
+						host: ":memory:"
 			
 			services:
 				sub1: 
