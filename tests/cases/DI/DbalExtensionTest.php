@@ -73,7 +73,7 @@ final class DbalExtensionTest extends TestCase
 		$loader = new ContainerLoader(TEMP_PATH, true);
 		$class = $loader->load(function (Compiler $compiler): void {
 			$compiler->addExtension('dbal', new DbalExtension());
-			$compiler->addConfig(['dbal' => ['debug' => true]]);
+			$compiler->addConfig(['dbal' => ['debug' => true, 'connections' => ['default' => []]]]);
 		}, '1b');
 
 		/** @var Container $container */
