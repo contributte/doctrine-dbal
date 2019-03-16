@@ -5,7 +5,6 @@ includes:
 
 parameters:
 	ignoreErrors:
-		- '#^Cannot call method getMessage\(\) on Throwable\|null\.$#'
 		- "#^Parameter \\#1 \\$function of function call_user_func expects callable\\(\\): mixed, array\\(object, 'getSubscribedEvents'\\) given.#"
 		# No replacement available
 		- '#^Fetching class constant class of deprecated class Doctrine\\DBAL\\Tools\\Console\\Command\\ImportCommand\.$#'
