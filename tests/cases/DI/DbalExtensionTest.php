@@ -3,6 +3,7 @@
 namespace Tests\Nettrine\DBAL\Cases\DI;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Platforms\PostgreSQL100Platform;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Nette\DI\Compiler;
 use Nette\DI\Container;
@@ -83,6 +84,24 @@ final class DbalExtensionTest extends TestCase
 		$connection = $container->getByType(Connection::class);
 
 		$this->assertInstanceOf(DebugEventManager::class, $connection->getEventManager());
+	}
+
+	public function testServerVersion(): void
+	{
+		$loader = new ContainerLoader(TEMP_PATH, true);
+		$class = $loader->load(function (Compiler $compiler): void {
+			$compiler->addExtension('dbal', new DbalExtension());
+			$compiler->addConfig(['dbal' => ['connection' => ['driver' => 'pdo_pgsql', 'serverVersion' => '10.0']]]);
+		}, '1c');
+
+		/** @var Container $container */
+		$container = new $class();
+
+		/** @var Connection $connection */
+		$connection = $container->getByType(Connection::class);
+
+		$this->assertInstanceOf(PostgreSQL100Platform::class, $connection->getDatabasePlatform());
+		$this->assertFalse($connection->isConnected());
 	}
 
 }
