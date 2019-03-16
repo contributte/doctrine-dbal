@@ -45,6 +45,7 @@ final class DbalExtension extends CompilerExtension
 			'host' => null,
 			'port' => null,
 			'dbname' => null,
+			'serverVersion' => null,
 			'servicename' => null,
 			'user' => null,
 			'password' => null,
