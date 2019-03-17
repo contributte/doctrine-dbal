@@ -153,6 +153,7 @@ final class DbalExtension extends CompilerExtension
 
 		$eventManager = $builder->getDefinition($this->prefix('eventManager'));
 		foreach ($builder->findByTag(self::TAG_NETTRINE_SUBSCRIBER) as $serviceName => $tag) {
+			$serviceName = (string) $serviceName; // nette/di 2.4 allows numeric names, which are converted to integers
 			$class = $builder->getDefinition($serviceName)->getType();
 
 			if ($class === null || !is_subclass_of($class, EventSubscriber::class)) {
