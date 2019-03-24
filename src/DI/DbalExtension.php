@@ -45,7 +45,6 @@ final class DbalExtension extends CompilerExtension
 			'host' => null,
 			'port' => null,
 			'dbname' => null,
-			'serverVersion' => null,
 			'servicename' => null,
 			'user' => null,
 			'password' => null,
@@ -118,7 +117,7 @@ final class DbalExtension extends CompilerExtension
 	{
 		$builder = $this->getContainerBuilder();
 		$globalConfig = $this->validateConfig($this->defaults);
-		$config = $this->validateConfig($this->defaults['connection'], $this->config['connection']);
+		$config = $globalConfig['connection'];
 
 		$builder->addDefinition($this->prefix('eventManager'))
 			->setFactory(ContainerAwareEventManager::class);
