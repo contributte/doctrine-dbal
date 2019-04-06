@@ -26,7 +26,7 @@ use Tracy\Helpers;
 	}
 </style>
 
-<?php if (!$queriesNum): ?>
+<?php if ($queriesNum === 0): ?>
 	<h1>No queries</h1>
 <?php else: ?>
 	<h1>Queries:
@@ -35,11 +35,8 @@ use Tracy\Helpers;
 	</h1>
 <?php endif; ?>
 
-
 <div class="tracy-inner nettrine-dbal">
-	<?= Dumper::toHtml($parameters, [Dumper::COLLAPSE => TRUE]); ?>
-
-	<?php if (count($queries)): ?>
+	<?php if ($queries !== []): ?>
 		<table class="tracy-sortable">
 			<tr>
 				<th>Time&nbsp;ms</th>
@@ -69,4 +66,8 @@ use Tracy\Helpers;
 
 		</table>
 	<?php endif; ?>
+
+	<div style="margin-top: 2px;">
+		<?= Dumper::toHtml($parameters, [Dumper::COLLAPSE => true]); ?>
+	</div>
 </div>

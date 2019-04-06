@@ -54,7 +54,9 @@ class ContainerAwareEventManager extends DoctrineEventManager
 	 */
 	public function getListeners($event = null): array
 	{
-		return $event ? $this->listeners[$event] : $this->listeners;
+		return $event
+			? $this->listeners[$event]
+			: $this->listeners;
 	}
 
 	/**
@@ -100,12 +102,9 @@ class ContainerAwareEventManager extends DoctrineEventManager
 	 */
 	public function removeEventListener($events, $listener): void
 	{
-		if (!is_object($listener)) {
-			$hash = 'service@' . $listener;
-		} else {
-			// Picks the hash code related to that listener
-			$hash = spl_object_hash($listener);
-		}
+		$hash = !is_object($listener)
+			? 'service@' . $listener
+			: spl_object_hash($listener);
 		foreach ((array) $events as $event) {
 			// Check if actually have this listener associated
 			if (isset($this->listeners[$event][$hash])) {

@@ -1,8 +1,6 @@
-# Doctrine DBAL
+# Nettrine DBAL
 
 Doctrine DBAL for Nette Framework.
-
------
 
 [![Build Status](https://img.shields.io/travis/nettrine/dbal.svg?style=flat-square)](https://travis-ci.org/nettrine/dbal)
 [![Code coverage](https://img.shields.io/coveralls/nettrine/dbal.svg?style=flat-square)](https://coveralls.io/r/nettrine/dbal)
@@ -16,28 +14,22 @@ Doctrine DBAL for Nette Framework.
 
 [![Join the chat](https://img.shields.io/gitter/room/nettrine/nettrine.svg?style=flat-square)](http://bit.ly/nettrine)
 
-## Install
+## Documentation
 
-```sh
-composer require nettrine/dbal
-```
+- [Setup](.docs/README.md#setup)
+- [Configuration](.docs/README.md#configuration)
+- [Usage](.docs/README.md#usage)
+- [Events](.docs/README.md#events)
+- [Bridges](.docs/README.md#bridges)
+    - [Symfony\Console](.docs/README.md#symfony-console)
+    - [Psr\Log](.docs/#psr-log)
 
 ## Versions
 
-| State       | Version     | Branch   | PHP      |
-|-------------|-------------|----------|----------|
-| development | `^0.4`      | `master` | `>= 7.1` |
-| stable      | `^0.3`      | `master` | `>= 7.1` |
-
-## Overview
-
-- [Installation - how to install](https://github.com/nettrine/dbal/blob/master/.docs/#installation)
-- [Configuration - basic setup](https://github.com/nettrine/dbal/blob/master/.docs/#configuration)
-- [Usage](https://github.com/nettrine/dbal/blob/master/.docs/#usage)
-- [Events](https://github.com/nettrine/dbal/blob/master/.docs/#events)
-- [Bridges](https://github.com/nettrine/dbal/blob/master/.docs/#bridges)
-    - [Symfony\Console](https://github.com/nettrine/dbal/blob/master/.docs/#symfony-console)
-    - [Psr\Log](https://github.com/nettrine/dbal/blob/master/.docs/#psr-log)
+| State       | Version     | Branch   | Nette  | PHP    |
+|-------------|-------------|----------|--------|--------|
+| dev         | `^0.5`      | `master` | `3.0+` | `^7.2` |
+| stable      | `^0.4`      | `master` | `2.4`  | `^7.1` |
 
 ## Maintainers
 
@@ -61,7 +53,5 @@ composer require nettrine/dbal
     </tr>
   </tbody>
 </table>
-
----
 
 Thank you for testing, reporting and contributing.

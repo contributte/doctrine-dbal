@@ -3,6 +3,8 @@
 namespace Nettrine\DBAL\Logger;
 
 use Doctrine\DBAL\Logging\SQLLogger;
+use Nette\Utils\Strings;
+use Nettrine\DBAL\Exceptions\Runtime\InvalidStateException;
 use stdClass;
 
 abstract class AbstractLogger implements SQLLogger
@@ -13,6 +15,9 @@ abstract class AbstractLogger implements SQLLogger
 
 	/** @var float */
 	protected $totalTime = 0;
+
+	/** @var string[] */
+	private $sourcePaths = [];
 
 	/**
 	 * @param mixed $sql
@@ -29,6 +34,7 @@ abstract class AbstractLogger implements SQLLogger
 			'ms' => null,
 			'params' => $params,
 			'types' => $types,
+			'source' => $this->getSource(),
 		];
 	}
 
@@ -48,6 +54,42 @@ abstract class AbstractLogger implements SQLLogger
 		$this->totalTime += $query->duration;
 
 		return $query;
+	}
+
+	public function getTotalTime(): float
+	{
+		return $this->totalTime;
+	}
+
+	public function addPath(string $path): void
+	{
+		$p = realpath($path);
+		if ($p === false) {
+			throw new InvalidStateException(sprintf('Path %s does not exist', $path));
+		}
+		$this->sourcePaths[] = $p;
+	}
+
+	/**
+	 * @return mixed[]
+	 */
+	protected function getSource(): array
+	{
+		$result = [];
+		if (count($this->sourcePaths) === 0) {
+			return $result;
+		}
+		foreach (debug_backtrace() as $i) {
+			if (!isset($i['file'], $i['line'])) {
+				continue;
+			}
+			foreach ($this->sourcePaths as $path) {
+				if (Strings::contains($i['file'], $path)) {
+					$result[] = $i;
+				}
+			}
+		}
+		return $result;
 	}
 
 }
