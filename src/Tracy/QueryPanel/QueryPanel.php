@@ -2,101 +2,18 @@
 
 namespace Nettrine\DBAL\Tracy\QueryPanel;
 
-use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Logging\SQLLogger;
-use Doctrine\DBAL\SQLParserUtils;
-use Doctrine\DBAL\SQLParserUtilsException;
-use Nette\Utils\Strings;
-use Nettrine\DBAL\Exceptions\Runtime\InvalidStateException;
-use Tracy\Debugger;
+use Nettrine\DBAL\Logger\ProfilerLogger;
 use Tracy\IBarPanel;
 
-class QueryPanel implements IBarPanel, SQLLogger
+class QueryPanel implements IBarPanel
 {
 
-	/** @var int */
-	public static $maxLength = 1000;
+	/** @var ProfilerLogger */
+	protected $profiler;
 
-	/** @var Connection */
-	protected $connection;
-
-	/** @var object[] */
-	protected $queries = [];
-
-	/** @var float */
-	protected $totalTime = 0.0;
-
-	/** @var string[] */
-	private $sourcePaths = [];
-
-	public function __construct(Connection $connection)
+	public function __construct(ProfilerLogger $profiler)
 	{
-		$this->connection = $connection;
-	}
-
-	public function addPath(string $path): void
-	{
-		$p = realpath($path);
-		if ($p === false) throw new InvalidStateException(sprintf('Path %s does not exist', $path));
-
-		$this->sourcePaths[] = $p;
-	}
-
-	/**
-	 * @param mixed $sql
-	 * @param mixed[] $params
-	 * @param mixed[] $types
-	 */
-	public function startQuery($sql, ?array $params = null, ?array $types = null): void
-	{
-		if ($params) {
-			try {
-				/** @var string $sql */
-				[$sql, $params, $types] = SQLParserUtils::expandListParameters($sql, $params ?? [], $types ?? []);
-			} catch (SQLParserUtilsException $e) {
-				// Do nothing
-			}
-
-			// Escape % before vsprintf (example: LIKE '%ant%')
-			$sql = str_replace(['%', '?'], ['%%', '%s'], $sql);
-
-			$query = vsprintf(
-				$sql,
-				call_user_func(function () use ($params, $types) {
-					$quotedParams = [];
-					foreach ($params as $typeIndex => $value) {
-						$type = $types[$typeIndex] ?? null;
-						$quotedParams[] = $this->connection->quote($value, $type);
-					}
-
-					return $quotedParams;
-				})
-			);
-		} else {
-			$query = $sql;
-		}
-
-		$this->queries[] = (object) [
-			'sql' => $query,
-			'duration' => 0.0,
-			'source' => $this->getSource(),
-		];
-
-		Debugger::timer('nettrine.dbal.query');
-	}
-
-	public function stopQuery(): void
-	{
-		// Find latest query
-		$keys = array_keys($this->queries);
-		$key = end($keys);
-		$query = $this->queries[$key];
-
-		// Update duration
-		$query->duration = Debugger::timer('nettrine.dbal.query');
-
-		// Update total time
-		$this->totalTime += $query->duration;
+		$this->profiler = $profiler;
 	}
 
 	/**
@@ -104,7 +21,14 @@ class QueryPanel implements IBarPanel, SQLLogger
 	 */
 	public function getTab(): string
 	{
-		$count = count($this->queries);
+		assert($this->profiler !== null, 'Profiler must be set'); // @intentionally
+
+		$queries = $this->profiler->getQueries();
+		$totalTime = 0;
+		$count = count($queries);
+		foreach ($queries as $event) {
+			$totalTime += $event->duration;
+		}
 
 		$iconNoQuery = '<img style="height: 16px; width: auto;" src="data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTkuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iTGF5ZXJfMSIgeD0iMHB4IiB5PSIwcHgiIHZpZXdCb3g9IjAgMCAyODAuMDI3IDI4MC4wMjciIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDI4MC4wMjcgMjgwLjAyNzsiIHhtbDpzcGFjZT0icHJlc2VydmUiIHdpZHRoPSI1MTJweCIgaGVpZ2h0PSI1MTJweCI+CjxnPgoJPHBhdGggc3R5bGU9ImZpbGw6I0NDRDBEMjsiIGQ9Ik0xNy41MDIsNTIuNTA1djE3NS4wMTdjMCwyOC45ODMsNTQuODUsNTIuNTA1LDEyMi41MTIsNTIuNTA1czEyMi41MTItMjMuNTIyLDEyMi41MTItNTIuNTA1VjUyLjUwNSAgIEgxNy41MDJ6Ii8+Cgk8cGF0aCBzdHlsZT0iZmlsbDojQURCMEIyOyIgZD0iTTIyNy41MjIsMTIyLjUxMmM0LjgzOSwwLDguNzUxLTMuOTEyLDguNzUxLTguNzUxYzAtNC44My0zLjkxMi04Ljc1MS04Ljc1MS04Ljc1MSAgIGMtNC44MzksMC04Ljc1MSwzLjkyLTguNzUxLDguNzUxQzIxOC43NzEsMTE4LjYsMjIyLjY4MiwxMjIuNTEyLDIyNy41MjIsMTIyLjUxMnogTTIyNy41MjIsMTY2LjI2NiAgIGMtNC44MzksMC04Ljc1MSwzLjkyLTguNzUxLDguNzUxYzAsNC44MzksMy45MTIsOC43NTEsOC43NTEsOC43NTFjNC44MzksMCw4Ljc1MS0zLjkxMiw4Ljc1MS04Ljc1MSAgIEMyMzYuMjcyLDE3MC4xODcsMjMyLjM1MywxNjYuMjY2LDIyNy41MjIsMTY2LjI2NnogTTIyNy41MjIsMjI3LjUyMmMtNC44MzksMC04Ljc1MSwzLjkxMi04Ljc1MSw4Ljc1MXMzLjkxMiw4Ljc1MSw4Ljc1MSw4Ljc1MSAgIGM0LjgzOSwwLDguNzUxLTMuOTEyLDguNzUxLTguNzUxUzIzMi4zNTMsMjI3LjUyMiwyMjcuNTIyLDIyNy41MjJ6Ii8+Cgk8cGF0aCBzdHlsZT0iZmlsbDojQjdCQkJEOyIgZD0iTTE0MC4wMTQsMTY2LjI3NWM2Ny42NjIsMCwxMjIuNTEyLTI1LjM0MiwxMjIuNTEyLTU2LjYwOWMwLTEuNTkzLTAuMjM2LTMuMTUtMC41MTYtNC43MTcgICBjLTUuMTk4LDI5LjA1My01Ny43ODIsNTEuODkzLTEyMS45OTYsNTEuODkzUzIzLjIyNSwxMzQuMDExLDE4LjAxOCwxMDQuOTQ5Yy0wLjI4LDEuNTY2LTAuNTE2LDMuMTI0LTAuNTE2LDQuNzE3ICAgQzE3LjUwMiwxNDAuOTI0LDcyLjM0MywxNjYuMjc1LDE0MC4wMTQsMTY2LjI3NXogTTE0MC4wMTQsMjE4LjA5OGMtNjQuMjE0LDAtMTE2Ljc4OS0yMi44MjItMTIxLjk5Ni01MS44OTMgICBjLTAuMjgsMS41NjYtMC41MTYsMy4xMjQtMC41MTYsNC43MTdjMCwzMS4yNDksNTQuODUsNTYuNjA5LDEyMi41MTIsNTYuNjA5czEyMi41MTItMjUuMzQyLDEyMi41MTItNTYuNjA5ICAgYzAtMS42MDEtMC4yMzYtMy4xNS0wLjUxNi00LjcxN0MyNTYuODIsMTk1LjI0OSwyMDQuMjM2LDIxOC4wOTgsMTQwLjAxNCwyMTguMDk4eiIvPgoJPHBhdGggc3R5bGU9ImZpbGw6I0MyQzVDNzsiIGQ9Ik00My43NTQsMjU5LjkzNVY1Mi41MDVIMTcuNTAydjE3NS4wMTdDMTcuNTAyLDIzOS43NTYsMjcuMzU1LDI1MS4wMSw0My43NTQsMjU5LjkzNXoiLz4KCTxnPgoJCTxwYXRoIHN0eWxlPSJmaWxsOiNCMkI1Qjc7IiBkPSJNNDMuNzU0LDIwNS44NjR2LTkuNDg2Yy0xNC4zNjktOC40NjItMjMuNjk3LTE4LjgyMy0yNS43MzYtMzAuMTczICAgIGMtMC4yOCwxLjU2Ni0wLjUxNiwzLjEyNC0wLjUxNiw0LjcxN0MxNy41MDIsMTg0LjEyNywyNy4zNTUsMTk2LjIzOCw0My43NTQsMjA1Ljg2NHogTTQzLjc1NCwxNDQuNjA4di05LjQ3NyAgICBjLTE0LjM2OS04LjQ2Mi0yMy42OTctMTguODMyLTI1LjczNi0zMC4xOWMtMC4yOCwxLjU3NS0wLjUxNiwzLjEzMy0wLjUxNiw0LjcyNUMxNy41MDIsMTIyLjg3MSwyNy4zNTUsMTM0Ljk4Miw0My43NTQsMTQ0LjYwOHoiLz4KCTwvZz4KCTxwYXRoIHN0eWxlPSJmaWxsOiNFNEU3RTc7IiBkPSJNMTQwLjAxNCwwYzY3LjY2MiwwLDEyMi41MTIsMjMuNTE0LDEyMi41MTIsNTIuNTA1cy01NC44NSw1Mi41MDUtMTIyLjUxMiw1Mi41MDUgICBTMTcuNTAyLDgxLjQ5NywxNy41MDIsNTIuNTA1UzcyLjM0MywwLDE0MC4wMTQsMHoiLz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8L3N2Zz4K" />';
 		$iconQuery = '<img style="height: 16px; width: auto;" src="data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTkuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iQ2FwYV8xIiB4PSIwcHgiIHk9IjBweCIgdmlld0JveD0iMCAwIDUzIDUzIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MyA1MzsiIHhtbDpzcGFjZT0icHJlc2VydmUiIHdpZHRoPSI1MTJweCIgaGVpZ2h0PSI1MTJweCI+CjxwYXRoIHN0eWxlPSJmaWxsOiM0MjRBNjA7IiBkPSJNNTAuNDU1LDhMNTAuNDU1LDhDNDkuNzI0LDMuNTM4LDM5LjI4MSwwLDI2LjUsMFMzLjI3NiwzLjUzOCwyLjU0NSw4bDAsMEgyLjV2MC41VjIwdjAuNVYyMXYxMXYwLjUgIFYzM3YxMmgwLjA0NWMwLjczMSw0LjQ2MSwxMS4xNzUsOCwyMy45NTUsOHMyMy4yMjQtMy41MzksMjMuOTU1LThINTAuNVYzM3YtMC41VjMyVjIxdi0wLjVWMjBWOC41VjhINTAuNDU1eiIvPgo8Zz4KCTxwYXRoIHN0eWxlPSJmaWxsOiM0MjRBNjA7IiBkPSJNMjYuNSw0MWMtMTMuMjU1LDAtMjQtMy44MDYtMjQtOC41VjQ1aDAuMDQ1YzAuNzMxLDQuNDYxLDExLjE3NSw4LDIzLjk1NSw4czIzLjIyNC0zLjUzOSwyMy45NTUtOCAgIEg1MC41VjMyLjVDNTAuNSwzNy4xOTQsMzkuNzU1LDQxLDI2LjUsNDF6Ii8+Cgk8cGF0aCBzdHlsZT0iZmlsbDojNDI0QTYwOyIgZD0iTTIuNSwzMnYwLjVjMC0wLjE2OCwwLjAxOC0wLjMzNCwwLjA0NS0wLjVIMi41eiIvPgoJPHBhdGggc3R5bGU9ImZpbGw6IzQyNEE2MDsiIGQ9Ik01MC40NTUsMzJjMC4wMjcsMC4xNjYsMC4wNDUsMC4zMzIsMC4wNDUsMC41VjMySDUwLjQ1NXoiLz4KPC9nPgo8Zz4KCTxwYXRoIHN0eWxlPSJmaWxsOiNFRkNFNEE7IiBkPSJNMjYuNSwyOWMtMTMuMjU1LDAtMjQtMy44MDYtMjQtOC41VjMzaDAuMDQ1YzAuNzMxLDQuNDYxLDExLjE3NSw4LDIzLjk1NSw4czIzLjIyNC0zLjUzOSwyMy45NTUtOCAgIEg1MC41VjIwLjVDNTAuNSwyNS4xOTQsMzkuNzU1LDI5LDI2LjUsMjl6Ii8+Cgk8cGF0aCBzdHlsZT0iZmlsbDojRUZDRTRBOyIgZD0iTTIuNSwyMHYwLjVjMC0wLjE2OCwwLjAxOC0wLjMzNCwwLjA0NS0wLjVIMi41eiIvPgoJPHBhdGggc3R5bGU9ImZpbGw6I0VGQ0U0QTsiIGQ9Ik01MC40NTUsMjBjMC4wMjcsMC4xNjYsMC4wNDUsMC4zMzIsMC4wNDUsMC41VjIwSDUwLjQ1NXoiLz4KPC9nPgo8ZWxsaXBzZSBzdHlsZT0iZmlsbDojN0ZBQkRBOyIgY3g9IjI2LjUiIGN5PSI4LjUiIHJ4PSIyNCIgcnk9IjguNSIvPgo8Zz4KCTxwYXRoIHN0eWxlPSJmaWxsOiM3MzgzQkY7IiBkPSJNMjYuNSwxN2MtMTMuMjU1LDAtMjQtMy44MDYtMjQtOC41VjIxaDAuMDQ1YzAuNzMxLDQuNDYxLDExLjE3NSw4LDIzLjk1NSw4czIzLjIyNC0zLjUzOSwyMy45NTUtOCAgIEg1MC41VjguNUM1MC41LDEzLjE5NCwzOS43NTUsMTcsMjYuNSwxN3oiLz4KCTxwYXRoIHN0eWxlPSJmaWxsOiM3MzgzQkY7IiBkPSJNMi41LDh2MC41YzAtMC4xNjgsMC4wMTgtMC4zMzQsMC4wNDUtMC41SDIuNXoiLz4KCTxwYXRoIHN0eWxlPSJmaWxsOiM3MzgzQkY7IiBkPSJNNTAuNDU1LDhDNTAuNDgyLDguMTY2LDUwLjUsOC4zMzIsNTAuNSw4LjVWOEg1MC40NTV6Ii8+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPC9zdmc+Cg==" />';
@@ -113,8 +37,8 @@ class QueryPanel implements IBarPanel, SQLLogger
 			. '<span class="tracy-label">'
 			. ($count > 0 ? $iconQuery : $iconNoQuery)
 			. '&nbsp;'
-			. $count . ' queries'
-			. ($this->totalTime ? ' / ' . sprintf('%0.2fms', $this->totalTime * 1000) : '')
+			. ($count > 0 ? $count . ' q' : '')
+			. ($totalTime ? ' / ' . number_format($totalTime * 1000, 1, '.', ' ') . ' ms' : '')
 			. '</span>'
 			. '</span>';
 	}
@@ -125,34 +49,14 @@ class QueryPanel implements IBarPanel, SQLLogger
 	public function getPanel(): string
 	{
 		ob_start();
-		$parameters = $this->connection->getParams();
+		$parameters = $this->profiler->getConnection()->getParams();
 		$parameters['password'] = '****';
-		$connected = $this->connection->isConnected();
-		$queries = $this->queries;
-		$queriesNum = count($this->queries);
-		$totalTime = $this->totalTime;
+		$queries = $this->profiler->getQueries();
+		$queriesNum = count($queries);
+		$totalTime = $this->profiler->getTotalTime();
 		require __DIR__ . '/templates/panel.phtml';
 
 		return (string) ob_get_clean();
-	}
-
-	/**
-	 * @return mixed[]
-	 */
-	protected function getSource(): array
-	{
-		$result = [];
-		if (count($this->sourcePaths) === 0) return $result;
-
-		foreach (debug_backtrace() as $i) {
-			if (!isset($i['file'], $i['line'])) continue;
-
-			foreach ($this->sourcePaths as $path) {
-				if (Strings::contains($i['file'], $path)) $result[] = $i;
-			}
-		}
-
-		return $result;
 	}
 
 }
