@@ -1,21 +1,25 @@
 <?xml version="1.0"?>
 <ruleset name="Nettrine">
-    <!-- Contributte Coding Standard -->
-    <rule ref="./vendor/ninjify/coding-standard/contributte.xml">
-        <exclude name="SlevomatCodingStandard.Commenting.ForbiddenAnnotations.AnnotationForbidden"/>
-    </rule>
+	<!-- Contributte Coding Standard -->
+	<rule ref="./vendor/ninjify/coding-standard/contributte.xml">
+		<exclude name="SlevomatCodingStandard.Commenting.ForbiddenAnnotations.AnnotationForbidden"/>
+		<exclude name="SlevomatCodingStandard.ControlStructures.ControlStructureSpacing.IncorrectLinesCountBeforeControlStructure"/>
+		<exclude name="SlevomatCodingStandard.ControlStructures.ControlStructureSpacing.IncorrectLinesCountAfterControlStructure"/>
+		<exclude name="SlevomatCodingStandard.ControlStructures.ControlStructureSpacing.IncorrectLinesCountAfterLastControlStructure"/>
+	</rule>
 
-    <!-- Specific -->
-    <rule ref="SlevomatCodingStandard.Files.TypeNameMatchesFileName">
-        <properties>
-            <property name="rootNamespaces" type="array" value="
-                src=>Nettrine\DBAL,
-                tests/cases=>Tests\Nettrine\DBAL\Cases,
-                tests/fixtures=>Tests\Nettrine\DBAL\Fixtures
-            "/>
-        </properties>
-    </rule>
+	<!-- Specific -->
+	<rule ref="SlevomatCodingStandard.Files.TypeNameMatchesFileName">
+		<properties>
+			<property name="rootNamespaces" type="array" value="
+				src=>Nettrine\DBAL,
+				tests/cases=>Tests\Cases,
+				tests/fixtures=>Tests\Fixtures,
+				tests/toolkit=>Tests\Toolkit
+			"/>
+		</properties>
+	</rule>
 
-    <!--Exclude folders -->
-    <exclude-pattern>/tests/tmp</exclude-pattern>
+	<!--Exclude folders -->
+	<exclude-pattern>/tests/tmp</exclude-pattern>
 </ruleset>

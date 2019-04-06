@@ -2,61 +2,26 @@
 
 namespace Nettrine\DBAL\Tracy\QueryPanel;
 
-use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\SQLParserUtils;
-use Doctrine\DBAL\SQLParserUtilsException;
-use Nettrine\DBAL\Logger\AbstractLogger;
+use Nettrine\DBAL\Logger\ProfilerLogger;
 use Tracy\IBarPanel;
 
-class QueryPanel extends AbstractLogger implements IBarPanel
+class QueryPanel implements IBarPanel
 {
 
-	/** @var int */
-	public static $maxLength = 1000;
+	/** @var ProfilerLogger */
+	protected $profiler;
 
-	/** @var Connection */
-	protected $connection;
-
-	public function __construct(Connection $connection)
+	public function __construct(?ProfilerLogger $profiler = null)
 	{
-		$this->connection = $connection;
+		if ($profiler) {
+			$this->profiler = $profiler;
+		}
 	}
 
-	/**
-	 * @param mixed $sql
-	 * @param mixed[] $params
-	 * @param mixed[] $types
-	 */
-	public function startQuery($sql, ?array $params = null, ?array $types = null): void
+
+	public function setProfiler(ProfilerLogger $profiler): void
 	{
-		if ($params) {
-			try {
-				/** @var string $sql */
-				[$sql, $params, $types] = SQLParserUtils::expandListParameters($sql, $params ?? [], $types ?? []);
-			} catch (SQLParserUtilsException $e) {
-				// Do nothing
-			}
-
-			// Escape % before vsprintf (example: LIKE '%ant%')
-			$sql = str_replace(['%', '?'], ['%%', '%s'], $sql);
-
-			$query = vsprintf(
-				$sql,
-				call_user_func(function () use ($params, $types) {
-					$quotedParams = [];
-					foreach ($params as $typeIndex => $value) {
-						$type = $types[$typeIndex] ?? null;
-						$quotedParams[] = $this->connection->quote($value, $type);
-					}
-
-					return $quotedParams;
-				})
-			);
-		} else {
-			$query = $sql;
-		}
-
-		parent::startQuery($query, $params, $types);
+		$this->profiler = $profiler;
 	}
 
 	/**
@@ -64,9 +29,12 @@ class QueryPanel extends AbstractLogger implements IBarPanel
 	 */
 	public function getTab(): string
 	{
+		assert($this->profiler !== null, 'Profiler must be set'); // @intentionally
+
+		$queries = $this->profiler->getQueries();
 		$totalTime = 0;
-		$count = count($this->queries);
-		foreach ($this->queries as $event) {
+		$count = count($queries);
+		foreach ($queries as $event) {
 			$totalTime += $event->duration;
 		}
 
@@ -77,7 +45,7 @@ class QueryPanel extends AbstractLogger implements IBarPanel
 			. '<span class="tracy-label">'
 			. ($count > 0 ? $iconQuery : $iconNoQuery)
 			. '&nbsp;'
-			. $count . ' queries'
+			. ($count > 0 ? $count . ' queries' : '')
 			. ($totalTime ? ' / ' . number_format($totalTime * 1000, 1, '.', ' ') . ' ms' : '')
 			. '</span>'
 			. '</span>';
@@ -89,10 +57,10 @@ class QueryPanel extends AbstractLogger implements IBarPanel
 	public function getPanel(): string
 	{
 		ob_start();
-		$parameters = $this->connection->getParams();
+		$parameters = $this->profiler->getConnection()->getParams();
 		$parameters['password'] = '****';
-		$connected = $this->connection->isConnected();
-		$queries = $this->queries;
+		$connected = $this->profiler->getConnection()->isConnected();
+		$queries = $this->profiler->getQueries();
 		require __DIR__ . '/templates/panel.phtml';
 
 		return (string) ob_get_clean();
