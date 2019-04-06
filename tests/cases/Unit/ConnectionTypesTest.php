@@ -1,10 +1,10 @@
 <?php declare(strict_types = 1);
 
-namespace Tests\Nettrine\DBAL\Cases;
+namespace Tests\Cases\Unit;
 
-use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Types\StringType;
 use Nettrine\DBAL\ConnectionFactory;
+use Tests\Toolkit\TestCase;
 
 final class ConnectionTypesTest extends TestCase
 {
@@ -24,8 +24,7 @@ final class ConnectionTypesTest extends TestCase
 		$connectionFactory = new ConnectionFactory($types, $mapping);
 		$connection = $connectionFactory->createConnection(['driver' => 'pdo_sqlite']);
 
-		self::assertInstanceOf(Connection::class, $connection);
-		self::assertEquals('foo', $connection->getDatabasePlatform()->getDoctrineTypeMapping('db_foo'));
+		$this->assertEquals('foo', $connection->getDatabasePlatform()->getDoctrineTypeMapping('db_foo'));
 	}
 
 }

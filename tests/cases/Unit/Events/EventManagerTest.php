@@ -1,6 +1,6 @@
 <?php declare(strict_types = 1);
 
-namespace Tests\Nettrine\DBAL\Cases\Events;
+namespace Tests\Cases\Unit\Events;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Schema;
@@ -8,9 +8,9 @@ use Nette\DI\Compiler;
 use Nette\DI\Container;
 use Nette\DI\ContainerLoader;
 use Nettrine\DBAL\DI\DbalExtension;
-use Tests\Nettrine\DBAL\Cases\NeonLoader;
-use Tests\Nettrine\DBAL\Cases\TestCase;
-use Tests\Nettrine\DBAL\Fixtures\Subscriber\PostConnectSubscriber;
+use Tests\Fixtures\Subscriber\PostConnectSubscriber;
+use Tests\Toolkit\NeonLoader;
+use Tests\Toolkit\TestCase;
 
 final class EventManagerTest extends TestCase
 {
@@ -28,7 +28,7 @@ final class EventManagerTest extends TestCase
 			
 			services:
 				sub1: 
-					class: Tests\Nettrine\DBAL\Fixtures\Subscriber\PostConnectSubscriber
+					class: Tests\Fixtures\Subscriber\PostConnectSubscriber
 					tags: [nettrine.subscriber]
 			'));
 		}, '2' . microtime(true));
@@ -42,10 +42,10 @@ final class EventManagerTest extends TestCase
 		/** @var PostConnectSubscriber $subscriber */
 		$subscriber = $container->getService('sub1');
 
-		self::assertInstanceOf(Connection::class, $connection);
-		self::assertInstanceOf(PostConnectSubscriber::class, $subscriber);
-		self::assertFalse($connection->isConnected());
-		self::assertEmpty($subscriber->events);
+		$this->assertInstanceOf(Connection::class, $connection);
+		$this->assertInstanceOf(PostConnectSubscriber::class, $subscriber);
+		$this->assertFalse($connection->isConnected());
+		$this->assertEmpty($subscriber->events);
 
 		$schema = new Schema();
 		$posts = $schema->createTable('posts');
@@ -57,9 +57,9 @@ final class EventManagerTest extends TestCase
 			$connection->executeQuery($query);
 		}
 
-		self::assertTrue($connection->isConnected());
-		self::assertNotEmpty($subscriber->events);
-		self::assertSame($connection, $subscriber->events[0]->getConnection());
+		$this->assertTrue($connection->isConnected());
+		$this->assertNotEmpty($subscriber->events);
+		$this->assertSame($connection, $subscriber->events[0]->getConnection());
 	}
 
 }

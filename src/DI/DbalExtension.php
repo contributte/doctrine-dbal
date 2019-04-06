@@ -7,73 +7,55 @@ use Doctrine\Common\EventSubscriber;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Logging\LoggerChain;
-use Doctrine\DBAL\Portability\Connection as PortabilityConnection;
 use Nette\DI\CompilerExtension;
-use Nette\DI\ContainerBuilder;
-use Nette\PhpGenerator\ClassType;
+use Nette\DI\Definitions\ServiceDefinition;
+use Nette\DI\Definitions\Statement;
+use Nette\PhpGenerator\PhpLiteral;
+use Nette\Schema\Expect;
+use Nette\Schema\Schema;
 use Nette\Utils\AssertionException;
-use Nette\Utils\Validators;
 use Nettrine\DBAL\ConnectionFactory;
 use Nettrine\DBAL\Events\ContainerAwareEventManager;
 use Nettrine\DBAL\Events\DebugEventManager;
+use Nettrine\DBAL\Logger\ProfilerLogger;
 use Nettrine\DBAL\Tracy\BlueScreen\DbalBlueScreen;
 use Nettrine\DBAL\Tracy\QueryPanel\QueryPanel;
-use PDO;
 use ReflectionClass;
+use stdClass;
 
+/**
+ * @property-read stdClass $config
+ */
 final class DbalExtension extends CompilerExtension
 {
 
 	public const TAG_NETTRINE_SUBSCRIBER = 'nettrine.subscriber';
 
-	/** @var mixed[] */
-	private $defaults = [
-		'debug' => false,
-		'configuration' => [
-			'sqlLogger' => null,
-			'resultCacheImpl' => null,
-			'filterSchemaAssetsExpression' => null,
-			'autoCommit' => true,
-		],
-		'connection' => [
-			'url' => null,
-			'pdo' => null,
-			'memory' => null,
-			'driver' => 'pdo_mysql',
-			'driverClass' => null,
-			'unix_socket' => null,
-			'host' => null,
-			'port' => null,
-			'dbname' => null,
-			'servicename' => null,
-			'user' => null,
-			'password' => null,
-			'charset' => 'UTF8',
-			'portability' => PortabilityConnection::PORTABILITY_ALL,
-			'fetchCase' => PDO::CASE_LOWER,
-			'persistent' => true,
-			'types' => [],
-			'typesMapping' => [],
-			'wrapperClass' => null,
-		],
-	];
+	public function getConfigSchema(): Schema
+	{
+		return Expect::structure([
+			'debug' => Expect::bool(false),
+			'configuration' => Expect::structure([
+				'sqlLogger' => Expect::string(),
+				'resultCacheImpl' => Expect::string(),
+				'filterSchemaAssetsExpression' => Expect::string()->nullable(),
+				'autoCommit' => Expect::bool(true),
+			]),
+			'connection' => Expect::array()->default([
+				'driver' => 'pdo_sqlite',
+				'types' => [],
+				'typesMapping' => [],
+			]),
+		]);
+	}
 
 	/**
 	 * Register services
 	 */
 	public function loadConfiguration(): void
 	{
-		$builder = $this->getContainerBuilder();
-		$config = $this->validateConfig($this->defaults);
-
 		$this->loadDoctrineConfiguration();
 		$this->loadConnectionConfiguration();
-
-		if ($config['debug'] === true) {
-			$builder->addDefinition($this->prefix('queryPanel'))
-				->setFactory(QueryPanel::class)
-				->setAutowired(false);
-		}
 	}
 
 	/**
@@ -82,7 +64,7 @@ final class DbalExtension extends CompilerExtension
 	public function loadDoctrineConfiguration(): void
 	{
 		$builder = $this->getContainerBuilder();
-		$config = $this->validateConfig($this->defaults['configuration'], $this->config['configuration']);
+		$config = (array) $this->config->configuration;
 
 		$logger = $builder->addDefinition($this->prefix('logger'))
 			->setType(LoggerChain::class)
@@ -109,20 +91,18 @@ final class DbalExtension extends CompilerExtension
 		}
 
 		// AutoCommit
-		Validators::assert($config['autoCommit'], 'bool', 'configuration.autoCommit');
 		$configuration->addSetup('setAutoCommit', [$config['autoCommit']]);
 	}
 
 	public function loadConnectionConfiguration(): void
 	{
 		$builder = $this->getContainerBuilder();
-		$globalConfig = $this->validateConfig($this->defaults);
-		$config = $globalConfig['connection'];
+		$config = (array) $this->config->connection;
 
 		$builder->addDefinition($this->prefix('eventManager'))
 			->setFactory(ContainerAwareEventManager::class);
 
-		if ($globalConfig['debug'] === true) {
+		if ($this->config->debug === true) {
 			$builder->getDefinition($this->prefix('eventManager'))
 				->setAutowired(false);
 			$builder->addDefinition($this->prefix('eventManager.debug'))
@@ -132,13 +112,32 @@ final class DbalExtension extends CompilerExtension
 		$builder->addDefinition($this->prefix('connectionFactory'))
 			->setFactory(ConnectionFactory::class, [$config['types'], $config['typesMapping']]);
 
-		$builder->addDefinition($this->prefix('connection'))
+		$connectionDef = $builder->addDefinition($this->prefix('connection'))
 			->setFactory(Connection::class)
 			->setFactory('@' . $this->prefix('connectionFactory') . '::createConnection', [
 				$config,
 				'@' . $this->prefix('configuration'),
 				$builder->getDefinitionByType(EventManager::class),
 			]);
+
+		if ($this->config->debug === true) {
+			$connectionDef
+				->addSetup('$profiler = ?', [
+					new Statement(ProfilerLogger::class, [$connectionDef]),
+				])
+				->addSetup('?->getConfiguration()->getSqlLogger()->addLogger(?)', [
+					'@self',
+					new PhpLiteral('$profiler'),
+				])
+				->addSetup('@Tracy\Bar::addPanel', [
+					new Statement(QueryPanel::class, [
+						new PhpLiteral('$profiler'),
+					]),
+				])
+				->addSetup('@Tracy\BlueScreen::addPanel', [
+					[DbalBlueScreen::class, 'renderException'],
+				]);
+		}
 	}
 
 	/**
@@ -151,9 +150,9 @@ final class DbalExtension extends CompilerExtension
 		// Idea by @enumag
 		// https://github.com/Arachne/EventManager/blob/master/src/DI/EventManagerExtension.php
 
+		/** @var ServiceDefinition $eventManager */
 		$eventManager = $builder->getDefinition($this->prefix('eventManager'));
 		foreach ($builder->findByTag(self::TAG_NETTRINE_SUBSCRIBER) as $serviceName => $tag) {
-			$serviceName = (string) $serviceName; // nette/di 2.4 allows numeric names, which are converted to integers
 			$class = $builder->getDefinition($serviceName)->getType();
 
 			if ($class === null || !is_subclass_of($class, EventSubscriber::class)) {
@@ -165,6 +164,7 @@ final class DbalExtension extends CompilerExtension
 					)
 				);
 			}
+
 			$eventManager->addSetup(
 				'?->addEventListener(?, ?)',
 				[
@@ -172,30 +172,6 @@ final class DbalExtension extends CompilerExtension
 					call_user_func([(new ReflectionClass($class))->newInstanceWithoutConstructor(), 'getSubscribedEvents']),
 					$serviceName, // Intentionally without @ for laziness.
 				]
-			);
-		}
-	}
-
-	/**
-	 * Update initialize method
-	 */
-	public function afterCompile(ClassType $class): void
-	{
-		$config = $this->validateConfig($this->defaults);
-
-		if ($config['debug'] === true) {
-			$initialize = $class->getMethod('initialize');
-			$initialize->addBody(
-				'$this->getService(?)->addPanel($this->getService(?));',
-				['tracy.bar', $this->prefix('queryPanel')]
-			);
-			$initialize->addBody(
-				'$this->getService(?)->getConfiguration()->getSqlLogger()->addLogger($this->getService(?));',
-				[$this->prefix('connection'), $this->prefix('queryPanel')]
-			);
-			$initialize->addBody(
-				'$this->getService(?)->addPanel(new ?);',
-				['tracy.blueScreen', ContainerBuilder::literal(DbalBlueScreen::class)]
 			);
 		}
 	}
