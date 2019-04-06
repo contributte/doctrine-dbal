@@ -7,8 +7,10 @@ use Doctrine\DBAL\Tools\Console\Command\ReservedWordsCommand;
 use Doctrine\DBAL\Tools\Console\Command\RunSqlCommand;
 use Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper;
 use Nette\DI\CompilerExtension;
+use Nette\DI\Definitions\ServiceDefinition;
+use Nette\DI\Definitions\Statement;
 use Nette\DI\ServiceCreationException;
-use Nette\DI\Statement;
+use Symfony\Component\Console\Application;
 
 class DbalConsoleExtension extends CompilerExtension
 {
@@ -26,12 +28,14 @@ class DbalConsoleExtension extends CompilerExtension
 	 */
 	public function loadConfiguration(): void
 	{
-		if (!class_exists('Symfony\Component\Console\Application')) {
-			throw new ServiceCreationException('Missing Symfony\Component\Console\Application service');
+		if (!class_exists(Application::class)) {
+			throw new ServiceCreationException(sprintf('Missing "%s" service', Application::class));
 		}
 
 		// Skip if it's not CLI mode
-		if (!$this->cliMode) return;
+		if (!$this->cliMode) {
+			return;
+		}
 
 		$builder = $this->getContainerBuilder();
 
@@ -63,16 +67,19 @@ class DbalConsoleExtension extends CompilerExtension
 	public function beforeCompile(): void
 	{
 		// Skip if it's not CLI mode
-		if (!$this->cliMode) return;
+		if (!$this->cliMode) {
+			return;
+		}
 
 		$builder = $this->getContainerBuilder();
 
 		// Lookup for Symfony Console Application
-		$application = $builder->getDefinitionByType('Symfony\Component\Console\Application');
+		/** @var ServiceDefinition $applicationDef */
+		$applicationDef = $builder->getDefinitionByType(Application::class);
 
 		// Register helpers
 		$connectionHelper = $this->prefix('@connectionHelper');
-		$application->addSetup(new Statement('$service->getHelperSet()->set(?, ?)', [$connectionHelper, 'db']));
+		$applicationDef->addSetup(new Statement('$service->getHelperSet()->set(?, ?)', [$connectionHelper, 'db']));
 	}
 
 }

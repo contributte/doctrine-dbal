@@ -22,7 +22,6 @@ final class DataUtils
 		$keys = array_keys((array) reset($rows));
 		if (!count($keys)) {
 			throw new LogicException('Result set does not contain any column.');
-
 		} elseif ($key === null && $value === null) {
 			if (count($keys) === 1) {
 				[$value] = $keys;

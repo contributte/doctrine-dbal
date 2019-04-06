@@ -70,6 +70,7 @@ class ConnectionFactory
 				$platform->registerDoctrineTypeMapping((string) $dbType, $doctrineType);
 			}
 		}
+
 		if (!empty($this->commentedTypes)) {
 			$platform = $this->getDatabasePlatform($connection);
 			foreach ($this->commentedTypes as $type) {
@@ -104,6 +105,7 @@ class ConnectionFactory
 					$driverException
 				);
 			}
+
 			throw $driverException;
 		}
 	}
@@ -116,10 +118,12 @@ class ConnectionFactory
 			} else {
 				Type::addType($type, $typeConfig['class']);
 			}
+
 			if ($typeConfig['commented']) {
 				$this->commentedTypes[] = $type;
 			}
 		}
+
 		$this->initialized = true;
 	}
 

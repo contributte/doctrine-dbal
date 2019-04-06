@@ -1,25 +1,33 @@
-# Nettrine / DBAL
+# Nettrine DBAL
+
+Doctrine DBAL for Nette Framework.
 
 ## Content
 
-- [Installation - how to install](#installation)
-- [Configuration - basic setup](#configuration)
+- [Setup](#setup)
+- [Configuration](#configuration)
 - [Usage](#usage)
 - [Events](#events)
 - [Bridges](#bridges)
     - [Symfony\Console](#symfony-console)
     - [Psr\Log](#psr-log)
 
-## Installation
+## Setup
 
-At first you have to setup extension.
+Install package
+
+```bash
+composer require nettrine/dbal
+```
+
+Register extension
 
 ```yaml
 extensions:
     dbal: Nettrine\DBAL\DI\DbalExtension
 ```
 
-There are also some bridges as Symfony\Console. You'll known in next sections.
+There is also bridge to Symfony\Console. More in [Bridges](#bridges).
 
 ## Configuration
 
@@ -27,7 +35,7 @@ Minimal configuration could looks like this.
 
 ```yaml
 dbal:
-    debugger:
+    debug:
         panel: %debugMode%
     connection:
         host: localhost
@@ -41,7 +49,7 @@ Full configuration options:
 
 ```yaml
 dbal:
-    debugger:
+    debug:
         panel: %debugMode%
         sourcePaths: [%appDir%]
     configuration:
@@ -83,13 +91,13 @@ dbal:
         types:
             uuid_binary_ordered_time:
                 class: Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType
-                commented: falsee
+                commented: false
 
         typesMapping:
             uuid_binary_ordered_time: binary
 ```
 
-### Debugger
+### Debug
 
 * `sourcePaths` - displays all source files from provided paths where a query is called from
 * Queries table is sortable
