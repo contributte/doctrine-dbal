@@ -140,19 +140,20 @@ final class DbalExtension extends CompilerExtension
 	public function loadConnectionConfiguration(): void
 	{
 		$builder = $this->getContainerBuilder();
-		$config = $this->validateConfig($this->defaults);
+		$globalConfig = $this->validateConfig($this->defaults);
+		$config = $globalConfig['connections'];
 
 		$builder->addDefinition($this->prefix('eventManager'))
 			->setFactory(ContainerAwareEventManager::class);
 
-		if ($config['debug'] === true) {
+		if ($globalConfig['debug'] === true) {
 			$builder->getDefinition($this->prefix('eventManager'))
 				->setAutowired(false);
 			$builder->addDefinition($this->prefix('eventManager.debug'))
 				->setFactory(DebugEventManager::class, [$this->prefix('@eventManager')]);
 		}
 
-		foreach ($config['connections'] as $name => $connection) {
+		foreach ($config as $name => $connection) {
 			$connection = $this->validateConfig($this->connectionDefaults, $connection);
 
 			$autowired = $name === self::DEFAULT_CONNECTION_NAME ? true : false;
