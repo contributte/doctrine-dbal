@@ -67,7 +67,7 @@ class ConnectionFactory
 		if (!empty($this->typesMapping)) {
 			$platform = $this->getDatabasePlatform($connection);
 			foreach ($this->typesMapping as $dbType => $doctrineType) {
-				$platform->registerDoctrineTypeMapping($dbType, $doctrineType);
+				$platform->registerDoctrineTypeMapping((string) $dbType, $doctrineType);
 			}
 		}
 		if (!empty($this->commentedTypes)) {
