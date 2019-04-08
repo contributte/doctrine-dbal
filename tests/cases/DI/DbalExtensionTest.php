@@ -20,7 +20,7 @@ final class DbalExtensionTest extends TestCase
 		$loader = new ContainerLoader(TEMP_PATH, true);
 		$class = $loader->load(function (Compiler $compiler): void {
 			$compiler->addExtension('dbal', new DbalExtension());
-			$compiler->addConfig(['dbal' => ['connections' => ['driver' => 'pdo_sqlite', 'foo' => 'bar']]]);
+			$compiler->addConfig(['dbal' => ['connections' => [DbalExtension::DEFAULT_CONNECTION_NAME => ['driver' => 'pdo_sqlite', 'foo' => 'bar']]]]);
 		}, '1a');
 
 		/** @var Container $container */
@@ -74,7 +74,7 @@ final class DbalExtensionTest extends TestCase
 		$loader = new ContainerLoader(TEMP_PATH, true);
 		$class = $loader->load(function (Compiler $compiler): void {
 			$compiler->addExtension('dbal', new DbalExtension());
-			$compiler->addConfig(['dbal' => ['debug' => true, 'connections' => ['default' => []]]]);
+			$compiler->addConfig(['dbal' => ['debug' => true, 'connections' => [DbalExtension::DEFAULT_CONNECTION_NAME => []]]]);
 		}, '1b');
 
 		/** @var Container $container */
