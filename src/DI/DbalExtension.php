@@ -74,10 +74,6 @@ final class DbalExtension extends CompilerExtension
 		$builder = $this->getContainerBuilder();
 		$config = $this->validateConfig($this->defaults);
 
-		foreach ($config['connections'] as $k => $v) {
-			$this->validateConfig($this->connectionDefaults, $v);
-		}
-
 		if (!array_key_exists(self::DEFAULT_CONNECTION_NAME, $config['connections'])) {
 			throw new InvalidArgumentException('Default connection must be set!');
 		}
@@ -87,8 +83,6 @@ final class DbalExtension extends CompilerExtension
 
 		if ($config['debug'] === true) {
 			foreach ($config['connections'] as $name => $connection) {
-				$connection = $this->validateConfig($this->connectionDefaults, $connection);
-
 				$builder->addDefinition($this->prefix($name . '.queryPanel'))
 					->setFactory(QueryPanel::class, ['@' . $this->prefix($name . '.connection')])
 					->setAutowired(false);
@@ -105,8 +99,6 @@ final class DbalExtension extends CompilerExtension
 		$config = $this->validateConfig($this->defaults);
 
 		foreach ($config['connections'] as $name => $connection) {
-			$connection = $this->validateConfig($this->connectionDefaults, $connection);
-
 			$logger = $builder->addDefinition($this->prefix($name . '.logger'))
 				->setType(LoggerChain::class)
 				->setAutowired('self');
@@ -154,8 +146,6 @@ final class DbalExtension extends CompilerExtension
 		}
 
 		foreach ($config as $name => $connection) {
-			$connection = $this->validateConfig($this->connectionDefaults, $connection);
-
 			$autowired = $name === self::DEFAULT_CONNECTION_NAME ? true : false;
 
 			$builder->addDefinition($this->prefix($name . '.connectionFactory'))
