@@ -18,6 +18,7 @@
   "require": {
     "php": ">=7.1",
     "nette/di": "~2.4.15 || ~3.0.0",
+    "nette/utils": "^2.4.0 || ~3.0.0",
     "doctrine/dbal": "^2.9.2"
   },
   "require-dev": {

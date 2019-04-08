@@ -26,7 +26,8 @@ Minimal configuration could looks like this.
 
 ```yaml
 dbal:
-    debug: %debugMode%
+    debugger:
+        panel: %debugMode%
     connection:
         host: localhost
         driver: mysqli
@@ -39,7 +40,9 @@ Full configuration options:
 
 ```yaml
 dbal:
-    debug: %debugMode%
+    debugger:
+        panel: %debugMode%
+        sourcePaths: [%appDir%]
     configuration:
         sqlLogger: NULL
         resultCacheImpl: NULL
@@ -84,6 +87,11 @@ dbal:
         typesMapping:
             uuid_binary_ordered_time: binary
 ```
+
+### Debugger
+
+* `sourcePaths` - displays all source files from provided paths where a query is called from
+* Queries table is sortable
 
 ## Events
 
