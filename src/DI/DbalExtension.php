@@ -146,6 +146,13 @@ final class DbalExtension extends CompilerExtension
 		}
 
 		foreach ($config as $name => $connection) {
+			if (!array_key_exists('types', $connection)) {// temporary solution
+				$connection['types'] = [];
+			}
+			if (!array_key_exists('typesMapping', $connection)) {// temporary solution
+				$connection['typesMapping'] = [];
+			}
+
 			$autowired = $name === self::DEFAULT_CONNECTION_NAME ? true : false;
 
 			$builder->addDefinition($this->prefix($name . '.connectionFactory'))
