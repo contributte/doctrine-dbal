@@ -28,7 +28,10 @@ final class DbalExtension extends CompilerExtension
 
 	/** @var mixed[] */
 	private $defaults = [
-		'debug' => false,
+		'debugger' => [
+			'panel' => false,
+			'sourcePaths' => null,
+		],
 		'configuration' => [
 			'sqlLogger' => null,
 			'resultCacheImpl' => null,
@@ -69,10 +72,14 @@ final class DbalExtension extends CompilerExtension
 		$this->loadDoctrineConfiguration();
 		$this->loadConnectionConfiguration();
 
-		if ($config['debug'] === true) {
-			$builder->addDefinition($this->prefix('queryPanel'))
+		if ($config['debugger']['panel'] === true) {
+			$qs = $builder->addDefinition($this->prefix('queryPanel'))
 				->setFactory(QueryPanel::class)
 				->setAutowired(false);
+
+			foreach ((array) $config['debugger']['sourcePaths'] as $p) {
+				$qs->addSetup('addPath', [$p]);
+			}
 		}
 	}
 
@@ -122,7 +129,7 @@ final class DbalExtension extends CompilerExtension
 		$builder->addDefinition($this->prefix('eventManager'))
 			->setFactory(ContainerAwareEventManager::class);
 
-		if ($globalConfig['debug'] === true) {
+		if ($globalConfig['debugger']['panel'] === true) {
 			$builder->getDefinition($this->prefix('eventManager'))
 				->setAutowired(false);
 			$builder->addDefinition($this->prefix('eventManager.debug'))
@@ -183,7 +190,7 @@ final class DbalExtension extends CompilerExtension
 	{
 		$config = $this->validateConfig($this->defaults);
 
-		if ($config['debug'] === true) {
+		if ($config['debugger']['panel'] === true) {
 			$initialize = $class->getMethod('initialize');
 			$initialize->addBody(
 				'$this->getService(?)->addPanel($this->getService(?));',
