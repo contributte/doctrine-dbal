@@ -208,8 +208,6 @@ final class DbalExtension extends CompilerExtension
 
 		if ($config['debug'] === true) {
 			foreach ($config['connections'] as $name => $connection) {
-				$connection = $this->validateConfig($this->connectionDefaults, $connection);
-
 				$initialize = $class->getMethod('initialize');
 				$initialize->addBody(
 					'$this->getService(?)->addPanel($this->getService(?));',
