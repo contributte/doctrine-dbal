@@ -91,7 +91,7 @@ final class DbalExtensionTest extends TestCase
 		$loader = new ContainerLoader(TEMP_PATH, true);
 		$class = $loader->load(function (Compiler $compiler): void {
 			$compiler->addExtension('dbal', new DbalExtension());
-			$compiler->addConfig(['dbal' => ['connections' => ['driver' => 'pdo_pgsql', 'serverVersion' => '10.0']]]);
+			$compiler->addConfig(['dbal' => ['connections' => [DbalExtension::DEFAULT_CONNECTION_NAME => ['driver' => 'pdo_pgsql', 'serverVersion' => '10.0']]]]);
 		}, '1c');
 
 		/** @var Container $container */
