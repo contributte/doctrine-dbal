@@ -79,7 +79,7 @@ dbal:
         types:
             uuid_binary_ordered_time:
                 class: Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType
-                commented: falsee
+                commented: false
 
         typesMapping:
             uuid_binary_ordered_time: binary
