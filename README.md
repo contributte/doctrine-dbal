@@ -37,6 +37,7 @@ composer require nettrine/dbal
 - [Events](https://github.com/nettrine/dbal/blob/master/.docs/#events)
 - [Bridges](https://github.com/nettrine/dbal/blob/master/.docs/#bridges)
     - [Symfony\Console](https://github.com/nettrine/dbal/blob/master/.docs/#symfony-console)
+    - [Psr\Log](https://github.com/nettrine/dbal/blob/master/.docs/#psr-log)
 
 ## Maintainers
 
