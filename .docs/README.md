@@ -8,6 +8,7 @@
 - [Events](#events)
 - [Bridges](#bridges)
     - [Symfony\Console](#symfony-console)
+    - [Psr\Log](#psr-log)
 
 ## Installation
 
@@ -157,3 +158,13 @@ extensions:
 From this moment when you type `bin/console`, there'll be registered commands from Doctrine DBAL.
 
 ![Commands](assets/commands.png)
+
+### Psr\Log
+
+Log all queries with a PSR-3 logger, e.g. [Monolog](https://github.com/contributte/monolog)
+
+```yaml
+dbal:
+    configuration:
+        sqlLogger: Nettrine\DBAL\Logger\PsrLogger()
+```
