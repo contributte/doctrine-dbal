@@ -157,7 +157,7 @@ extensions:
 
 From this moment when you type `bin/console`, there'll be registered commands from Doctrine DBAL.
 
-![Commands](assets/commands.png)
+![Commands](https://raw.githubusercontent.com/nettrine/dbal/master/.docs/assets/commands.png)
 
 ### Psr\Log
 
