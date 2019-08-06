@@ -110,7 +110,6 @@ You can use native [Doctrine DBAL event system](https://www.doctrine-project.org
 services:
     subscriber1:
       class: App\PostConnectSubscriber
-      tags: [nettrine.subscriber]
 ```
 
 Register and create your own subscribers. There're services, so constructor injection will works. There're also
@@ -136,14 +135,6 @@ final class PostConnectSubscriber implements EventSubscriber
 	}
 
 }
-```
-
-Don't waste time to tag single service and tag them all together using decorator.
-
-```yaml
-decorator:
-    Doctrine\Common\EventSubscriber:
-      tags: [nettrine.subscriber]
 ```
 
 ## Bridges

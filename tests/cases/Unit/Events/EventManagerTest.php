@@ -29,7 +29,6 @@ final class EventManagerTest extends TestCase
 			services:
 				sub1: 
 					class: Tests\Fixtures\Subscriber\PostConnectSubscriber
-					tags: [nettrine.subscriber]
 			'));
 		}, '2' . microtime(true));
 
