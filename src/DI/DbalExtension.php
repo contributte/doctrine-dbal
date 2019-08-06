@@ -13,7 +13,6 @@ use Nette\DI\Definitions\Statement;
 use Nette\PhpGenerator\PhpLiteral;
 use Nette\Schema\Expect;
 use Nette\Schema\Schema;
-use Nette\Utils\AssertionException;
 use Nettrine\DBAL\ConnectionFactory;
 use Nettrine\DBAL\Events\ContainerAwareEventManager;
 use Nettrine\DBAL\Events\DebugEventManager;
@@ -28,8 +27,6 @@ use stdClass;
  */
 final class DbalExtension extends CompilerExtension
 {
-
-	public const TAG_NETTRINE_SUBSCRIBER = 'nettrine.subscriber';
 
 	public function getConfigSchema(): Schema
 	{
@@ -161,24 +158,12 @@ final class DbalExtension extends CompilerExtension
 
 		/** @var ServiceDefinition $eventManager */
 		$eventManager = $builder->getDefinition($this->prefix('eventManager'));
-		foreach ($builder->findByTag(self::TAG_NETTRINE_SUBSCRIBER) as $serviceName => $tag) {
-			$class = $builder->getDefinition($serviceName)->getType();
-
-			if ($class === null || !is_subclass_of($class, EventSubscriber::class)) {
-				throw new AssertionException(
-					sprintf(
-						'Subscriber "%s" doesn\'t implement "%s".',
-						$serviceName,
-						EventSubscriber::class
-					)
-				);
-			}
-
+		foreach ($builder->findByType(EventSubscriber::class) as $serviceName => $serviceDef) {
 			$eventManager->addSetup(
 				'?->addEventListener(?, ?)',
 				[
 					'@self',
-					call_user_func([(new ReflectionClass($class))->newInstanceWithoutConstructor(), 'getSubscribedEvents']),
+					call_user_func([(new ReflectionClass($serviceDef->getType()))->newInstanceWithoutConstructor(), 'getSubscribedEvents']),
 					$serviceName, // Intentionally without @ for laziness.
 				]
 			);
