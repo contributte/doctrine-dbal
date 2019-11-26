@@ -54,7 +54,7 @@ dbal:
         sourcePaths: [%appDir%]
     configuration:
         sqlLogger: NULL
-        resultCacheImpl: NULL
+        resultCache: NULL
         filterSchemaAssetsExpression: NULL
         autoCommit: TRUE
 
