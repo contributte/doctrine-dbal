@@ -7,6 +7,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Nette\DI\Compiler;
 use Nette\DI\Container;
 use Nette\DI\ContainerLoader;
+use Nettrine\Cache\DI\CacheExtension;
 use Nettrine\DBAL\DI\DbalExtension;
 use Tests\Fixtures\Subscriber\PostConnectSubscriber;
 use Tests\Toolkit\NeonLoader;
@@ -19,7 +20,13 @@ final class EventManagerTest extends TestCase
 	{
 		$loader = new ContainerLoader(TEMP_PATH, true);
 		$class = $loader->load(function (Compiler $compiler): void {
+			$compiler->addExtension('cache', new CacheExtension());
 			$compiler->addExtension('dbal', new DbalExtension());
+			$compiler->addConfig([
+				'parameters' => [
+					'tempDir' => TEMP_PATH,
+				],
+			]);
 			$compiler->addConfig(NeonLoader::load('
 			dbal:
 				connection:

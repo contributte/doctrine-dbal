@@ -2,12 +2,15 @@
 
 namespace Nettrine\DBAL\DI;
 
+use Contributte\DI\Helper\ExtensionDefinitionsHelper;
+use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\EventManager;
 use Doctrine\Common\EventSubscriber;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Logging\LoggerChain;
 use Nette\DI\CompilerExtension;
+use Nette\DI\Definitions\Definition;
 use Nette\DI\Definitions\ServiceDefinition;
 use Nette\DI\Definitions\Statement;
 use Nette\PhpGenerator\PhpLiteral;
@@ -37,7 +40,7 @@ final class DbalExtension extends CompilerExtension
 			]),
 			'configuration' => Expect::structure([
 				'sqlLogger' => Expect::type('string|' . Statement::class),
-				'resultCacheImpl' => Expect::type('string|' . Statement::class),
+				'resultCache' => Expect::anyOf(Expect::string(), Expect::array(), Expect::type(Statement::class)),
 				'filterSchemaAssetsExpression' => Expect::string()->nullable(),
 				'autoCommit' => Expect::bool(true),
 			]),
@@ -65,6 +68,7 @@ final class DbalExtension extends CompilerExtension
 	{
 		$builder = $this->getContainerBuilder();
 		$config = $this->config->configuration;
+		$definitionsHelper = new ExtensionDefinitionsHelper($this->compiler);
 
 		$logger = $builder->addDefinition($this->prefix('logger'))
 			->setType(LoggerChain::class)
@@ -80,10 +84,22 @@ final class DbalExtension extends CompilerExtension
 			$logger->addSetup('addLogger', [$config->sqlLogger]);
 		}
 
-		// ResultCacheImpl
-		if ($config->resultCacheImpl !== null) {
-			$configuration->addSetup('setResultCacheImpl', [$config->resultCacheImpl]);
+		// ResultCache
+		if ($config->resultCache !== null) {
+			$resultCacheName = $this->prefix('resultCache');
+			$resultCacheDefinition = $definitionsHelper->getDefinitionFromConfig($config->cache, $resultCacheName);
+
+			// If service is extension specific, then disable autowiring
+			if ($resultCacheDefinition instanceof Definition && $resultCacheDefinition->getName() === $resultCacheName) {
+				$resultCacheDefinition->setAutowired(false);
+			}
+		} else {
+			$resultCacheDefinition = '@' . Cache::class;
 		}
+
+		$configuration->addSetup('setResultCacheImpl', [
+			$resultCacheDefinition,
+		]);
 
 		// FilterSchemaAssetsExpression
 		if ($config->filterSchemaAssetsExpression !== null) {

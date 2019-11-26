@@ -6,6 +6,7 @@ use Doctrine\DBAL\Connection;
 use Nette\DI\Compiler;
 use Nette\DI\Container;
 use Nette\DI\ContainerLoader;
+use Nettrine\Cache\DI\CacheExtension;
 use Nettrine\DBAL\DI\DbalExtension;
 use Tests\Toolkit\TestCase;
 use Tracy\Bridges\Nette\TracyExtension;
@@ -18,7 +19,13 @@ final class QueryTest extends TestCase
 		$loader = new ContainerLoader(TEMP_PATH, true);
 		$class = $loader->load(function (Compiler $compiler): void {
 			$compiler->addExtension('tracy', new TracyExtension());
+			$compiler->addExtension('cache', new CacheExtension());
 			$compiler->addExtension('dbal', new DbalExtension());
+			$compiler->addConfig([
+				'parameters' => [
+					'tempDir' => TEMP_PATH,
+				],
+			]);
 		}, 'int1');
 
 		/** @var Container $container */
