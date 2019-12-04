@@ -30,8 +30,9 @@ use Tracy\Helpers;
 	<h1>No queries</h1>
 <?php else: ?>
 	<h1>Queries:
-		<?= $queriesNum ?>
-		<?= $totalTime ? sprintf('%0.3f', $totalTime * 1000) : ''; ?>
+		<?= $queriesNum ?>,
+		time:
+		<?= $totalTime ? sprintf('%0.3f', $totalTime * 1000) : ''; ?> ms
 	</h1>
 <?php endif; ?>
 
