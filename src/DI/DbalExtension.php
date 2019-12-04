@@ -39,7 +39,7 @@ final class DbalExtension extends CompilerExtension
 				'sourcePaths' => Expect::arrayOf('string'),
 			]),
 			'configuration' => Expect::structure([
-				'sqlLogger' => Expect::type('string|' . Statement::class),
+				'sqlLogger' => Expect::anyOf(Expect::string(), Expect::array(), Expect::type(Statement::class)),
 				'resultCache' => Expect::anyOf(Expect::string(), Expect::array(), Expect::type(Statement::class)),
 				'filterSchemaAssetsExpression' => Expect::string()->nullable(),
 				'autoCommit' => Expect::bool(true),
@@ -70,18 +70,26 @@ final class DbalExtension extends CompilerExtension
 		$config = $this->config->configuration;
 		$definitionsHelper = new ExtensionDefinitionsHelper($this->compiler);
 
-		$logger = $builder->addDefinition($this->prefix('logger'))
+		$loggerDefinition = $builder->addDefinition($this->prefix('logger'))
 			->setType(LoggerChain::class)
 			->setAutowired('self');
 
 		$configuration = $builder->addDefinition($this->prefix('configuration'));
 		$configuration->setFactory(Configuration::class)
 			->setAutowired(false)
-			->addSetup('setSQLLogger', [$this->prefix('@logger')]);
+			->addSetup('setSQLLogger', [$loggerDefinition]);
 
 		// SqlLogger (append to chain)
 		if ($config->sqlLogger !== null) {
-			$logger->addSetup('addLogger', [$config->sqlLogger]);
+			$configLoggerName = $this->prefix('logger.config');
+			$configLoggerDefinition = $definitionsHelper->getDefinitionFromConfig($config->sqlLogger, $configLoggerName);
+
+			// If service is extension specific, then disable autowiring
+			if ($configLoggerDefinition instanceof Definition && $configLoggerDefinition->getName() === $configLoggerName) {
+				$configLoggerDefinition->setAutowired(false);
+			}
+
+			$loggerDefinition->addSetup('addLogger', [$configLoggerDefinition]);
 		}
 
 		// ResultCache
