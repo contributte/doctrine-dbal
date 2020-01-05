@@ -1,6 +1,6 @@
 # Nettrine DBAL
 
-Doctrine DBAL for Nette Framework.
+[Doctrine/DBAL](https://www.doctrine-project.org/projects/dbal.html) for Nette Framework.
 
 [![Build Status](https://img.shields.io/travis/nettrine/dbal.svg?style=flat-square)](https://travis-ci.org/nettrine/dbal)
 [![Code coverage](https://img.shields.io/coveralls/nettrine/dbal.svg?style=flat-square)](https://coveralls.io/r/nettrine/dbal)
@@ -17,12 +17,14 @@ Doctrine DBAL for Nette Framework.
 ## Documentation
 
 - [Setup](.docs/README.md#setup)
+- [Relying](.docs/README.md#relying)
 - [Configuration](.docs/README.md#configuration)
 - [Usage](.docs/README.md#usage)
-- [Events](.docs/README.md#events)
+  - [Types](.docs/README.md#types)
+  - [Debug](.docs/README.md#debug)
+  - [Events](.docs/README.md#events)
 - [Bridges](.docs/README.md#bridges)
-    - [Symfony\Console](.docs/README.md#symfony-console)
-    - [Psr\Log](.docs/#psr-log)
+    - [PSR-3](.docs/#psr-3)
 
 ## Versions
 
