@@ -1,16 +1,21 @@
 # Nettrine DBAL
 
-Doctrine DBAL for Nette Framework.
+[Doctrine/DBAL](https://www.doctrine-project.org/projects/dbal.html) for Nette Framework.
+
 
 ## Content
 
 - [Setup](#setup)
+- [Relying](#relying)
 - [Configuration](#configuration)
 - [Usage](#usage)
-- [Events](#events)
+  - [Types](#types)
+  - [Debug](#debug)
+  - [Events](#events)
 - [Bridges](#bridges)
-    - [Symfony\Console](#symfony-console)
-    - [Psr\Log](#psr-log)
+    - [PSR3](#PSR-3)
+- [Examples](#examples)
+
 
 ## Setup
 
@@ -24,96 +29,142 @@ Register extension
 
 ```yaml
 extensions:
-    dbal: Nettrine\DBAL\DI\DbalExtension
+  nettrine.dbal: Nettrine\DBAL\DI\DbalExtension
 ```
 
-There is also bridge to Symfony\Console. More in [Bridges](#bridges).
+
+## Relying
+
+Take advantage of enpowering this package with 2 extra packages:
+
+- `doctrine/cache`
+- `symfony/console`
+
+
+### `doctrine/cache`
+
+This package relies on `doctrine/cache`, use prepared [nettrine/cache](https://github.com/nettrine/cache) integration.
+
+```bash
+composer require nettrine/cache
+```
+
+```yaml
+extensions:
+  nettrine.cache: Nettrine\Cache\DI\CacheExtension
+```
+
+[Doctrine DBAL](https://www.doctrine-project.org/projects/dbal.html) needs [Doctrine Cache](https://www.doctrine-project.org/projects/cache.html) to be configured. If you register `nettrine/cache` extension it will detect it automatically.
+
+
+### `symfony/console`
+
+This package relies on `symfony/console`, use prepared [contributte/console](https://github.com/contributte/console) integration.
+
+```bash
+composer require contributte/console
+```
+
+```yaml
+extensions:
+  console: Contributte\Console\DI\ConsoleExtension(%consoleMode%)
+
+  nettrine.dbal: Nettrine\DBAL\DI\DbalExtension
+  nettrine.dbal.console: Nettrine\DBAL\DI\DbalConsoleExtension(%consoleMode%)
+```
+
+Since this moment when you type `bin/console`, there'll be registered commands from Doctrine DBAL.
+
+![Console Commands](https://raw.githubusercontent.com/nettrine/dbal/master/.docs/assets/console.png)
+
 
 ## Configuration
 
-Minimal configuration could looks like this.
+**Schema definition**
 
-```yaml
-dbal:
-    debug:
-        panel: %debugMode%
-    connection:
-        host: localhost
-        driver: mysqli
-        dbname: nettrine
-        user: root
-        password: root
+ ```yaml
+nettrine.dbal:
+  debug:
+    panel: <boolean>
+    sourcePaths: <string[]>
+  configuration:
+    sqlLogger: <service>
+    resultCache: <service>
+    filterSchemaAssetsExpression: <string>
+    autoCommit: <boolean>
+
+  connection:
+    url: <string>
+    pdo: <string>
+    memory: <string>
+    driver: <string>
+    driverClass: <string>
+    host: <string>
+    dbname: <string>
+    servicename: <string>
+    user: <string>
+    password: <string>
+    charset: <string>
+    portability: <int>
+    fetchCase: <int>
+    persistent: <boolean>
+    wrapperClass: <class>
+    types: []
+    typesMapping: []
 ```
 
-Full configuration options:
+**Under the hood**
+
+Minimal configuration could looks like this:
 
 ```yaml
-dbal:
-    debug:
-        panel: %debugMode%
-        sourcePaths: [%appDir%]
-    configuration:
-        sqlLogger: NULL
-        resultCache: NULL
-        filterSchemaAssetsExpression: NULL
-        autoCommit: TRUE
-
-    connection:
-        url: NULL
-        pdo: NULL
-        memory: NULL
-        driver: pdo_mysql
-        driverClass: NULL
-        host: NULL
-        dbname: NULL
-        servicename: NULL
-        user: NULL
-        password: NULL
-        charset: UTF8
-        portability: PortabilityConnection::PORTABILITY_ALL
-        fetchCase: PDO::CASE_LOWER
-        persistent: TRUE
-        types: []
-        typesMapping: []
-        wrapperClass: NULL
+nettrine.dbal:
+  debug:
+    panel: %debugMode%
+    sourcePaths: [%appDir%]
+  connection:
+    host: localhost
+    driver: mysqli
+    dbname: nettrine
+    user: root
+    password: root
 ```
+
 
 ### Types
 
-Here is a example how to custom type. For more information, follow the official documention.
+Here is example how to register custom type for [UUID](https://github.com/ramsey/uuid-doctrine).
+
+```yaml
+dbal:
+  connection:
+    types:
+      uuid_binary_ordered_time:
+        class: Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType
+        commented: false
+
+      typesMapping:
+        uuid_binary_ordered_time: binary
+```
+
+For more information about custom types, follow the official documention.
 
 - http://docs.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html
 - http://docs.doctrine-project.org/projects/doctrine-orm/en/latest/cookbook/custom-mapping-types.html
 
-```yaml
-dbal:
-    connection:
-        types:
-            uuid_binary_ordered_time:
-                class: Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType
-                commented: false
-
-        typesMapping:
-            uuid_binary_ordered_time: binary
-```
 
 ### Debug
 
-* `sourcePaths` - displays all source files from provided paths where a query is called from
-* Queries table is sortable
+Enable or disable Tracy panel via `debug.panel` key.
 
-## Events
+Alternatively specify your application root path under `debug.sourcePaths` key to display correct queries source map in Tracy panel.
 
-You can use native [Doctrine DBAL event system](https://www.doctrine-project.org/projects/doctrine-dbal/en/2.7/reference/events.html#events).
 
-```yaml
-services:
-    subscriber1:
-      class: App\PostConnectSubscriber
-```
+### Events
 
-Register and create your own subscribers. There're services, so constructor injection will works. There're also
-loaded lazily, don't worry about performance.
+You can use native [Doctrine DBAL event system](https://www.doctrine-project.org/projects/doctrine-dbal/en/2.10/reference/events.html#events).
+
+Create your subscriber class which implements `EventSubscriber` interface. Dependency injection with autowiring is enabled.
 
 ```php
 namespace App;
@@ -124,46 +175,42 @@ use Doctrine\DBAL\Events;
 
 final class PostConnectSubscriber implements EventSubscriber
 {
-	public function postConnect(ConnectionEventArgs $args): void
-	{
-		// Magic goes here...
-	}
+  public function postConnect(ConnectionEventArgs $args): void
+  {
+    // Magic goes here...
+  }
 
-	public function getSubscribedEvents(): array
-	{
-		return [Events::postConnect];
-	}
-
+  public function getSubscribedEvents(): array
+  {
+    return [Events::postConnect];
+  }
 }
 ```
 
-## Bridges
-
-### Symfony\Console
-
-This package works pretty well with [Symfony/Console](https://symfony.com/doc/current/components/console.html). Take a look at [Contributte/Console](https://github.com/contributte/console)
-tiny integration for Nette Framework.
+Register your subscriber as a service in NEON file.
 
 ```yaml
-extensions:
-    # Console
-    console: Contributte\Console\DI\ConsoleExtension
-
-    # Dbal
-    dbal: Nettrine\DBAL\DI\DbalExtension
-    dbal.console: Nettrine\DBAL\DI\DbalConsoleExtension(%consoleMode%)
+services:
+  subscriber1:
+    class: App\PostConnectSubscriber
 ```
 
-From this moment when you type `bin/console`, there'll be registered commands from Doctrine DBAL.
 
-![Commands](https://raw.githubusercontent.com/nettrine/dbal/master/.docs/assets/commands.png)
+## Bridges
 
-### Psr\Log
 
-Log all queries with a PSR-3 logger, e.g. [Monolog](https://github.com/contributte/monolog)
+### PSR-3
+
+To log all queries with a PSR-3 logger, define service under `configuration.sqlLogger` key.
+[Monolog](https://github.com/contributte/monolog) provides PSR compatible services.
 
 ```yaml
 dbal:
-    configuration:
-        sqlLogger: Nettrine\DBAL\Logger\PsrLogger()
+  configuration:
+    sqlLogger: Nettrine\DBAL\Logger\PsrLogger()
 ```
+
+
+## Examples
+
+You can find more examples in [planette playground](https://github.com/planette/playground) repository.
