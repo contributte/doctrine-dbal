@@ -95,7 +95,7 @@ final class DbalExtension extends CompilerExtension
 		// ResultCache
 		if ($config->resultCache !== null) {
 			$resultCacheName = $this->prefix('resultCache');
-			$resultCacheDefinition = $definitionsHelper->getDefinitionFromConfig($config->cache, $resultCacheName);
+			$resultCacheDefinition = $definitionsHelper->getDefinitionFromConfig($config->resultCache, $resultCacheName);
 
 			// If service is extension specific, then disable autowiring
 			if ($resultCacheDefinition instanceof Definition && $resultCacheDefinition->getName() === $resultCacheName) {
