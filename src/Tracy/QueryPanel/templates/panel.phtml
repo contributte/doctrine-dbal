@@ -24,6 +24,10 @@ use Tracy\Helpers;
 		max-height: 150px;
 		overflow: auto
 	}
+
+	#tracy-debug .nettrine-dbal td > a.tracy-toggle::before {
+		content: 'source';
+	}
 </style>
 
 <?php if ($queriesNum === 0): ?>
@@ -49,7 +53,7 @@ use Tracy\Helpers;
 					<td>
 						<?= sprintf('%0.2f', $q->duration * 1000); ?>
 						<?php if (count($q->source) !== 0): ?>
-							<br><a class="tracy-toggle tracy-collapsed" data-tracy-ref="^tr .nettrine-dbal-backtrace">source</a>
+							<br><a class="tracy-toggle tracy-collapsed" data-tracy-ref="^tr .nettrine-dbal-backtrace"></a>
 						<?php endif; ?>
 					</td>
 					<td class="tracy-dbal-sql">
