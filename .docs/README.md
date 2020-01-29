@@ -115,7 +115,7 @@ nettrine.dbal:
 
 **Under the hood**
 
-Minimal configuration could looks like this:
+Minimal configuration could look like this:
 
 ```yaml
 nettrine.dbal:
@@ -135,7 +135,7 @@ Take a look at real **Nettrine DBAL** configuration example at [Nutella Project]
 
 ### Types
 
-Here is example how to register custom type for [UUID](https://github.com/ramsey/uuid-doctrine).
+Here is an example of how to register custom type for [UUID](https://github.com/ramsey/uuid-doctrine).
 
 ```yaml
 dbal:
@@ -149,7 +149,7 @@ dbal:
         uuid_binary_ordered_time: binary
 ```
 
-For more information about custom types, follow the official documention.
+For more information about custom types, take a look at the official documention.
 
 - http://docs.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html
 - http://docs.doctrine-project.org/projects/doctrine-orm/en/latest/cookbook/custom-mapping-types.html
@@ -159,14 +159,14 @@ For more information about custom types, follow the official documention.
 
 Enable or disable Tracy panel via `debug.panel` key.
 
-Alternatively specify your application root path under `debug.sourcePaths` key to display correct queries source map in Tracy panel.
+Alternatively, specify your application root path under the `debug.sourcePaths` key to display correct queries source map in Tracy panel.
 
 
 ### Events
 
 You can use native [Doctrine DBAL event system](https://www.doctrine-project.org/projects/doctrine-dbal/en/2.10/reference/events.html#events).
 
-Create your subscriber class which implements `EventSubscriber` interface. Dependency injection with autowiring is enabled.
+Create your subscriber class by implementing the `EventSubscriber` interface. Dependency injection with autowiring is enabled.
 
 ```php
 namespace App;
@@ -203,7 +203,7 @@ services:
 
 ### PSR-3
 
-To log all queries with a PSR-3 logger, define service under `configuration.sqlLogger` key.
+To log all queries with a PSR-3 logger, define the service under the `configuration.sqlLogger` key.
 [Monolog](https://github.com/contributte/monolog) provides PSR compatible services.
 
 ```yaml
