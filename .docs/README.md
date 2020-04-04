@@ -141,12 +141,14 @@ Here is an example of how to register custom type for [UUID](https://github.com/
 dbal:
   connection:
     types:
+      uuid: Ramsey\Uuid\Doctrine\UuidType
+
       uuid_binary_ordered_time:
         class: Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType
         commented: false
 
-      typesMapping:
-        uuid_binary_ordered_time: binary
+    typesMapping:
+      uuid_binary_ordered_time: binary
 ```
 
 For more information about custom types, take a look at the official documention.
