@@ -4,6 +4,9 @@ namespace Tests\Cases\Unit\DI;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\PostgreSQL100Platform;
+use Doctrine\DBAL\Types\IntegerType;
+use Doctrine\DBAL\Types\StringType;
+use Doctrine\DBAL\Types\Type;
 use Nette\DI\Compiler;
 use Nette\DI\Container;
 use Nette\DI\ContainerLoader;
@@ -80,6 +83,36 @@ final class DbalExtensionTest extends TestCase
 		}, 'di3');
 
 		new $class();
+	}
+
+	public function testTypes(): void
+	{
+		$loader = new ContainerLoader(TEMP_PATH, true);
+		$class = $loader->load(function (Compiler $compiler): void {
+			$compiler->addExtension('cache', new CacheExtension());
+			$compiler->addExtension('dbal', new DbalExtension());
+			$compiler->addConfig([
+				'parameters' => [
+					'tempDir' => TEMP_PATH,
+				],
+				'dbal' => ['connection' => [
+					'driver' => 'pdo_sqlite',
+					'types' => [
+						'foo' => ['class' => StringType::class],
+						'bar' => IntegerType::class,
+					],
+				]],
+			]);
+		}, 'di3');
+
+		/** @var Container $container */
+		$container = new $class();
+
+		/** @var Connection $connection */
+		$container->getByType(Connection::class);
+
+		$this->assertInstanceOf(StringType::class, Type::getType('foo'));
+		$this->assertInstanceOf(IntegerType::class, Type::getType('bar'));
 	}
 
 }

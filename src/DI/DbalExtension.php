@@ -44,11 +44,23 @@ final class DbalExtension extends CompilerExtension
 				'filterSchemaAssetsExpression' => Expect::string()->nullable(),
 				'autoCommit' => Expect::bool(true),
 			]),
-			'connection' => Expect::array()->default([
-				'driver' => 'pdo_sqlite',
-				'types' => [],
-				'typesMapping' => [],
-			]),
+			'connection' => Expect::structure([
+				'driver' => Expect::mixed('pdo_sqlite'),
+				'types' => Expect::arrayOf(
+					Expect::structure([
+						'class' => Expect::string()->required(),
+						'commented' => Expect::bool(false),
+					])
+						->before(function ($type) {
+							if (is_string($type)) {
+								return ['class' => $type];
+							}
+							return $type;
+						})
+						->castTo('array')
+				),
+				'typesMapping' => Expect::array(),
+			])->otherItems()->castTo('array'),
 		]);
 	}
 
