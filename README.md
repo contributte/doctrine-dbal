@@ -25,6 +25,8 @@
   - [Events](.docs/README.md#events)
 - [Bridges](.docs/README.md#bridges)
     - [PSR-3](.docs/#psr-3)
+- [Examples](.docs/README.md#examples)
+- [Other](.docs/README.md#other)
 
 ## Versions
 

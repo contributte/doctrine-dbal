@@ -15,6 +15,7 @@
 - [Bridges](#bridges)
     - [PSR3](#PSR-3)
 - [Examples](#examples)
+- [Other](#other)
 
 
 ## Setup
@@ -217,4 +218,54 @@ dbal:
 
 ## Examples
 
+### 1. Manual example
+
+```sh
+composer require nettrine/annotations nettrine/cache nettrine/migrations nettrine/fixtures nettrine/dbal nettrine/orm
+```
+
+```yaml
+# Extension > Nettrine
+# => order is crucial
+#
+extensions:
+  # Common
+  nettrine.annotations: Nettrine\Annotations\DI\AnnotationsExtension
+  nettrine.cache: Nettrine\Cache\DI\CacheExtension
+  nettrine.migrations: Nettrine\Migrations\DI\MigrationsExtension
+  nettrine.fixtures: Nettrine\Fixtures\DI\FixturesExtension
+
+  # DBAL
+  nettrine.dbal: Nettrine\DBAL\DI\DbalExtension
+  nettrine.dbal.console: Nettrine\DBAL\DI\DbalConsoleExtension
+
+  # ORM
+  nettrine.orm: Nettrine\ORM\DI\OrmExtension
+  nettrine.orm.cache: Nettrine\ORM\DI\OrmCacheExtension
+  nettrine.orm.console: Nettrine\ORM\DI\OrmConsoleExtension
+  nettrine.orm.annotations: Nettrine\ORM\DI\OrmAnnotationsExtension
+```
+
+### 2. Example projects
+
+We've made a few starter projects with preconfigured Nettrine nad Contributte packages.
+
+- Nutella Project - https://github.com/planette/nutella-project
+- FoREST Project - https://github.com/planette/forest-project
+
+### 3. Example playground
+
 You can find more examples in [planette playground](https://github.com/planette/playground) repository.
+
+
+## Other
+
+This repository is inspired by these packages.
+
+- https://github.com/doctrine
+- https://gitlab.com/Kdyby/Doctrine
+- https://gitlab.com/etten/doctrine
+- https://github.com/DTForce/nette-doctrine
+- https://github.com/portiny/doctrine
+
+Thank you guys.
