@@ -95,13 +95,15 @@ final class DbalExtensionTest extends TestCase
 				'parameters' => [
 					'tempDir' => TEMP_PATH,
 				],
-				'dbal' => ['connection' => [
-					'driver' => 'pdo_sqlite',
-					'types' => [
-						'foo' => ['class' => StringType::class],
-						'bar' => IntegerType::class,
+				'dbal' => [
+					'connection' => [
+						'driver' => 'pdo_sqlite',
+						'types' => [
+							'foo' => ['class' => StringType::class],
+							'bar' => IntegerType::class,
+						],
 					],
-				]],
+				],
 			]);
 		}, 'di3');
 
