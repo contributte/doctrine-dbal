@@ -21,9 +21,9 @@
   ],
   "require": {
     "php": ">=7.2",
-    "contributte/di": "^0.4.2",
+    "contributte/di": "^0.5.0",
     "doctrine/dbal": "^2.9.2",
-    "nettrine/cache": "^0.2.0"
+    "nettrine/cache": "^0.3.0"
   },
   "require-dev": {
     "contributte/console": "^0.5.0",
