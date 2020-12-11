@@ -17,15 +17,10 @@ use Tests\Toolkit\NeonLoader;
 require_once __DIR__ . '/../../bootstrap.php';
 
 Toolkit::test(function (): void {
-	$loader = new ContainerLoader(TMP_DIR, true);
+	$loader = new ContainerLoader(TEMP_DIR, true);
 	$class = $loader->load(function (Compiler $compiler): void {
 		$compiler->addExtension('cache', new CacheExtension());
 		$compiler->addExtension('dbal', new DbalExtension());
-		$compiler->addConfig([
-			'parameters' => [
-				'tempDir' => TMP_DIR,
-			],
-		]);
 		$compiler->addConfig(NeonLoader::load('
 			dbal:
 				connection:
@@ -36,6 +31,11 @@ Toolkit::test(function (): void {
 				sub1:
 					class: Tests\Fixtures\Subscriber\PostConnectSubscriber
 			'));
+		$compiler->addConfig([
+			'parameters' => [
+				'tempDir' => TEMP_DIR,
+			],
+		]);
 	}, __FILE__ . '1');
 
 	/** @var Container $container */

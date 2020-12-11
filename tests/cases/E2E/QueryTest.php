@@ -10,16 +10,22 @@ use Nettrine\Cache\DI\CacheExtension;
 use Nettrine\DBAL\DI\DbalExtension;
 use Ninjify\Nunjuck\Toolkit;
 use Tester\Assert;
+use Tests\Toolkit\NeonLoader;
 use Tracy\Bridges\Nette\TracyExtension;
 
 require_once __DIR__ . '/../../bootstrap.php';
 
 Toolkit::test(function (): void {
-	$loader = new ContainerLoader(TMP_DIR, true);
+	$loader = new ContainerLoader(TEMP_DIR, true);
 	$class = $loader->load(function (Compiler $compiler): void {
 		$compiler->addExtension('tracy', new TracyExtension());
 		$compiler->addExtension('cache', new CacheExtension());
 		$compiler->addExtension('dbal', new DbalExtension());
+		$compiler->addConfig(NeonLoader::load('
+			dbal:
+				connection:
+					driver: pdo_sqlite
+			'));
 		$compiler->addConfig([
 			'parameters' => [
 				'tempDir' => TMP_DIR,

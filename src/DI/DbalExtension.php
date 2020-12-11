@@ -45,7 +45,7 @@ final class DbalExtension extends CompilerExtension
 				'autoCommit' => Expect::bool(true),
 			]),
 			'connection' => Expect::structure([
-				'driver' => Expect::mixed('pdo_sqlite'),
+				'driver' => Expect::mixed()->required(true),
 				'types' => Expect::arrayOf(
 					Expect::structure([
 						'class' => Expect::string()->required(),

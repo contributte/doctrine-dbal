@@ -16,25 +16,28 @@ use Nettrine\DBAL\DI\DbalExtension;
 use Nettrine\DBAL\Events\DebugEventManager;
 use Ninjify\Nunjuck\Toolkit;
 use Tester\Assert;
+use Tests\Toolkit\NeonLoader;
 use Tracy\Bridges\Nette\TracyExtension;
 
 require_once __DIR__ . '/../../bootstrap.php';
 
 // Debug mode
 Toolkit::test(function (): void {
-	$loader = new ContainerLoader(TMP_DIR, true);
+	$loader = new ContainerLoader(TEMP_DIR, true);
 	$class = $loader->load(function (Compiler $compiler): void {
 		$compiler->addExtension('tracy', new TracyExtension());
 		$compiler->addExtension('cache', new CacheExtension());
 		$compiler->addExtension('dbal', new DbalExtension());
+		$compiler->addConfig(NeonLoader::load('
+			dbal:
+				connection:
+					driver: pdo_sqlite
+				debug:
+					panel: true
+			'));
 		$compiler->addConfig([
 			'parameters' => [
-				'tempDir' => TMP_DIR,
-			],
-			'dbal' => [
-				'debug' => [
-					'panel' => true,
-				],
+				'tempDir' => TEMP_DIR,
 			],
 		]);
 	}, __FILE__ . '1');
@@ -50,15 +53,20 @@ Toolkit::test(function (): void {
 
 // Server version
 Toolkit::test(function (): void {
-	$loader = new ContainerLoader(TMP_DIR, true);
+	$loader = new ContainerLoader(TEMP_DIR, true);
 	$class = $loader->load(function (Compiler $compiler): void {
 		$compiler->addExtension('cache', new CacheExtension());
 		$compiler->addExtension('dbal', new DbalExtension());
+		$compiler->addConfig(NeonLoader::load('
+			dbal:
+				connection:
+					driver: pdo_pgsql
+					serverVersion: 10.0
+			'));
 		$compiler->addConfig([
 			'parameters' => [
-				'tempDir' => TMP_DIR,
+				'tempDir' => TEMP_DIR,
 			],
-			'dbal' => ['connection' => ['driver' => 'pdo_pgsql', 'serverVersion' => '10.0']],
 		]);
 	}, __FILE__ . '2');
 
@@ -72,39 +80,26 @@ Toolkit::test(function (): void {
 	Assert::falsey($connection->isConnected());
 });
 
-// No cache
-Toolkit::test(function (): void {
-	Assert::exception(function (): void {
-		$loader = new ContainerLoader(TMP_DIR, true);
-		$class = $loader->load(function (Compiler $compiler): void {
-			$compiler->addExtension('dbal', new DbalExtension());
-		}, __FILE__ . '3');
-
-		new $class();
-	}, InvalidStateException::class, 'Service \'dbal.configuration\' (type of Doctrine\DBAL\Configuration): Service of type \'Doctrine\Common\Cache\Cache\' not found.');
-});
-
 // Types
 Toolkit::test(function (): void {
-	$loader = new ContainerLoader(TMP_DIR, true);
+	$loader = new ContainerLoader(TEMP_DIR, true);
 	$class = $loader->load(function (Compiler $compiler): void {
 		$compiler->addExtension('cache', new CacheExtension());
 		$compiler->addExtension('dbal', new DbalExtension());
+		$compiler->addConfig(NeonLoader::load('
+			dbal:
+				connection:
+					driver: pdo_pgsql
+					types:
+						foo: { class: Doctrine\DBAL\Types\StringType }
+						bar: Doctrine\DBAL\Types\IntegerType
+			'));
 		$compiler->addConfig([
 			'parameters' => [
-				'tempDir' => TMP_DIR,
-			],
-			'dbal' => [
-				'connection' => [
-					'driver' => 'pdo_sqlite',
-					'types' => [
-						'foo' => ['class' => StringType::class],
-						'bar' => IntegerType::class,
-					],
-				],
+				'tempDir' => TEMP_DIR,
 			],
 		]);
-	}, __FILE__ . '4');
+	}, __FILE__ . '3');
 
 	/** @var Container $container */
 	$container = new $class();
@@ -114,4 +109,34 @@ Toolkit::test(function (): void {
 
 	Assert::type(StringType::class, Type::getType('foo'));
 	Assert::type(IntegerType::class, Type::getType('bar'));
+});
+
+// Exception (no cache extension)
+Toolkit::test(function (): void {
+	Assert::exception(function (): void {
+		$loader = new ContainerLoader(TEMP_DIR, true);
+		$class = $loader->load(function (Compiler $compiler): void {
+			$compiler->addExtension('dbal', new DbalExtension());
+			$compiler->addConfig(NeonLoader::load('
+				dbal:
+					connection:
+						driver: pdo_sqlite
+			'));
+		}, __FILE__ . '4');
+
+		new $class();
+	}, InvalidStateException::class, "Service 'dbal.configuration' (type of Doctrine\DBAL\Configuration): Service of type 'Doctrine\Common\Cache\Cache' not found.");
+});
+
+
+// Exception (no driver)
+Toolkit::test(function (): void {
+	Assert::exception(function (): void {
+		$loader = new ContainerLoader(TEMP_DIR, true);
+		$class = $loader->load(function (Compiler $compiler): void {
+			$compiler->addExtension('dbal', new DbalExtension());
+		}, __FILE__ . '5');
+
+		new $class();
+	}, InvalidStateException::class, "The mandatory option 'dbal › connection › driver' is missing.");
 });
