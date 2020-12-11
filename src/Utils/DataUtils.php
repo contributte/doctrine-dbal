@@ -9,6 +9,7 @@ final class DataUtils
 {
 
 	/**
+	 * @phpstan-param Statement<mixed> $statement
 	 * @return mixed[]
 	 */
 	public static function toPairs(Statement $statement, ?string $key = null, ?string $value = null): array

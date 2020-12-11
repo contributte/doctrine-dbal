@@ -1,7 +1,55 @@
+includes:
+	- vendor/phpstan/phpstan-deprecation-rules/rules.neon
+	- vendor/phpstan/phpstan-nette/extension.neon
+	- vendor/phpstan/phpstan-nette/rules.neon
+	#- vendor/phpstan/phpstan-strict-rules/rules.neon
+
 parameters:
 	ignoreErrors:
-		- "#^Parameter \\#1 \\$function of function call_user_func expects callable\\(\\): mixed, array\\(object, 'getSubscribedEvents'\\) given.#"
-		# No replacement available
-		- '#^Fetching class constant class of deprecated class Doctrine\\DBAL\\Tools\\Console\\Command\\ImportCommand.+#'
-		# Method iterates through property and converts string values to objects, cannot happen
-		- '#^Method Nettrine\\DBAL\\Events\\ContainerAwareEventManager\:\:getInitializedListeners\(\) should return array\<object\> but returns array\<object\|string\>\.$#'
+		-
+			message: "#^Unable to resolve the template type T in call to method static method Doctrine\\\\DBAL\\\\DriverManager\\:\\:getConnection\\(\\)$#"
+			count: 1
+			path: src/ConnectionFactory.php
+
+		-
+			message:
+				"""
+					#^Fetching class constant class of deprecated class Doctrine\\\\DBAL\\\\Tools\\\\Console\\\\Helper\\\\ConnectionHelper\\:
+					use a ConnectionProvider instead\\.$#
+				"""
+			count: 1
+			path: src/DI/DbalConsoleExtension.php
+
+		-
+			message:
+				"""
+					#^Fetching class constant class of deprecated class Doctrine\\\\DBAL\\\\Tools\\\\Console\\\\Command\\\\ImportCommand\\:
+					Use a database client application instead$#
+				"""
+			count: 1
+			path: src/DI/DbalConsoleExtension.php
+
+		-
+			message: "#^Parameter \\#1 \\$argument of class ReflectionClass constructor expects class\\-string\\<T of object\\>\\|T of object, string given\\.$#"
+			count: 1
+			path: src/DI/DbalExtension.php
+
+		-
+			message: "#^Parameter \\#1 \\$function of function call_user_func expects callable\\(\\)\\: mixed, array\\(object, 'getSubscribedEvents'\\) given\\.$#"
+			count: 1
+			path: src/DI/DbalExtension.php
+
+		-
+			message: "#^Method Nettrine\\\\DBAL\\\\Events\\\\ContainerAwareEventManager\\:\\:getInitializedListeners\\(\\) should return array\\<object\\> but returns array\\<object\\|string\\>\\.$#"
+			count: 2
+			path: src/Events/ContainerAwareEventManager.php
+
+		-
+			message:
+				"""
+					#^Call to deprecated method fetchAll\\(\\) of class Doctrine\\\\DBAL\\\\Driver\\\\ResultStatement\\:
+					Use fetchAllNumeric\\(\\), fetchAllAssociative\\(\\) or fetchFirstColumn\\(\\) instead\\.$#
+				"""
+			count: 1
+			path: src/Utils/DataUtils.php
+

@@ -199,7 +199,7 @@ final class DbalExtension extends CompilerExtension
 				'?->addEventListener(?, ?)',
 				[
 					'@self',
-					call_user_func([(new ReflectionClass($serviceDef->getType()))->newInstanceWithoutConstructor(), 'getSubscribedEvents']),
+					call_user_func([(new ReflectionClass((string) $serviceDef->getType()))->newInstanceWithoutConstructor(), 'getSubscribedEvents']),
 					$serviceName, // Intentionally without @ for laziness.
 				]
 			);

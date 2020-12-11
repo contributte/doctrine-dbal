@@ -13,8 +13,8 @@ namespace Nettrine\DBAL;
 use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Exception\DriverException;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\Type;
@@ -88,15 +88,15 @@ class ConnectionFactory
 	 * and the platform version is unknown.
 	 * For details have a look at DoctrineBundle issue #673.
 	 *
-	 * @throws DBALException
+	 * @throws Exception
 	 */
 	private function getDatabasePlatform(Connection $connection): AbstractPlatform
 	{
 		try {
 			return $connection->getDatabasePlatform();
-		} catch (DBALException $driverException) {
+		} catch (Exception $driverException) {
 			if ($driverException instanceof DriverException) {
-				throw new DBALException(
+				throw new Exception(
 					'An exception occurred while establishing a connection to figure out your platform version.' . PHP_EOL .
 					'You can circumvent this by setting a \'server_version\' configuration value' . PHP_EOL . PHP_EOL .
 					'For further information have a look at:' . PHP_EOL .

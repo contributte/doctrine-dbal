@@ -3,9 +3,8 @@
 namespace Nettrine\DBAL\Tracy\BlueScreen;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Driver;
-use Doctrine\DBAL\Driver\DriverException;
+use Doctrine\DBAL\Driver\Exception;
 use Doctrine\DBAL\Query\QueryException;
 use Nettrine\DBAL\Utils\QueryUtils;
 use PDO;
@@ -28,8 +27,8 @@ class DbalBlueScreen
 			return null;
 		}
 
-		if ($e instanceof DriverException) {
-			if (($prev = $e->getPrevious()) && ($item = Helpers::findTrace($e->getTrace(), DBALException::class . '::driverExceptionDuringQuery'))) {
+		if ($e instanceof Exception) {
+			if (($prev = $e->getPrevious()) && ($item = Helpers::findTrace($e->getTrace(), Exception::class . '::driverExceptionDuringQuery'))) {
 				/** @var Driver $driver */
 				$driver = $item['args'][0];
 				$params = $item['args'][3] ?? [];
