@@ -67,6 +67,7 @@ abstract class AbstractLogger implements SQLLogger
 		if ($p === false) {
 			throw new InvalidStateException(sprintf('Path %s does not exist', $path));
 		}
+
 		$this->sourcePaths[] = $p;
 	}
 
@@ -79,16 +80,19 @@ abstract class AbstractLogger implements SQLLogger
 		if (count($this->sourcePaths) === 0) {
 			return $result;
 		}
+
 		foreach (debug_backtrace() as $i) {
 			if (!isset($i['file'], $i['line'])) {
 				continue;
 			}
+
 			foreach ($this->sourcePaths as $path) {
 				if (Strings::contains($i['file'], $path)) {
 					$result[] = $i;
 				}
 			}
 		}
+
 		return $result;
 	}
 

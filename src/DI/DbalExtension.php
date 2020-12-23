@@ -55,6 +55,7 @@ final class DbalExtension extends CompilerExtension
 							if (is_string($type)) {
 								return ['class' => $type];
 							}
+
 							return $type;
 						})
 						->castTo('array')

@@ -3,7 +3,6 @@
 namespace Nettrine\DBAL\Tracy\BlueScreen;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Driver\Exception;
 use Doctrine\DBAL\Query\QueryException;
 use Nettrine\DBAL\Utils\QueryUtils;
@@ -29,16 +28,11 @@ class DbalBlueScreen
 
 		if ($e instanceof Exception) {
 			if (($prev = $e->getPrevious()) && ($item = Helpers::findTrace($e->getTrace(), Exception::class . '::driverExceptionDuringQuery'))) {
-				/** @var Driver $driver */
-				$driver = $item['args'][0];
-				$params = $item['args'][3] ?? [];
-
 				return [
 					'tab' => 'SQL',
 					'panel' => QueryUtils::highlight($item['args'][2]),
 				];
 			}
-
 		} elseif ($e instanceof QueryException) {
 			if (($prev = $e->getPrevious()) && preg_match('~^(SELECT|INSERT|UPDATE|DELETE)\s+.*~i', $prev->getMessage())) {
 				return [
@@ -47,12 +41,10 @@ class DbalBlueScreen
 				];
 			}
 		} elseif ($e instanceof PDOException) {
-			$params = [];
 			if (isset($e->queryString)) {
 				$sql = $e->queryString;
 			} elseif ($item = Helpers::findTrace($e->getTrace(), Connection::class . '::executeQuery')) {
 				$sql = $item['args'][0];
-				$params = $item['args'][1];
 			} elseif ($item = Helpers::findTrace($e->getTrace(), PDO::class . '::query')) {
 				$sql = $item['args'][0];
 			} elseif ($item = Helpers::findTrace($e->getTrace(), PDO::class . '::prepare')) {

@@ -17,14 +17,12 @@ final class OracleUtils
 			$sql
 		);
 
-		$sql2 = sprintf(
+		return sprintf(
 			'SELECT * FROM (%s) WHERE doctrine_rownum BETWEEN %d AND %d',
 			$sql1,
 			$paginator->offset,
 			$paginator->offset + $paginator->length
 		);
-
-		return $sql2;
 	}
 
 }

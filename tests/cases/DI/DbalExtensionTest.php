@@ -105,8 +105,9 @@ Toolkit::test(function (): void {
 	$container = new $class();
 
 	/** @var Connection $connection */
-	$container->getByType(Connection::class);
+	$connection = $container->getByType(Connection::class);
 
+	Assert::type(Connection::class, $connection);
 	Assert::type(StringType::class, Type::getType('foo'));
 	Assert::type(IntegerType::class, Type::getType('bar'));
 });

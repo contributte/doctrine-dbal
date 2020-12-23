@@ -52,7 +52,9 @@ class QueryPanel implements IBarPanel
 		$parameters = $this->profiler->getConnection()->getParams();
 		$parameters['password'] = '****';
 		$queries = $this->profiler->getQueries();
+		// phpcs:ignore
 		$queriesNum = count($queries);
+		// phpcs:ignore
 		$totalTime = $this->profiler->getTotalTime();
 		require __DIR__ . '/templates/panel.phtml';
 

@@ -8,6 +8,7 @@
  * (c) Fabien Potencier <fabien@symfony.com>
  * (c) Doctrine Project, Benjamin Eberlei <kontakt@beberlei.de>
  */
+
 namespace Nettrine\DBAL;
 
 use Doctrine\Common\EventManager;
