@@ -139,5 +139,5 @@ Toolkit::test(function (): void {
 		}, __FILE__ . '5');
 
 		new $class();
-	}, InvalidStateException::class, "The mandatory option 'dbal › connection › driver' is missing.");
+	}, InvalidStateException::class, "The mandatory item 'dbal › connection › driver' is missing.");
 });
