@@ -26,16 +26,16 @@
     "nettrine/cache": "^0.3.0"
   },
   "require-dev": {
-    "contributte/console": "^0.5.0",
+    "contributte/console": "^0.9",
     "mockery/mockery": "^1.3.3",
     "ninjify/qa": "^0.12",
-    "ninjify/nunjuck": "^0.4",
+    "ninjify/nunjuck": "^0.3",
     "phpstan/phpstan": "^0.12.64",
     "phpstan/phpstan-deprecation-rules": "^0.12",
     "phpstan/phpstan-nette": "^0.12",
     "phpstan/phpstan-strict-rules": "^0.12",
     "psr/log": "^1.1",
-    "tracy/tracy": "~2.6.2"
+    "tracy/tracy": "~2.8.2"
   },
   "conflict": {
     "nette/di": "<3.0.6",
