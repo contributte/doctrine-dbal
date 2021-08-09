@@ -131,7 +131,7 @@ nettrine.dbal:
     password: root
 ```
 
-Take a look at real **Nettrine DBAL** configuration example at [Nutella Project](https://github.com/planette/nutella-project/blob/90f1eca94fa62b7589844481549d4823d3ed20f8/app/config/ext/nettrine.neon).
+Take a look at real **Nettrine DBAL** configuration example at [contributte/webapp-project](https://github.com/contributte/webapp-skeleton/blob/d23e6cbac9b91d6d069583f1661dd1171ccfe077/app/config/ext/nettrine.neon).
 
 
 ### Types
@@ -248,15 +248,15 @@ extensions:
 
 ### 2. Example projects
 
-We've made a few starter projects with preconfigured Nettrine nad Contributte packages.
+We've made a few skeletons with preconfigured Nettrine nad Contributte packages.
 
-- Nutella Project - https://github.com/planette/nutella-project
-- FoREST Project - https://github.com/planette/forest-project
+- https://github.com/contributte/webapp-skeleton
+- https://github.com/contributte/apitte-skeleton
 
 ### 3. Example playground
 
-You can find more examples in [planette playground](https://github.com/planette/playground) repository.
-
+- https://github.com/contributte/playground (playground)
+- https://contributte.org/examples.html (more examples)
 
 ## Other
 
