@@ -152,10 +152,10 @@ final class DbalExtension extends CompilerExtension
 		$connectionDef = $builder->addDefinition($this->prefix('connection'))
 			->setFactory($config['wrapperClass'] ?? Connection::class)
 			->setFactory('@' . $this->prefix('connectionFactory') . '::createConnection', [
-			$config,
-			'@' . $this->prefix('configuration'),
-			$builder->getDefinitionByType(EventManager::class),
-		]);
+				$config,
+				'@' . $this->prefix('configuration'),
+				$builder->getDefinitionByType(EventManager::class),
+			]);
 
 		$debugConfig = $this->config->debug;
 		if ($debugConfig->panel) {
