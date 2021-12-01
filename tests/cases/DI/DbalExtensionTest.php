@@ -114,19 +114,23 @@ Toolkit::test(function (): void {
 
 // Exception (no cache extension)
 Toolkit::test(function (): void {
-	Assert::exception(function (): void {
-		$loader = new ContainerLoader(TEMP_DIR, true);
-		$class = $loader->load(function (Compiler $compiler): void {
-			$compiler->addExtension('dbal', new DbalExtension());
-			$compiler->addConfig(NeonLoader::load('
-				dbal:
-					connection:
-						driver: pdo_sqlite
-			'));
-		}, __FILE__ . '4');
+	Assert::exception(
+		function (): void {
+			$loader = new ContainerLoader(TEMP_DIR, true);
+			$class = $loader->load(function (Compiler $compiler): void {
+				$compiler->addExtension('dbal', new DbalExtension());
+				$compiler->addConfig(NeonLoader::load('
+					dbal:
+						connection:
+							driver: pdo_sqlite
+				'));
+			}, __FILE__ . '4');
 
-		new $class();
-	}, InvalidStateException::class, "Service 'dbal.configuration' (type of Doctrine\DBAL\Configuration): Service of type 'Doctrine\Common\Cache\Cache' not found.");
+			new $class();
+		},
+		InvalidStateException::class,
+		"~^Service 'dbal\\.configuration' \\(type of Doctrine\\\\DBAL\\\\Configuration\\): Service of type '?Doctrine\\\\Common\\\\Cache\\\\Cache'? not found\.~"
+	);
 });
 
 
