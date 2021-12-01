@@ -5,6 +5,10 @@ includes:
 	#- vendor/phpstan/phpstan-strict-rules/rules.neon
 
 parameters:
+	level: 8
+	paths:
+		- src
+
 	ignoreErrors:
 		-
 			message:
@@ -30,7 +34,7 @@ parameters:
 			path: src/DI/DbalExtension.php
 
 		-
-			message: "#^Parameter \\#1 \\$function of function call_user_func expects callable\\(\\)\\: mixed, array\\(object, 'getSubscribedEvents'\\) given\\.$#"
+			message: "#^Parameter \\#1 \\$function of function call_user_func expects callable\\(\\)\\: mixed, array\\{object, 'getSubscribedEvents'\\} given\\.$#"
 			count: 1
 			path: src/DI/DbalExtension.php
 

@@ -15,7 +15,7 @@ csf:
 	vendor/bin/codefixer src tests
 
 phpstan:
-	vendor/bin/phpstan analyse -l max -c phpstan.neon --memory-limit=512M src
+	vendor/bin/phpstan analyse -c phpstan.neon --memory-limit=512M
 
 tests:
 	vendor/bin/tester -s -p php --colors 1 -C tests/cases
