@@ -61,18 +61,28 @@ Toolkit::test(function (): void {
 		->execute();
 
 	$qb = $connection->createQueryBuilder();
-	$select = $qb->select('id', 'firstname')
+	$result = $qb->select('id', 'firstname')
 		->from('person')
-		->execute();
-
-	Assert::equal([
+		->execute()
+		->fetchAll();
+	$expected = [
 		[
-			'id' => '1',
+			'id' => 1,
 			'firstname' => 'John',
 		],
 		[
-			'id' => '2',
+			'id' => 2,
 			'firstname' => 'Sam',
 		],
-	], $select->fetchAll());
+	];
+	if (PHP_VERSION_ID < 80100) { // PDO returns everything as string on PHP <8.1
+		array_walk_recursive(
+			$expected,
+			function (&$value): void {
+				$value = (string) $value;
+			}
+		);
+	}
+
+	Assert::equal($expected, $result);
 });
