@@ -45,7 +45,7 @@ class ProfilerLogger extends AbstractLogger
 		if ($params) {
 			try {
 				/** @var string $sql */
-				[$sql, $params, $types] = SQLParserUtils::expandListParameters($sql, $params ?? [], $types ?? []);
+				[$sql, $params, $types] = SQLParserUtils::expandListParameters($sql, $params, $types ?? []);
 			} catch (SQLParserUtilsException $e) {
 				// Do nothing
 			}
