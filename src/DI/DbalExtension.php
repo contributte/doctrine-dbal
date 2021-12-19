@@ -150,7 +150,7 @@ final class DbalExtension extends CompilerExtension
 			->setFactory(ConnectionFactory::class, [$config['types'], $config['typesMapping']]);
 
 		$connectionDef = $builder->addDefinition($this->prefix('connection'))
-			->setFactory(Connection::class)
+			->setFactory($config['wrapperClass'] ?? Connection::class)
 			->setFactory('@' . $this->prefix('connectionFactory') . '::createConnection', [
 				$config,
 				'@' . $this->prefix('configuration'),
