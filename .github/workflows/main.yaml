@@ -142,7 +142,7 @@ jobs:
         operating-system: ["ubuntu-latest"]
         composer-args: [ "" ]
         include:
-          - php-version: "7.4"
+          - php-version: "7.2"
             operating-system: "ubuntu-latest"
             composer-args: "--prefer-lowest"
       fail-fast: false
