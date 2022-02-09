@@ -5,21 +5,22 @@ namespace Nettrine\DBAL\Logger;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\SQLParserUtils;
 use Doctrine\DBAL\SQLParserUtilsException;
+use Nettrine\DBAL\ConnectionAccessor;
 
 class ProfilerLogger extends AbstractLogger
 {
 
-	/** @var Connection */
-	protected $connection;
+	/** @var ConnectionAccessor */
+	protected $connectionAccessor;
 
-	public function __construct(Connection $connection)
+	public function __construct(ConnectionAccessor $connectionAccessor)
 	{
-		$this->connection = $connection;
+		$this->connectionAccessor = $connectionAccessor;
 	}
 
 	public function getConnection(): Connection
 	{
-		return $this->connection;
+		return $this->connectionAccessor->get();
 	}
 
 	/**
@@ -59,7 +60,7 @@ class ProfilerLogger extends AbstractLogger
 					$quotedParams = [];
 					foreach ($params as $typeIndex => $value) {
 						$type = $types[$typeIndex] ?? null;
-						$quotedParams[] = $this->connection->quote($value, $type);
+						$quotedParams[] = $this->getConnection()->quote($value, $type);
 					}
 
 					return $quotedParams;
