@@ -2,19 +2,20 @@
 
 namespace Nettrine\DBAL\Utils;
 
-use Doctrine\DBAL\Driver\Statement;
+use Doctrine\DBAL\Driver\Result as DriverResult;
+use Doctrine\DBAL\Result;
 use LogicException;
 
 final class DataUtils
 {
 
 	/**
-	 * @phpstan-param Statement<mixed> $statement
+	 * @param Result|DriverResult $result
 	 * @return mixed[]
 	 */
-	public static function toPairs(Statement $statement, ?string $key = null, ?string $value = null): array
+	public static function toPairs($result, ?string $key = null, ?string $value = null): array
 	{
-		$rows = $statement->fetchAll();
+		$rows = $result->fetchAllAssociative();
 
 		if (!$rows) {
 			return [];

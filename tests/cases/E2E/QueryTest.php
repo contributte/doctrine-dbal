@@ -64,7 +64,7 @@ Toolkit::test(function (): void {
 	$result = $qb->select('id', 'firstname')
 		->from('person')
 		->execute()
-		->fetchAll();
+		->fetchAllAssociative();
 	$expected = [
 		[
 			'id' => 1,
