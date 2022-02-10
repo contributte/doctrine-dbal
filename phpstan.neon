@@ -20,15 +20,6 @@ parameters:
 			path: src/DI/DbalConsoleExtension.php
 
 		-
-			message:
-				"""
-					#^Fetching class constant class of deprecated class Doctrine\\\\DBAL\\\\Tools\\\\Console\\\\Command\\\\ImportCommand\\:
-					Use a database client application instead$#
-				"""
-			count: 1
-			path: src/DI/DbalConsoleExtension.php
-
-		-
 			message: "#^Parameter \\#1 \\$argument of class ReflectionClass constructor expects class\\-string\\<T of object\\>\\|T of object, string given\\.$#"
 			count: 1
 			path: src/DI/DbalExtension.php
