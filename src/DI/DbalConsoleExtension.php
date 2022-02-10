@@ -2,7 +2,6 @@
 
 namespace Nettrine\DBAL\DI;
 
-use Doctrine\DBAL\Tools\Console\Command\ImportCommand;
 use Doctrine\DBAL\Tools\Console\Command\ReservedWordsCommand;
 use Doctrine\DBAL\Tools\Console\Command\RunSqlCommand;
 use Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper;
@@ -45,11 +44,6 @@ class DbalConsoleExtension extends CompilerExtension
 			->setAutowired(false);
 
 		//Commands
-		$builder->addDefinition($this->prefix('importCommand'))
-			->setFactory(ImportCommand::class)
-			->addTag('console.command', 'dbal:import')
-			->setAutowired(false);
-
 		$builder->addDefinition($this->prefix('reservedWordsCommand'))
 			->setFactory(ReservedWordsCommand::class)
 			->addTag('console.command', 'dbal:reserved-words')
