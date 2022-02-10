@@ -25,3 +25,25 @@ parameters:
 			count: 2
 			path: src/Events/ContainerAwareEventManager.php
 
+		-
+			message: "#^Fetching class constant class of deprecated class Doctrine\\\\DBAL\\\\Logging\\\\LoggerChain\\.$#"
+			count: 1
+			path: src/DI/DbalExtension.php
+
+		-
+			message: """
+				#^Class Nettrine\\\\DBAL\\\\Logger\\\\AbstractLogger implements deprecated interface Doctrine\\\\DBAL\\\\Logging\\\\SQLLogger\\:
+				Use \\{@see \\\\Doctrine\\\\DBAL\\\\Logging\\\\Middleware\\} or implement
+				           \\{@see \\\\Doctrine\\\\DBAL\\\\Driver\\\\Middleware\\} instead\\.$#
+			"""
+			count: 1
+			path: src/Logger/AbstractLogger.php
+
+		-
+			message: """
+				#^Class Nettrine\\\\DBAL\\\\Logger\\\\PsrLogger implements deprecated interface Doctrine\\\\DBAL\\\\Logging\\\\SQLLogger\\:
+				Use \\{@see \\\\Doctrine\\\\DBAL\\\\Logging\\\\Middleware\\} or implement
+				           \\{@see \\\\Doctrine\\\\DBAL\\\\Driver\\\\Middleware\\} instead\\.$#
+			"""
+			count: 1
+			path: src/Logger/PsrLogger.php
