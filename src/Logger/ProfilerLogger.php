@@ -57,7 +57,7 @@ class ProfilerLogger extends AbstractLogger
 					$quotedParams = [];
 					foreach ($params as $typeIndex => $value) {
 						$type = $types[$typeIndex] ?? null;
-						$quotedParams[] = $this->getConnection()->quote($value, $type);
+						$quotedParams[] = $value === null ? $value : $this->getConnection()->quote($value, $type);
 					}
 
 					return $quotedParams;
@@ -86,7 +86,7 @@ class ProfilerLogger extends AbstractLogger
 		}
 
 		$parser = $this->getConnection()->getDatabasePlatform()->createSQLParser();
-		$visitor = new ExpandArrayParameters($params, $types);
+		$visitor = new ExpandArrayParameters(array_values($params), array_values($types));
 		$parser->parse($query, $visitor);
 
 		return [
