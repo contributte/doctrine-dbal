@@ -91,6 +91,7 @@ class ProfilerLogger extends AbstractLogger
 		} else {
 			$visitor = new ExpandArrayParameters($params, $types);
 		}
+
 		$parser->parse($query, $visitor);
 
 		return [
