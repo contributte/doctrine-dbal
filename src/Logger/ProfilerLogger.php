@@ -86,7 +86,11 @@ class ProfilerLogger extends AbstractLogger
 		}
 
 		$parser = $this->getConnection()->getDatabasePlatform()->createSQLParser();
-		$visitor = new ExpandArrayParameters(array_values($params), array_values($types));
+		if (is_int(key($params))) { // Positional parameters, checked same as 2.x SQLParserUtils.php:88
+			$visitor = new ExpandArrayParameters(array_values($params), array_values($types)); // ExpandArrayParameters has starting index at 0, flushing new entities at 1
+		} else {
+			$visitor = new ExpandArrayParameters($params, $types);
+		}
 		$parser->parse($query, $visitor);
 
 		return [
