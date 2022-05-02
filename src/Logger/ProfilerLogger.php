@@ -85,13 +85,12 @@ class ProfilerLogger extends AbstractLogger
 			}
 		}
 
-		$parser = $this->getConnection()->getDatabasePlatform()->createSQLParser();
-		if (is_int(key($params))) { // Positional parameters, checked same as 2.x SQLParserUtils.php:88
-			$visitor = new ExpandArrayParameters(array_values($params), array_values($types)); // ExpandArrayParameters has starting index at 0, flushing new entities at 1
-		} else {
-			$visitor = new ExpandArrayParameters($params, $types);
+		if (!$this->needsArrayParameterConversion($params, $types)) {
+			return [$query, $params, $types];
 		}
 
+		$parser = $this->getConnection()->getDatabasePlatform()->createSQLParser();
+		$visitor = new ExpandArrayParameters($params, $types);
 		$parser->parse($query, $visitor);
 
 		return [
@@ -99,6 +98,29 @@ class ProfilerLogger extends AbstractLogger
 			$visitor->getParameters(),
 			$visitor->getTypes(),
 		];
+	}
+
+	/**
+	 * @param array<int, mixed>|array<string, mixed>                               $params
+	 * @param array<int, int|string|Type|null>|array<string, int|string|Type|null> $types
+	 */
+	private function needsArrayParameterConversion(array $params, array $types): bool
+	{
+		if (is_string(key($params))) {
+			return true;
+		}
+
+		foreach ($types as $type) {
+			if (
+				$type === Connection::PARAM_INT_ARRAY
+				|| $type === Connection::PARAM_STR_ARRAY
+				|| $type === Connection::PARAM_ASCII_STR_ARRAY
+			) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 }
