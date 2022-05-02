@@ -86,7 +86,7 @@ class ProfilerLogger extends AbstractLogger
 
 		if ($this->olderDbalVersion) { // DBAL 2.x compatibility
 			try {
-				return SQLParserUtils::expandListParameters($query, $params, $types);
+				return SQLParserUtils::expandListParameters($query, $params, $types); /** @phpstan-ignore-line */
 			} catch (Throwable $e) {
 				return [$query, $params, $types];
 			}
