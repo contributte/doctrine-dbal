@@ -12,6 +12,9 @@ use Throwable;
 class ProfilerLogger extends AbstractLogger
 {
 
+	/** @var ?bool */
+	private $olderDbalVersion = null;
+
 	/** @var ConnectionAccessor */
 	protected $connectionAccessor;
 
@@ -77,7 +80,11 @@ class ProfilerLogger extends AbstractLogger
 	 */
 	private function expandListParameters(string $query, array $params, array $types): array
 	{
-		if (class_exists(SQLParserUtils::class)) { // DBAL 2.x compatibility
+		if ($this->olderDbalVersion === null) {
+			$this->olderDbalVersion = class_exists(SQLParserUtils::class);
+		}
+
+		if ($this->olderDbalVersion) { // DBAL 2.x compatibility
 			try {
 				return SQLParserUtils::expandListParameters($query, $params, $types);
 			} catch (Throwable $e) {
