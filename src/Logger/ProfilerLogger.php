@@ -7,13 +7,11 @@ use Doctrine\DBAL\ExpandArrayParameters;
 use Doctrine\DBAL\SQLParserUtils;
 use Doctrine\DBAL\Types\Type;
 use Nettrine\DBAL\ConnectionAccessor;
+use Nettrine\DBAL\Utils\Compatibility;
 use Throwable;
 
 class ProfilerLogger extends AbstractLogger
 {
-
-	/** @var ?bool */
-	private $olderDbalVersion = null;
 
 	/** @var ConnectionAccessor */
 	protected $connectionAccessor;
@@ -80,11 +78,7 @@ class ProfilerLogger extends AbstractLogger
 	 */
 	private function expandListParameters(string $query, array $params, array $types): array
 	{
-		if ($this->olderDbalVersion === null) {
-			$this->olderDbalVersion = class_exists(SQLParserUtils::class);
-		}
-
-		if ($this->olderDbalVersion) { // DBAL 2.x compatibility
+		if (Compatibility::isDoctrineV2()) { // DBAL 2.x compatibility
 			try {
 				return SQLParserUtils::expandListParameters($query, $params, $types); /** @phpstan-ignore-line */
 			} catch (Throwable $e) {
