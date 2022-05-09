@@ -12,6 +12,9 @@ use Throwable;
 class ProfilerLogger extends AbstractLogger
 {
 
+	/** @var ?bool */
+	private $olderDbalVersion = null;
+
 	/** @var ConnectionAccessor */
 	protected $connectionAccessor;
 
@@ -57,7 +60,7 @@ class ProfilerLogger extends AbstractLogger
 					$quotedParams = [];
 					foreach ($params as $typeIndex => $value) {
 						$type = $types[$typeIndex] ?? null;
-						$quotedParams[] = $this->getConnection()->quote($value, $type);
+						$quotedParams[] = $value === null ? $value : $this->getConnection()->quote($value, $type);
 					}
 
 					return $quotedParams;
@@ -77,12 +80,20 @@ class ProfilerLogger extends AbstractLogger
 	 */
 	private function expandListParameters(string $query, array $params, array $types): array
 	{
-		if (class_exists(SQLParserUtils::class)) { // DBAL 2.x compatibility
+		if ($this->olderDbalVersion === null) {
+			$this->olderDbalVersion = class_exists(SQLParserUtils::class);
+		}
+
+		if ($this->olderDbalVersion) { // DBAL 2.x compatibility
 			try {
-				return SQLParserUtils::expandListParameters($query, $params, $types);
+				return SQLParserUtils::expandListParameters($query, $params, $types); /** @phpstan-ignore-line */
 			} catch (Throwable $e) {
 				return [$query, $params, $types];
 			}
+		}
+
+		if (!$this->needsArrayParameterConversion($params, $types)) {
+			return [$query, $params, $types];
 		}
 
 		$parser = $this->getConnection()->getDatabasePlatform()->createSQLParser();
@@ -94,6 +105,29 @@ class ProfilerLogger extends AbstractLogger
 			$visitor->getParameters(),
 			$visitor->getTypes(),
 		];
+	}
+
+	/**
+	 * @param array<int, mixed>|array<string, mixed>                               $params
+	 * @param array<int, int|string|Type|null>|array<string, int|string|Type|null> $types
+	 */
+	private function needsArrayParameterConversion(array $params, array $types): bool
+	{
+		if (is_string(key($params))) {
+			return true;
+		}
+
+		foreach ($types as $type) {
+			if (
+				$type === Connection::PARAM_INT_ARRAY
+				|| $type === Connection::PARAM_STR_ARRAY
+				|| $type === Connection::PARAM_ASCII_STR_ARRAY
+			) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 }
