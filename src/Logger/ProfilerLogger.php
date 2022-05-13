@@ -59,7 +59,7 @@ class ProfilerLogger extends AbstractLogger
 					$quotedParams = [];
 					foreach ($params as $typeIndex => $value) {
 						$type = $types[$typeIndex] ?? null;
-						$quotedParams[] = $this->connection->quote($value, $type);
+						$quotedParams[] = $value === null ? $value : $this->connection->quote($value, $type);
 					}
 
 					return $quotedParams;
