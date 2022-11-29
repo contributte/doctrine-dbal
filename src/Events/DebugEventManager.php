@@ -35,6 +35,14 @@ class DebugEventManager extends DoctrineEventManager
 	{
 		return $this->inner->getListeners($event);
 	}
+	
+	/**
+	 * @return object[]|object[][]
+	 */
+	public function getAllListeners(): array
+	{
+		return $this->getListeners();
+	}
 
 	/**
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingParameterTypeHint
