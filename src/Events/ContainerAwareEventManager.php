@@ -56,6 +56,14 @@ class ContainerAwareEventManager extends DoctrineEventManager
 
 		return $stack;
 	}
+	
+	/**
+	 * @return object[]|object[][]
+	 */
+	public function getAllListeners(): array
+	{
+		return $this->getListeners();
+	}
 
 	/**
 	 * @return object[]
