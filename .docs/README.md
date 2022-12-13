@@ -1,4 +1,4 @@
-# Nettrine DBAL
+# Contributte Doctrine DBAL
 
 [Doctrine/DBAL](https://www.doctrine-project.org/projects/dbal.html) for Nette Framework.
 
@@ -44,7 +44,7 @@ Take advantage of enpowering this package with 2 extra packages:
 
 ### `doctrine/cache`
 
-This package relies on `doctrine/cache`, use prepared [nettrine/cache](https://github.com/nettrine/cache) integration.
+This package relies on `doctrine/cache`, use prepared [nettrine/cache](https://github.com/contributte/doctrine-cache) integration.
 
 ```bash
 composer require nettrine/cache

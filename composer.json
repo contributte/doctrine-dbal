@@ -12,7 +12,7 @@
   ],
   "type": "library",
   "license": "MIT",
-  "homepage": "https://github.com/nettrine/dbal",
+  "homepage": "https://github.com/contributte/doctrine-dbal",
   "authors": [
     {
       "name": "Milan Felix Šulc",
