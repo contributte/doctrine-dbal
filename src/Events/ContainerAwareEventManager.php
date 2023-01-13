@@ -56,7 +56,7 @@ class ContainerAwareEventManager extends DoctrineEventManager
 
 		return $stack;
 	}
-	
+
 	/**
 	 * @return object[]|object[][]
 	 */

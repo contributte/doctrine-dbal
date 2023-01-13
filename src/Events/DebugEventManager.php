@@ -35,7 +35,7 @@ class DebugEventManager extends DoctrineEventManager
 	{
 		return $this->inner->getListeners($event);
 	}
-	
+
 	/**
 	 * @return object[]|object[][]
 	 */
