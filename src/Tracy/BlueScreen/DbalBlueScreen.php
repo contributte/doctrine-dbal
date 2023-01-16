@@ -41,9 +41,7 @@ class DbalBlueScreen
 				];
 			}
 		} elseif ($e instanceof PDOException) {
-			if (isset($e->queryString)) {
-				$sql = $e->queryString;
-			} elseif ($item = Helpers::findTrace($e->getTrace(), Connection::class . '::executeQuery')) {
+			if ($item = Helpers::findTrace($e->getTrace(), Connection::class . '::executeQuery')) {
 				$sql = $item['args'][0];
 			} elseif ($item = Helpers::findTrace($e->getTrace(), PDO::class . '::query')) {
 				$sql = $item['args'][0];
