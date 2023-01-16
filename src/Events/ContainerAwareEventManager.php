@@ -24,7 +24,11 @@ class ContainerAwareEventManager extends DoctrineEventManager
 		$this->container = $container;
 	}
 
-	public function dispatchEvent(string $eventName, ?EventArgs $eventArgs = null): void
+	/**
+	 * @param string $eventName
+	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingParameterTypeHint
+	 */
+	public function dispatchEvent($eventName, ?EventArgs $eventArgs = null): void
 	{
 		$eventArgs = $eventArgs ?? EventArgs::getEmptyInstance();
 
@@ -34,28 +38,60 @@ class ContainerAwareEventManager extends DoctrineEventManager
 	}
 
 	/**
-	 * @return array<object|string>
+	 * @param string|null $event
+	 * @return array<object|string>|array<string,array<object|string>>
+	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingParameterTypeHint
 	 */
-	public function getListeners(string $event): array
+	public function getListeners($event = null): array
 	{
-		return $this->getInitializedListeners($event);
+		if ($event !== null) {
+			return $this->getInitializedListeners($event);
+		}
+
+		$stack = [];
+
+		foreach ($this->listeners as $eventName => $listeners) {
+			$stack[$eventName] = $this->getInitializedListeners($eventName);
+		}
+
+		return $stack;
 	}
 
 	/**
-	 * @return array<string, array<object|string>>
+	 * @return array<object|string>|array<string,array<object|string>>
 	 */
 	public function getAllListeners(): array
 	{
-		$allListeners = [];
-
-		foreach ($this->listeners as $event => $listeners) {
-			$allListeners[$event] = $this->getListeners($event);
-		}
-
-		return $allListeners;
+		return $this->getListeners();
 	}
 
-	public function hasListeners(string $event): bool
+	/**
+	 * @return array<object|string>
+	 */
+	private function getInitializedListeners(string $event): array
+	{
+		$initialized = $this->initialized[$event] ?? false;
+
+		if ($initialized) {
+			return $this->listeners[$event] ?? [];
+		}
+
+		foreach ($this->listeners[$event] ?? [] as $hash => $listener) {
+			if (!is_object($listener)) {
+				$this->listeners[$event][$hash] = $this->container->getService($listener);
+			}
+		}
+
+		$this->initialized[$event] = true;
+
+		return $this->listeners[$event] ?? [];
+	}
+
+	/**
+	 * @param string $event
+	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingParameterTypeHint
+	 */
+	public function hasListeners($event): bool
 	{
 		return !empty($this->listeners[$event]);
 	}
@@ -64,7 +100,7 @@ class ContainerAwareEventManager extends DoctrineEventManager
 	 * Adds an event listener that listens on the specified events.
 	 *
 	 * @param string|string[] $events The event(s) to listen on.
-	 * @param string|object $listener The listener object.
+	 * @param string|object   $listener The listener object.
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingParameterTypeHint
 	 */
 	public function addEventListener($events, $listener): void
@@ -90,42 +126,21 @@ class ContainerAwareEventManager extends DoctrineEventManager
 	/**
 	 * Removes an event listener from the specified events.
 	 *
-	 * @param string|string[] $events
-	 * @param string|object $listener
+	 * @param string|string[]   $events
+	 * @param string|int|object $listener
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingParameterTypeHint
 	 */
 	public function removeEventListener($events, $listener): void
 	{
-		$hash = !is_object($listener) ? 'service@' . $listener : spl_object_hash($listener);
-
+		$hash = !is_object($listener)
+			? 'service@' . $listener
+			: spl_object_hash($listener);
 		foreach ((array) $events as $event) {
 			// Check if actually have this listener associated
 			if (isset($this->listeners[$event][$hash])) {
 				unset($this->listeners[$event][$hash]);
 			}
 		}
-	}
-
-	/**
-	 * @return array<object|string>
-	 */
-	private function getInitializedListeners(string $event): array
-	{
-		$initialized = $this->initialized[$event] ?? false;
-
-		if ($initialized) {
-			return $this->listeners[$event] ?? [];
-		}
-
-		foreach ($this->listeners[$event] ?? [] as $hash => $listener) {
-			if (!is_object($listener)) {
-				$this->listeners[$event][$hash] = $this->container->getService($listener);
-			}
-		}
-
-		$this->initialized[$event] = true;
-
-		return $this->listeners[$event] ?? [];
 	}
 
 }
