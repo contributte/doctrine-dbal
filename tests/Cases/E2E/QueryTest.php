@@ -10,26 +10,18 @@ use Nettrine\Cache\DI\CacheExtension;
 use Nettrine\DBAL\DI\DbalExtension;
 use Ninjify\Nunjuck\Toolkit;
 use Tester\Assert;
-use Tests\Toolkit\DoctrineDeprecations;
-use Tests\Toolkit\NeonLoader;
+use Tests\Toolkit\Helpers;
 use Tracy\Bridges\Nette\TracyExtension;
 
 require_once __DIR__ . '/../../bootstrap.php';
 
 Toolkit::test(function (): void {
-	// Ignore deprecations that are impossible to fix while keeping DBAL 2.x support
-	DoctrineDeprecations::ignoreDeprecations(
-		'https://github.com/doctrine/dbal/pull/4967',
-		'https://github.com/doctrine/dbal/pull/4620',
-		'https://github.com/doctrine/dbal/pull/4578'
-	);
-
 	$loader = new ContainerLoader(TEMP_DIR, true);
 	$class = $loader->load(function (Compiler $compiler): void {
 		$compiler->addExtension('tracy', new TracyExtension());
 		$compiler->addExtension('cache', new CacheExtension());
 		$compiler->addExtension('dbal', new DbalExtension());
-		$compiler->addConfig(NeonLoader::load('
+		$compiler->addConfig(Helpers::neon('
 			dbal:
 				connection:
 					driver: pdo_sqlite
