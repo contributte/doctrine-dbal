@@ -2,7 +2,6 @@
 
 namespace Nettrine\DBAL\DI;
 
-use Doctrine\DBAL\Tools\Console\Command\ReservedWordsCommand;
 use Doctrine\DBAL\Tools\Console\Command\RunSqlCommand;
 use Doctrine\DBAL\Tools\Console\ConnectionProvider\SingleConnectionProvider;
 use Nette\DI\CompilerExtension;
@@ -36,11 +35,6 @@ class DbalConsoleExtension extends CompilerExtension
 			->setAutowired(false);
 
 		//Commands
-		$builder->addDefinition($this->prefix('reservedWordsCommand'))
-			->setFactory(ReservedWordsCommand::class, [$connectionProvider])
-			->addTag('console.command', 'dbal:reserved-words')
-			->setAutowired(false);
-
 		$builder->addDefinition($this->prefix('runSqlCommand'))
 			->setFactory(RunSqlCommand::class, [$connectionProvider])
 			->addTag('console.command', 'dbal:run-sql')

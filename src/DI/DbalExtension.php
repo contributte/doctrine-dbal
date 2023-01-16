@@ -200,20 +200,19 @@ final class DbalExtension extends CompilerExtension
 	{
 		$builder = $this->getContainerBuilder();
 
-		// Idea by @enumag
-		// https://github.com/Arachne/EventManager/blob/master/src/DI/EventManagerExtension.php
-
 		/** @var ServiceDefinition $eventManager */
 		$eventManager = $builder->getDefinition($this->prefix('eventManager'));
+
 		foreach ($builder->findByType(EventSubscriber::class) as $serviceName => $serviceDef) {
-			$eventManager->addSetup(
-				'?->addEventListener(?, ?)',
-				[
-					'@self',
-					call_user_func([(new ReflectionClass((string) $serviceDef->getType()))->newInstanceWithoutConstructor(), 'getSubscribedEvents']),
-					$serviceName, // Intentionally without @ for laziness.
-				]
-			);
+			/** @var class-string $serviceClass */
+			$serviceClass = (string) $serviceDef->getType();
+			$rc = new ReflectionClass($serviceClass);
+
+			/** @var EventSubscriber $subscriber */
+			$subscriber = $rc->newInstanceWithoutConstructor();
+			$events = $subscriber->getSubscribedEvents();
+
+			$eventManager->addSetup('?->addEventListener(?, ?)', ['@self', $events, $serviceName]);
 		}
 	}
 
