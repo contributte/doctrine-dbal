@@ -8,77 +8,46 @@ use Doctrine\DBAL\Types\IntegerType;
 use Doctrine\DBAL\Types\StringType;
 use Doctrine\DBAL\Types\Type;
 use Nette\DI\Compiler;
-use Nette\DI\Container;
-use Nette\DI\ContainerLoader;
-use Nette\InvalidStateException;
-use Nettrine\Cache\DI\CacheExtension;
+use Nette\DI\InvalidConfigurationException;
+use Nette\DI\ServiceCreationException;
 use Nettrine\DBAL\DI\DbalExtension;
-use Nettrine\DBAL\Events\DebugEventManager;
+use Nettrine\DBAL\Logger\ProfilerLogger;
 use Ninjify\Nunjuck\Toolkit;
 use Tester\Assert;
-use Tests\Toolkit\DoctrineDeprecations;
-use Tests\Toolkit\NeonLoader;
-use Tracy\Bridges\Nette\TracyExtension;
+use Tests\Toolkit\Container;
+use Tests\Toolkit\Helpers;
 
 require_once __DIR__ . '/../../bootstrap.php';
 
 // Debug mode
 Toolkit::test(function (): void {
-	// Ignore deprecations that are impossible to fix while keeping DBAL 2.x support
-	DoctrineDeprecations::ignoreDeprecations(
-		'https://github.com/doctrine/dbal/pull/4967',
-		'https://github.com/doctrine/dbal/pull/4620'
-	);
-
-	$loader = new ContainerLoader(TEMP_DIR, true);
-	$class = $loader->load(function (Compiler $compiler): void {
-		$compiler->addExtension('tracy', new TracyExtension());
-		$compiler->addExtension('cache', new CacheExtension());
-		$compiler->addExtension('dbal', new DbalExtension());
-		$compiler->addConfig(NeonLoader::load('
-			dbal:
-				connection:
-					driver: pdo_sqlite
+	$container = Container::of()
+		->withDefaults()
+		->withCompiler(static function (Compiler $compiler): void {
+			$compiler->addConfig(Helpers::neon(<<<'NEON'
+			nettrine.dbal:
 				debug:
 					panel: true
-			'));
-		$compiler->addConfig([
-			'parameters' => [
-				'tempDir' => TEMP_DIR,
-			],
-		]);
-	}, __FILE__ . '1');
+			NEON
+			));
+		})->build();
 
-	/** @var Container $container */
-	$container = new $class();
-
-	/** @var Connection $connection */
-	$connection = $container->getByType(Connection::class);
-
-	Assert::type(DebugEventManager::class, $connection->getEventManager());
+	Assert::type(ProfilerLogger::class, $container->getByType(ProfilerLogger::class));
 });
 
 // Server version
 Toolkit::test(function (): void {
-	$loader = new ContainerLoader(TEMP_DIR, true);
-	$class = $loader->load(function (Compiler $compiler): void {
-		$compiler->addExtension('cache', new CacheExtension());
-		$compiler->addExtension('dbal', new DbalExtension());
-		$compiler->addConfig(NeonLoader::load('
-			dbal:
+	$container = Container::of()
+		->withDefaults()
+		->withCompiler(static function (Compiler $compiler): void {
+			$compiler->addConfig(Helpers::neon(<<<'NEON'
+			nettrine.dbal:
 				connection:
 					driver: pdo_pgsql
 					serverVersion: 10.0
-			'));
-		$compiler->addConfig([
-			'parameters' => [
-				'tempDir' => TEMP_DIR,
-			],
-		]);
-	}, __FILE__ . '2');
-
-	/** @var Container $container */
-	$container = new $class();
+			NEON
+			));
+		})->build();
 
 	/** @var Connection $connection */
 	$connection = $container->getByType(Connection::class);
@@ -89,27 +58,19 @@ Toolkit::test(function (): void {
 
 // Types
 Toolkit::test(function (): void {
-	$loader = new ContainerLoader(TEMP_DIR, true);
-	$class = $loader->load(function (Compiler $compiler): void {
-		$compiler->addExtension('cache', new CacheExtension());
-		$compiler->addExtension('dbal', new DbalExtension());
-		$compiler->addConfig(NeonLoader::load('
-			dbal:
+	$container = Container::of()
+		->withDefaults()
+		->withCompiler(static function (Compiler $compiler): void {
+			$compiler->addConfig(Helpers::neon(<<<'NEON'
+			nettrine.dbal:
 				connection:
 					driver: pdo_pgsql
 					types:
 						foo: { class: Doctrine\DBAL\Types\StringType }
 						bar: Doctrine\DBAL\Types\IntegerType
-			'));
-		$compiler->addConfig([
-			'parameters' => [
-				'tempDir' => TEMP_DIR,
-			],
-		]);
-	}, __FILE__ . '3');
-
-	/** @var Container $container */
-	$container = new $class();
+			NEON
+			));
+		})->build();
 
 	/** @var Connection $connection */
 	$connection = $container->getByType(Connection::class);
@@ -123,32 +84,28 @@ Toolkit::test(function (): void {
 Toolkit::test(function (): void {
 	Assert::exception(
 		function (): void {
-			$loader = new ContainerLoader(TEMP_DIR, true);
-			$class = $loader->load(function (Compiler $compiler): void {
-				$compiler->addExtension('dbal', new DbalExtension());
-				$compiler->addConfig(NeonLoader::load('
-					dbal:
+			Container::of()
+				->withCompiler(static function (Compiler $compiler): void {
+					$compiler->addExtension('nettrine.dbal', new DbalExtension());
+					$compiler->addConfig(Helpers::neon(<<<'NEON'
+					nettrine.dbal:
 						connection:
 							driver: pdo_sqlite
-				'));
-			}, __FILE__ . '4');
-
-			new $class();
+					NEON
+					));
+				})->build();
 		},
-		InvalidStateException::class,
-		"~^Service 'dbal\\.configuration' \\(type of Doctrine\\\\DBAL\\\\Configuration\\): Service of type '?Doctrine\\\\Common\\\\Cache\\\\Cache'? not found\.~"
+		ServiceCreationException::class,
+		"~^Service 'nettrine\\.dbal\\.configuration' \\(type of Doctrine\\\\DBAL\\\\Configuration\\): Service of type '?Doctrine\\\\Common\\\\Cache\\\\Cache'? not found\.~"
 	);
 });
-
 
 // Exception (no driver)
 Toolkit::test(function (): void {
 	Assert::exception(function (): void {
-		$loader = new ContainerLoader(TEMP_DIR, true);
-		$class = $loader->load(function (Compiler $compiler): void {
-			$compiler->addExtension('dbal', new DbalExtension());
-		}, __FILE__ . '5');
-
-		new $class();
-	}, InvalidStateException::class, "The mandatory item 'dbal › connection › driver' is missing.");
+		Container::of()
+			->withCompiler(static function (Compiler $compiler): void {
+				$compiler->addExtension('nettrine.dbal', new DbalExtension());
+			})->build();
+	}, InvalidConfigurationException::class, "The mandatory item 'nettrine.dbal › connection › driver' is missing.");
 });
