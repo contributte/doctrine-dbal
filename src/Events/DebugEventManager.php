@@ -17,28 +17,38 @@ class DebugEventManager extends DoctrineEventManager
 		$this->inner = $inner;
 	}
 
-	public function dispatchEvent(string $eventName, ?EventArgs $eventArgs = null): void
+	/**
+	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingParameterTypeHint
+	 * @param string $eventName
+	 */
+	public function dispatchEvent($eventName, ?EventArgs $eventArgs = null): void
 	{
 		$this->inner->dispatchEvent($eventName, $eventArgs);
 	}
 
 	/**
-	 * @return array<object>
+	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingParameterTypeHint
+	 * @param string|NULL $event
+	 * @return object[]|object[][]
 	 */
-	public function getListeners(string $event): array
+	public function getListeners($event = null): array
 	{
 		return $this->inner->getListeners($event);
 	}
 
 	/**
-	 * @return array<string, array<object>>
+	 * @return object[]|object[][]
 	 */
 	public function getAllListeners(): array
 	{
-		return $this->inner->getAllListeners();
+		return $this->getListeners();
 	}
 
-	public function hasListeners(string $event): bool
+	/**
+	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingParameterTypeHint
+	 * @param string $event
+	 */
+	public function hasListeners($event): bool
 	{
 		return $this->inner->hasListeners($event);
 	}
@@ -58,10 +68,11 @@ class DebugEventManager extends DoctrineEventManager
 	/**
 	 * Removes an event listener from the specified events.
 	 *
-	 * @param string|string[] $events
+	 * @param string|string $events
+	 * @param object $listener
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingParameterTypeHint
 	 */
-	public function removeEventListener($events, object $listener): void
+	public function removeEventListener($events, $listener): void
 	{
 		$this->inner->removeEventListener($events, $listener);
 	}

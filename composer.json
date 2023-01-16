@@ -39,7 +39,8 @@
   },
   "conflict": {
     "nette/di": "<3.0.6",
-    "nette/schema": "<1.1.0"
+    "nette/schema": "<1.1.0",
+    "doctrine/event-manager": ">1.2.0"
   },
   "autoload": {
     "psr-4": {
