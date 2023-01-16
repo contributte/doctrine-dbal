@@ -4,20 +4,16 @@
 	<!-- Contributte Coding Standard -->
 	<rule ref="./vendor/ninjify/coding-standard/contributte.xml">
 		<exclude name="SlevomatCodingStandard.Commenting.ForbiddenAnnotations.AnnotationForbidden"/>
-		<exclude name="SlevomatCodingStandard.ControlStructures.ControlStructureSpacing.IncorrectLinesCountBeforeControlStructure"/>
-		<exclude name="SlevomatCodingStandard.ControlStructures.ControlStructureSpacing.IncorrectLinesCountAfterControlStructure"/>
-		<exclude name="SlevomatCodingStandard.ControlStructures.ControlStructureSpacing.IncorrectLinesCountAfterLastControlStructure"/>
+		<exclude name="Squiz.PHP.Heredoc.NotAllowed"/>
 	</rule>
 
 	<!-- Specific -->
 	<rule ref="SlevomatCodingStandard.Files.TypeNameMatchesFileName">
 		<properties>
-			<property name="rootNamespaces" type="array" value="
-				src=>Nettrine\DBAL,
-				tests/cases=>Tests\Cases,
-				tests/fixtures=>Tests\Fixtures,
-				tests/toolkit=>Tests\Toolkit
-			"/>
+			<property name="rootNamespaces" type="array">
+				<element key="src" value="Nettrine\DBAL"/>
+				<element key="tests" value="Tests"/>
+			</property>
 		</properties>
 	</rule>
 
