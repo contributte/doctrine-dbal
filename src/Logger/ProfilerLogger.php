@@ -2,6 +2,7 @@
 
 namespace Nettrine\DBAL\Logger;
 
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\ExpandArrayParameters;
 use Doctrine\DBAL\SQLParserUtils;
@@ -113,9 +114,9 @@ class ProfilerLogger extends AbstractLogger
 
 		foreach ($types as $type) {
 			if (
-				$type === Connection::PARAM_INT_ARRAY
-				|| $type === Connection::PARAM_STR_ARRAY
-				|| $type === Connection::PARAM_ASCII_STR_ARRAY
+				$type === ArrayParameterType::INTEGER
+				|| $type === ArrayParameterType::STRING
+				|| $type === ArrayParameterType::ASCII
 			) {
 				return true;
 			}
