@@ -3,7 +3,6 @@
 namespace Nettrine\DBAL\Logger;
 
 use Doctrine\DBAL\Logging\SQLLogger;
-use Nette\Utils\Strings;
 use Nettrine\DBAL\Exceptions\Runtime\InvalidStateException;
 use stdClass;
 
@@ -87,7 +86,7 @@ abstract class AbstractLogger implements SQLLogger
 			}
 
 			foreach ($this->sourcePaths as $path) {
-				if (Strings::contains($i['file'], $path)) {
+				if (strpos($i['file'], $path) !== false) {
 					$result[] = $i;
 				}
 			}
