@@ -26,14 +26,11 @@
     "nettrine/cache": "^0.4.0 || ^0.5.0"
   },
   "require-dev": {
+    "contributte/qa": "^0.4",
+    "contributte/tester": "^0.3",
+    "contributte/phpstan": "^0.1",
     "contributte/console": "^0.9.1",
     "mockery/mockery": "^1.3.5",
-    "ninjify/qa": "^0.13",
-    "ninjify/nunjuck": "^0.4",
-    "phpstan/phpstan": "^1.2.0",
-    "phpstan/phpstan-deprecation-rules": "^1.0.0",
-    "phpstan/phpstan-nette": "^1.0.0",
-    "phpstan/phpstan-strict-rules": "^1.1.0",
     "psr/log": "^1.1 || ^2.0 || ^3.0",
     "tracy/tracy": "^2.6.2"
   },
