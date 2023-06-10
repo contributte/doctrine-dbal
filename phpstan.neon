@@ -1,15 +1,19 @@
 includes:
-	- vendor/phpstan/phpstan-deprecation-rules/rules.neon
-	- vendor/phpstan/phpstan-nette/extension.neon
-	- vendor/phpstan/phpstan-nette/rules.neon
-	#- vendor/phpstan/phpstan-strict-rules/rules.neon
+	- vendor/contributte/phpstan/phpstan.neon
 
 parameters:
-	level: 8
-	phpVersion: 70400
+	level: 9
+	phpVersion: 80100
+
+	scanDirectories:
+		- src
+
+	fileExtensions:
+		- php
 
 	paths:
 		- src
+		- .docs
 
 	ignoreErrors:
 		- '#.*deprecated class Doctrine\\DBAL\\Logging\\LoggerChain|SQLLogger.*#'
