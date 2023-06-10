@@ -41,7 +41,7 @@ final class DbalExtension extends CompilerExtension
 			'configuration' => Expect::structure([
 				'sqlLogger' => Expect::anyOf(Expect::string(), Expect::array(), Expect::type(Statement::class)),
 				'resultCache' => Expect::anyOf(Expect::string(), Expect::array(), Expect::type(Statement::class)),
-				'schemaAssetsFilter' => Expect::anyOf(Expect::string(), Expect::type(Statement::class)),
+				'schemaAssetsFilter' => Expect::anyOf(Expect::string(), Expect::array(), Expect::type(Statement::class)),
 				'filterSchemaAssetsExpression' => Expect::string()->nullable(),
 				'autoCommit' => Expect::bool(true),
 			]),
