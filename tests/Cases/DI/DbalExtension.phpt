@@ -2,6 +2,9 @@
 
 namespace Tests\Cases\DI;
 
+use Contributte\Tester\Toolkit;
+use Contributte\Tester\Utils\ContainerBuilder;
+use Contributte\Tester\Utils\Neonkit;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\PostgreSQL100Platform;
 use Doctrine\DBAL\Types\IntegerType;
@@ -10,24 +13,34 @@ use Doctrine\DBAL\Types\Type;
 use Nette\DI\Compiler;
 use Nette\DI\InvalidConfigurationException;
 use Nette\DI\ServiceCreationException;
+use Nettrine\Cache\DI\CacheExtension;
 use Nettrine\DBAL\DI\DbalExtension;
 use Nettrine\DBAL\Logger\ProfilerLogger;
-use Ninjify\Nunjuck\Toolkit;
 use Tester\Assert;
-use Tests\Toolkit\Container;
-use Tests\Toolkit\Helpers;
+use Tests\Toolkit\Tests;
+use Tracy\Bridges\Nette\TracyExtension;
 
 require_once __DIR__ . '/../../bootstrap.php';
 
 // Debug mode
 Toolkit::test(function (): void {
-	$container = Container::of()
-		->withDefaults()
+	$container = ContainerBuilder::of()
 		->withCompiler(static function (Compiler $compiler): void {
-			$compiler->addConfig(Helpers::neon(<<<'NEON'
-			nettrine.dbal:
-				debug:
-					panel: true
+			$compiler->addExtension('nettrine.dbal', new DbalExtension());
+			$compiler->addExtension('nettrine.cache', new CacheExtension());
+			$compiler->addExtension('nette.tracy', new TracyExtension());
+			$compiler->addConfig([
+				'parameters' => [
+					'tempDir' => Tests::TEMP_PATH,
+					'appDir' => Tests::APP_PATH,
+				],
+			]);
+			$compiler->addConfig(Neonkit::load(<<<'NEON'
+				nettrine.dbal:
+					connection:
+						driver: pdo_sqlite
+					debug:
+						panel: true
 			NEON
 			));
 		})->build();
@@ -37,14 +50,22 @@ Toolkit::test(function (): void {
 
 // Server version
 Toolkit::test(function (): void {
-	$container = Container::of()
-		->withDefaults()
+	$container = ContainerBuilder::of()
 		->withCompiler(static function (Compiler $compiler): void {
-			$compiler->addConfig(Helpers::neon(<<<'NEON'
-			nettrine.dbal:
-				connection:
-					driver: pdo_pgsql
-					serverVersion: 10.0
+			$compiler->addExtension('nettrine.dbal', new DbalExtension());
+			$compiler->addExtension('nettrine.cache', new CacheExtension());
+			$compiler->addExtension('nette.tracy', new TracyExtension());
+			$compiler->addConfig([
+				'parameters' => [
+					'tempDir' => Tests::TEMP_PATH,
+					'appDir' => Tests::APP_PATH,
+				],
+			]);
+			$compiler->addConfig(Neonkit::load(<<<'NEON'
+				nettrine.dbal:
+					connection:
+						driver: pdo_pgsql
+						serverVersion: 10.0
 			NEON
 			));
 		})->build();
@@ -58,10 +79,18 @@ Toolkit::test(function (): void {
 
 // Types
 Toolkit::test(function (): void {
-	$container = Container::of()
-		->withDefaults()
+	$container = ContainerBuilder::of()
 		->withCompiler(static function (Compiler $compiler): void {
-			$compiler->addConfig(Helpers::neon(<<<'NEON'
+			$compiler->addExtension('nettrine.dbal', new DbalExtension());
+			$compiler->addExtension('nettrine.cache', new CacheExtension());
+			$compiler->addExtension('nette.tracy', new TracyExtension());
+			$compiler->addConfig([
+				'parameters' => [
+					'tempDir' => Tests::TEMP_PATH,
+					'appDir' => Tests::APP_PATH,
+				],
+			]);
+			$compiler->addConfig(Neonkit::load(<<<'NEON'
 			nettrine.dbal:
 				connection:
 					driver: pdo_pgsql
@@ -84,13 +113,20 @@ Toolkit::test(function (): void {
 Toolkit::test(function (): void {
 	Assert::exception(
 		function (): void {
-			Container::of()
+			ContainerBuilder::of()
 				->withCompiler(static function (Compiler $compiler): void {
 					$compiler->addExtension('nettrine.dbal', new DbalExtension());
-					$compiler->addConfig(Helpers::neon(<<<'NEON'
-					nettrine.dbal:
-						connection:
-							driver: pdo_sqlite
+					$compiler->addExtension('nette.tracy', new TracyExtension());
+					$compiler->addConfig([
+						'parameters' => [
+							'tempDir' => Tests::TEMP_PATH,
+							'appDir' => Tests::APP_PATH,
+						],
+					]);
+					$compiler->addConfig(Neonkit::load(<<<'NEON'
+						nettrine.dbal:
+							connection:
+								driver: pdo_sqlite
 					NEON
 					));
 				})->build();
@@ -103,7 +139,7 @@ Toolkit::test(function (): void {
 // Exception (no driver)
 Toolkit::test(function (): void {
 	Assert::exception(function (): void {
-		Container::of()
+		ContainerBuilder::of()
 			->withCompiler(static function (Compiler $compiler): void {
 				$compiler->addExtension('nettrine.dbal', new DbalExtension());
 			})->build();

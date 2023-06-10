@@ -2,39 +2,37 @@
 
 namespace Tests\Cases\E2E;
 
+use Contributte\Tester\Environment;
+use Contributte\Tester\Toolkit;
+use Contributte\Tester\Utils\ContainerBuilder;
+use Contributte\Tester\Utils\Neonkit;
 use Doctrine\DBAL\Connection;
 use Nette\DI\Compiler;
-use Nette\DI\Container;
-use Nette\DI\ContainerLoader;
 use Nettrine\Cache\DI\CacheExtension;
 use Nettrine\DBAL\DI\DbalExtension;
-use Ninjify\Nunjuck\Toolkit;
 use Tester\Assert;
-use Tests\Toolkit\Helpers;
 use Tracy\Bridges\Nette\TracyExtension;
 
 require_once __DIR__ . '/../../bootstrap.php';
 
 Toolkit::test(function (): void {
-	$loader = new ContainerLoader(TEMP_DIR, true);
-	$class = $loader->load(function (Compiler $compiler): void {
-		$compiler->addExtension('tracy', new TracyExtension());
-		$compiler->addExtension('cache', new CacheExtension());
-		$compiler->addExtension('dbal', new DbalExtension());
-		$compiler->addConfig(Helpers::neon('
-			dbal:
-				connection:
-					driver: pdo_sqlite
+	$container = ContainerBuilder::of()
+		->withCompiler(function (Compiler $compiler): void {
+			$compiler->addExtension('tracy', new TracyExtension());
+			$compiler->addExtension('cache', new CacheExtension());
+			$compiler->addExtension('dbal', new DbalExtension());
+			$compiler->addConfig(Neonkit::load('
+				dbal:
+					connection:
+						driver: pdo_sqlite
 			'));
-		$compiler->addConfig([
-			'parameters' => [
-				'tempDir' => TMP_DIR,
-			],
-		]);
-	}, __FILE__ . '1');
-
-	/** @var Container $container */
-	$container = new $class();
+			$compiler->addConfig([
+				'parameters' => [
+					'tempDir' => Environment::getTestDir(),
+				],
+			]);
+		})
+		->build();
 
 	/** @var Connection $connection */
 	$connection = $container->getByType(Connection::class);
@@ -50,7 +48,7 @@ Toolkit::test(function (): void {
 			'firstname' => '"John"',
 			'lastname' => '"Doe"',
 		])
-		->execute();
+		->executeStatement();
 
 	$qb->insert('person')
 		->values([
@@ -58,12 +56,12 @@ Toolkit::test(function (): void {
 			'firstname' => '"Sam"',
 			'lastname' => '"Smith"',
 		])
-		->execute();
+		->executeStatement();
 
 	$qb = $connection->createQueryBuilder();
 	$result = $qb->select('id', 'firstname')
 		->from('person')
-		->execute()
+		->executeQuery()
 		->fetchAllAssociative();
 	$expected = [
 		[
@@ -75,14 +73,6 @@ Toolkit::test(function (): void {
 			'firstname' => 'Sam',
 		],
 	];
-	if (PHP_VERSION_ID < 80100) { // PDO returns everything as string on PHP <8.1
-		array_walk_recursive(
-			$expected,
-			function (&$value): void {
-				$value = (string) $value;
-			}
-		);
-	}
 
 	Assert::equal($expected, $result);
 });
