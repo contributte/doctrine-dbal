@@ -2,9 +2,9 @@
 
 namespace Tests\Cases;
 
+use Contributte\Tester\Toolkit;
 use Doctrine\DBAL\Types\StringType;
 use Nettrine\DBAL\ConnectionFactory;
-use Ninjify\Nunjuck\Toolkit;
 use Tester\Assert;
 
 require_once __DIR__ . '/../bootstrap.php';
