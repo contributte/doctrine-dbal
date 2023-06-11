@@ -8,11 +8,11 @@ use Contributte\Tester\Utils\ContainerBuilder;
 use Contributte\Tester\Utils\Neonkit;
 use Doctrine\DBAL\Connection;
 use Nette\DI\Compiler;
+use Nette\DI\InvalidConfigurationException;
 use Nettrine\Cache\DI\CacheExtension;
-use Nettrine\DBAL\ConnectionAccessor;
 use Nettrine\DBAL\DI\DbalExtension;
-use Nettrine\DBAL\Logger\ProfilerLogger;
 use Tester\Assert;
+use Tests\Fixtures\Driver\TestDriver;
 
 require_once __DIR__ . '/../../bootstrap.php';
 
@@ -23,6 +23,9 @@ Toolkit::test(function (): void {
 			$compiler->addExtension('dbal', new DbalExtension());
 			$compiler->addConfig(Neonkit::load('
 				dbal:
+					configuration:
+						middlewares:
+							test: Tests\Fixtures\Middleware\TestMiddleware
 					connection:
 						driver: pdo_sqlite
 			'));
@@ -36,22 +39,25 @@ Toolkit::test(function (): void {
 
 	/** @var Connection $connection */
 	$connection = $container->getByType(Connection::class);
+	Assert::type(TestDriver::class, $connection->getDriver());
+});
 
-	$connection->getConfiguration()->setMiddlewares(new ProfilerLogger($container->getByType(ConnectionAccessor::class)));
-
-	Assert::noError(function () use ($connection): void {
-		// Orm insert queries have starting index 1, if ExpandArrayParameters would use parameters, it would throw an exception
-		$connection->getConfiguration()->getSQLLogger()->startQuery('INSERT INTO person (id, lastname, firstname) VALUES (?, ?, ?)', [
-			1 => 1,
-			2 => 'John',
-			3 => 'Doe',
-		]);
-	});
-
-	Assert::noError(function () use ($connection): void {
-		$connection->getConfiguration()->getSQLLogger()->startQuery('UPDATE person SET firstname = ?, lastname = ?', [
-			0 => 'John',
-			1 => 'Doe',
-		]);
-	});
+Toolkit::test(function (): void {
+	Assert::exception(
+		function (): void {
+			ContainerBuilder::of()
+				->withCompiler(function (Compiler $compiler): void {
+					$compiler->addExtension('dbal', new DbalExtension());
+					$compiler->addConfig(Neonkit::load('
+				dbal:
+					configuration:
+						middlewares:
+							- Invalid
+			'));
+				})
+				->build();
+		},
+		InvalidConfigurationException::class,
+		"The key of item 'dbal › configuration › middlewares › 0' expects to be string, 0 given."
+	);
 });
