@@ -8,8 +8,7 @@ use Tracy\IBarPanel;
 class QueryPanel implements IBarPanel
 {
 
-	/** @var ProfilerLogger */
-	protected $profiler;
+	protected ProfilerLogger $profiler;
 
 	public function __construct(ProfilerLogger $profiler)
 	{

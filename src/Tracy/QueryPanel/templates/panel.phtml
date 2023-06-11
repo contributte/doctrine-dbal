@@ -57,7 +57,7 @@ use Tracy\Helpers;
 						<?php endif; ?>
 					</td>
 					<td class="tracy-dbal-sql">
-						<?= QueryUtils::highlight($q->sql); ?>
+						<?= $q->sql; ?>
 						<?php if (count($q->source) !== 0): ?>
 							<table class="nettrine-dbal-backtrace tracy-collapsed">
 								<?php foreach ($q->source as $s): ?>

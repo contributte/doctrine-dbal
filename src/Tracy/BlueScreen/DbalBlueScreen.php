@@ -30,28 +30,28 @@ class DbalBlueScreen
 			if (($prev = $e->getPrevious()) && ($item = Helpers::findTrace($e->getTrace(), Exception::class . '::driverExceptionDuringQuery'))) {
 				return [
 					'tab' => 'SQL',
-					'panel' => QueryUtils::highlight($item['args'][2]),
+					'panel' => $item['args'][2],
 				];
 			}
 		} elseif ($e instanceof QueryException) {
 			if (($prev = $e->getPrevious()) && preg_match('~^(SELECT|INSERT|UPDATE|DELETE)\s+.*~i', $prev->getMessage())) {
 				return [
 					'tab' => 'DQL',
-					'panel' => QueryUtils::highlight($prev->getMessage()),
+					'panel' => $prev->getMessage(),
 				];
 			}
 		} elseif ($e instanceof PDOException) {
-			if ($item = Helpers::findTrace($e->getTrace(), Connection::class . '::executeQuery')) {
+			if (($item = Helpers::findTrace($e->getTrace(), Connection::class . '::executeQuery')) !== null) {
 				$sql = $item['args'][0];
-			} elseif ($item = Helpers::findTrace($e->getTrace(), PDO::class . '::query')) {
+			} elseif (($item = Helpers::findTrace($e->getTrace(), PDO::class . '::query')) !== null) {
 				$sql = $item['args'][0];
-			} elseif ($item = Helpers::findTrace($e->getTrace(), PDO::class . '::prepare')) {
+			} elseif (($item = Helpers::findTrace($e->getTrace(), PDO::class . '::prepare')) !== null) {
 				$sql = $item['args'][0];
 			}
 
 			return isset($sql) ? [
 				'tab' => 'SQL',
-				'panel' => QueryUtils::highlight($sql),
+				'panel' => $sql,
 			] : null;
 		}
 
