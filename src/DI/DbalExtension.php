@@ -2,51 +2,49 @@
 
 namespace Nettrine\DBAL\DI;
 
-use Contributte\DI\Helper\ExtensionDefinitionsHelper;
 use Doctrine\Common\Cache\Cache;
-use Doctrine\Common\EventManager;
-use Doctrine\Common\EventSubscriber;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Logging\LoggerChain;
 use Nette\DI\CompilerExtension;
-use Nette\DI\Definitions\Definition;
-use Nette\DI\Definitions\ServiceDefinition;
 use Nette\DI\Definitions\Statement;
+use Nette\PhpGenerator\ClassType;
 use Nette\Schema\Expect;
 use Nette\Schema\Schema;
-use Nettrine\DBAL\ConnectionAccessor;
 use Nettrine\DBAL\ConnectionFactory;
-use Nettrine\DBAL\Events\ContainerAwareEventManager;
-use Nettrine\DBAL\Events\DebugEventManager;
-use Nettrine\DBAL\Logger\ProfilerLogger;
 use Nettrine\DBAL\Tracy\BlueScreen\DbalBlueScreen;
-use Nettrine\DBAL\Tracy\QueryPanel\QueryPanel;
-use ReflectionClass;
 use stdClass;
+use Tracy\BlueScreen;
 
 /**
  * @property-read stdClass $config
  */
-final class DbalExtension extends CompilerExtension
+class DbalExtension extends CompilerExtension
 {
 
 	public function getConfigSchema(): Schema
 	{
+		$expectService = Expect::anyOf(
+			Expect::string()->required()->assert(fn ($input) => str_starts_with($input, '@') || class_exists($input) || interface_exists($input)),
+			Expect::type(Statement::class),
+		)->required();
+
 		return Expect::structure([
 			'debug' => Expect::structure([
 				'panel' => Expect::bool(false),
 				'sourcePaths' => Expect::arrayOf('string'),
 			]),
 			'configuration' => Expect::structure([
-				'sqlLogger' => Expect::anyOf(Expect::string(), Expect::array(), Expect::type(Statement::class)),
-				'resultCache' => Expect::anyOf(Expect::string(), Expect::array(), Expect::type(Statement::class)),
-				'schemaAssetsFilter' => Expect::anyOf(Expect::string(), Expect::array(), Expect::type(Statement::class)),
+				'middlewares' => Expect::arrayOf(
+					$expectService,
+					Expect::string()->required()
+				),
+				'resultCache' => Expect::anyOf($expectService),
+				'schemaAssetsFilter' => Expect::anyOf($expectService),
 				'filterSchemaAssetsExpression' => Expect::string()->nullable(),
 				'autoCommit' => Expect::bool(true),
 			]),
 			'connection' => Expect::structure([
-				'driver' => Expect::mixed()->required(true),
+				'driver' => Expect::mixed()->required(),
 				'types' => Expect::arrayOf(
 					Expect::structure([
 						'class' => Expect::string()->required(),
@@ -66,153 +64,76 @@ final class DbalExtension extends CompilerExtension
 		]);
 	}
 
-	/**
-	 * Register services
-	 */
 	public function loadConfiguration(): void
 	{
 		$this->loadDoctrineConfiguration();
 		$this->loadConnectionConfiguration();
 	}
 
-	/**
-	 * Register Doctrine Configuration
-	 */
 	public function loadDoctrineConfiguration(): void
 	{
 		$builder = $this->getContainerBuilder();
-		$config = $this->config->configuration;
-		$definitionsHelper = new ExtensionDefinitionsHelper($this->compiler);
-
-		$loggers = [];
-
-		// SqlLogger (append to chain)
-		if ($config->sqlLogger !== null) {
-			$configLoggerName = $this->prefix('logger.config');
-			$configLoggerDefinition = $definitionsHelper->getDefinitionFromConfig($config->sqlLogger, $configLoggerName);
-
-			// If service is extension specific, then disable autowiring
-			if ($configLoggerDefinition instanceof Definition && $configLoggerDefinition->getName() === $configLoggerName) {
-				$configLoggerDefinition->setAutowired(false);
-			}
-
-			$loggers[] = $configLoggerDefinition;
-		}
-
-		$debugConfig = $this->config->debug;
-		if ($debugConfig->panel) {
-			$profiler = $builder->addDefinition($this->prefix('profiler'))
-				->setType(ProfilerLogger::class);
-			foreach ($debugConfig->sourcePaths as $path) {
-				$profiler->addSetup('addPath', [$path]);
-			}
-
-			$loggers[] = $profiler;
-		}
-
-		$loggerDefinition = $builder->addDefinition($this->prefix('logger'))
-			->setType(LoggerChain::class)
-			->setArguments(['loggers' => $loggers])
-			->setAutowired('self');
+		$configurationConfig = $this->config->configuration;
 
 		$configuration = $builder->addDefinition($this->prefix('configuration'));
 		$configuration->setFactory(Configuration::class)
-			->setAutowired(false)
-			->addSetup('setSQLLogger', [$loggerDefinition]);
+			->setAutowired(false);
 
-		// ResultCache
-		if ($config->resultCache !== null) {
-			$resultCacheName = $this->prefix('resultCache');
-			$resultCacheDefinition = $definitionsHelper->getDefinitionFromConfig($config->resultCache, $resultCacheName);
-
-			// If service is extension specific, then disable autowiring
-			if ($resultCacheDefinition instanceof Definition && $resultCacheDefinition->getName() === $resultCacheName) {
-				$resultCacheDefinition->setAutowired(false);
-			}
-		} else {
-			$resultCacheDefinition = '@' . Cache::class;
+		// Middlewares
+		$middlewares = [];
+		foreach ($configurationConfig->middlewares as $middleware) {
+			$middlewares[] = new Statement($middleware);
 		}
 
-		$configuration->addSetup('setResultCacheImpl', [
-			$resultCacheDefinition,
-		]);
+		$configuration->addSetup('setMiddlewares', [$middlewares]);
+
+		// ResultCache
+		$resultCache = $configurationConfig->resultCache !== null ? $builder->addDefinition($this->prefix('resultCache'))
+			->setFactory($configurationConfig->resultCache) : '@' . Cache::class;
+		$configuration->addSetup('setResultCacheImpl', [$resultCache]);
 
 		// SchemaAssetsFilter
-		if ($config->schemaAssetsFilter !== null) {
-			$configuration->addSetup('setSchemaAssetsFilter', [$config->schemaAssetsFilter]);
+		if ($configurationConfig->schemaAssetsFilter !== null) {
+			$configuration->addSetup('setSchemaAssetsFilter', [$configurationConfig->schemaAssetsFilter]);
 		}
 
 		// FilterSchemaAssetsExpression
-		if ($config->filterSchemaAssetsExpression !== null) {
-			$configuration->addSetup('setFilterSchemaAssetsExpression', [$config->filterSchemaAssetsExpression]);
+		if ($configurationConfig->filterSchemaAssetsExpression !== null) {
+			$configuration->addSetup('setFilterSchemaAssetsExpression', [$configurationConfig->filterSchemaAssetsExpression]);
 		}
 
 		// AutoCommit
-		$configuration->addSetup('setAutoCommit', [$config->autoCommit]);
+		$configuration->addSetup('setAutoCommit', [$configurationConfig->autoCommit]);
 	}
 
 	public function loadConnectionConfiguration(): void
 	{
 		$builder = $this->getContainerBuilder();
-		$config = $this->config->connection;
+		$connectionConfig = $this->config->connection;
 
-		$builder->addDefinition($this->prefix('eventManager'))
-			->setFactory(ContainerAwareEventManager::class);
-
-		if ($this->config->debug->panel) {
-			$builder->getDefinition($this->prefix('eventManager'))
-				->setAutowired(false);
-			$builder->addDefinition($this->prefix('eventManager.debug'))
-				->setFactory(DebugEventManager::class, [$this->prefix('@eventManager')]);
-		}
-
+		// Connection factory
 		$builder->addDefinition($this->prefix('connectionFactory'))
-			->setFactory(ConnectionFactory::class, [$config['types'], $config['typesMapping']]);
+			->setFactory(ConnectionFactory::class, [$connectionConfig['types'], $connectionConfig['typesMapping']]);
 
-		$connectionDef = $builder->addDefinition($this->prefix('connection'))
+		// Connection
+		$builder->addDefinition($this->prefix('connection'))
 			->setType(Connection::class)
-			->setFactory('@' . $this->prefix('connectionFactory') . '::createConnection', [
-				$config,
-				'@' . $this->prefix('configuration'),
-				$builder->getDefinitionByType(EventManager::class),
+			->setFactory($this->prefix('@connectionFactory') . '::createConnection', [
+				$connectionConfig,
+				$this->prefix('@configuration'),
 			]);
-
-		if ($this->config->debug->panel) {
-			$connectionDef
-				->addSetup('@Tracy\Bar::addPanel', [
-					new Statement(QueryPanel::class, [
-						$this->prefix('@profiler'),
-					]),
-				])
-				->addSetup('@Tracy\BlueScreen::addPanel', [
-					[DbalBlueScreen::class, 'renderException'],
-				]);
-		}
-
-		$builder->addAccessorDefinition($this->prefix('connectionAccessor'))
-			->setImplement(ConnectionAccessor::class);
 	}
 
-	/**
-	 * Decorate services
-	 */
-	public function beforeCompile(): void
+	public function afterCompile(ClassType $class): void
 	{
 		$builder = $this->getContainerBuilder();
+		$initialization = $this->getInitialization();
 
-		/** @var ServiceDefinition $eventManager */
-		$eventManager = $builder->getDefinition($this->prefix('eventManager'));
-
-		foreach ($builder->findByType(EventSubscriber::class) as $serviceName => $serviceDef) {
-			/** @var class-string $serviceClass */
-			$serviceClass = (string) $serviceDef->getType();
-			$rc = new ReflectionClass($serviceClass);
-
-			/** @var EventSubscriber $subscriber */
-			$subscriber = $rc->newInstanceWithoutConstructor();
-			$events = $subscriber->getSubscribedEvents();
-
-			$eventManager->addSetup('?->addEventListener(?, ?)', ['@self', $events, $serviceName]);
+		if ($this->config->debug->panel) {
+			$initialization->addBody('$this->getService(?)->addPanel(?);', [
+				$builder->getDefinitionByType(BlueScreen::class)->getName(),
+				[DbalBlueScreen::class, 'renderException'],
+			]);
 		}
 	}
 
