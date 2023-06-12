@@ -10,20 +10,20 @@ use Doctrine\DBAL\Types\Type;
 class ConnectionFactory
 {
 
-	/** @var mixed[] */
+	/** @var array<string, array{class: class-string<Type>, commented: bool}> */
 	private array $typesConfig = [];
 
-	/** @var mixed[] */
+	/** @var array<string, string> */
 	private array $typesMapping = [];
 
-	/** @var mixed[] */
+	/** @var array<string> */
 	private array $commentedTypes = [];
 
 	private bool $initialized = false;
 
 	/**
-	 * @param mixed[] $typesConfig
-	 * @param mixed[] $typesMapping
+	 * @param array<string, array{class: class-string<Type>, commented: bool}> $typesConfig
+	 * @param array<string, string> $typesMapping
 	 */
 	public function __construct(array $typesConfig = [], array $typesMapping = [])
 	{
@@ -40,11 +40,12 @@ class ConnectionFactory
 			$this->initializeTypes();
 		}
 
+		/** @phpstan-ignore-next-line */
 		$connection = DriverManager::getConnection($params, $config);
 		$platform = $connection->getDatabasePlatform();
 
 		foreach ($this->typesMapping as $dbType => $doctrineType) {
-			$platform->registerDoctrineTypeMapping((string) $dbType, $doctrineType);
+			$platform->registerDoctrineTypeMapping($dbType, $doctrineType);
 		}
 
 		foreach ($this->commentedTypes as $type) {
