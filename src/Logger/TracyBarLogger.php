@@ -7,10 +7,13 @@ use Stringable;
 use Tracy\Debugger;
 use Tracy\Dumper;
 
-class TracyLogger extends AbstractLogger
+class TracyBarLogger extends AbstractLogger
 {
 
-	public function log($level, Stringable|string $message, array $context = []): void
+	/**
+	 * @param mixed[] $context
+	 */
+	public function log(mixed $level, Stringable|string $message, array $context = []): void
 	{
 		Debugger::barDump(
 			['message' => $message, 'context' => $context],

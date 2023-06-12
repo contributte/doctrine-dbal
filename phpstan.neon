@@ -16,4 +16,4 @@ parameters:
 		- .docs
 
 	ignoreErrors:
-		- '#.*deprecated class Doctrine\\DBAL\\Logging\\LoggerChain|SQLLogger.*#'
+		- '#Call to deprecated method formatPhp\(\) of class Nette\\DI\\ContainerBuilder#'
