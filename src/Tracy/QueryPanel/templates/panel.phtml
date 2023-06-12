@@ -1,14 +1,14 @@
 <?php
 
-/** @var mixed[] $parameters */
-/** @var object[] $queries */
-/** @var int $queriesNum */
-/** @var float $totalTime */
-
-use Nettrine\DBAL\Utils\QueryUtils;
+use Nettrine\DBAL\Logger\SnapshotLogger;
 use Tracy\Dumper;
 use Tracy\Helpers;
 
+/** @var SnapshotLogger $logger */
+$queriesNum = 0;
+$totalTime = 0;
+$queries = [];
+$parameters = [];
 ?>
 <style>
 	#tracy-debug td.tracy-dbal-sql {

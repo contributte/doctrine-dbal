@@ -6,13 +6,17 @@ use Doctrine\Common\Cache\Cache;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Nette\DI\CompilerExtension;
+use Nette\DI\Definitions\ServiceDefinition;
 use Nette\DI\Definitions\Statement;
 use Nette\PhpGenerator\ClassType;
 use Nette\Schema\Expect;
 use Nette\Schema\Schema;
 use Nettrine\DBAL\ConnectionFactory;
+use Nettrine\DBAL\Middleware\TracyMiddleware;
 use Nettrine\DBAL\Tracy\BlueScreen\DbalBlueScreen;
+use Nettrine\DBAL\Tracy\QueryPanel\QueryPanel;
 use stdClass;
+use Tracy\Bar;
 use Tracy\BlueScreen;
 
 /**
@@ -20,6 +24,8 @@ use Tracy\BlueScreen;
  */
 class DbalExtension extends CompilerExtension
 {
+
+	public const TAG_MIDDLEWARE = 'nettrine.dbal.middleware';
 
 	public function getConfigSchema(): Schema
 	{
@@ -80,12 +86,11 @@ class DbalExtension extends CompilerExtension
 			->setAutowired(false);
 
 		// Middlewares
-		$middlewares = [];
-		foreach ($configurationConfig->middlewares as $middleware) {
-			$middlewares[] = new Statement($middleware);
+		foreach ($configurationConfig->middlewares as $name => $middleware) {
+			$builder->addDefinition($this->prefix('middleware.' . $name))
+				->setFactory($middleware)
+				->addTag(self::TAG_MIDDLEWARE);
 		}
-
-		$configuration->addSetup('setMiddlewares', [$middlewares]);
 
 		// ResultCache
 		$resultCache = $configurationConfig->resultCache !== null ? $builder->addDefinition($this->prefix('resultCache'))
@@ -104,6 +109,13 @@ class DbalExtension extends CompilerExtension
 
 		// AutoCommit
 		$configuration->addSetup('setAutoCommit', [$configurationConfig->autoCommit]);
+
+		// Tracy middleware
+		if ($this->config->debug->panel) {
+			$builder->addDefinition($this->prefix('middleware.internal.tracy'))
+				->setFactory(TracyMiddleware::class)
+				->addTag(self::TAG_MIDDLEWARE);
+		}
 	}
 
 	public function loadConnectionConfiguration(): void
@@ -124,16 +136,41 @@ class DbalExtension extends CompilerExtension
 			]);
 	}
 
+	public function beforeCompile(): void
+	{
+		$builder = $this->getContainerBuilder();
+
+		// Set middlewares
+		$configurationDef = $builder->getDefinition($this->prefix('configuration'));
+		assert($configurationDef instanceof ServiceDefinition);
+
+		$configurationDef->addSetup('setMiddlewares', [
+			array_map(
+				fn (string $name) => $builder->getDefinition($name),
+				array_keys($builder->findByTag(self::TAG_MIDDLEWARE))
+			),
+		]);
+	}
+
 	public function afterCompile(ClassType $class): void
 	{
 		$builder = $this->getContainerBuilder();
 		$initialization = $this->getInitialization();
 
 		if ($this->config->debug->panel) {
-			$initialization->addBody('$this->getService(?)->addPanel(?);', [
-				$builder->getDefinitionByType(BlueScreen::class)->getName(),
-				[DbalBlueScreen::class, 'renderException'],
-			]);
+			$initialization->addBody(
+				$builder->formatPhp('?->addPanel(?);', [
+					$builder->getDefinitionByType(BlueScreen::class),
+					[DbalBlueScreen::class, 'renderException'],
+				])
+			);
+
+			$initialization->addBody(
+				$builder->formatPhp('?->addPanel(?);', [
+					$builder->getDefinitionByType(Bar::class),
+					new Statement(QueryPanel::class, [$builder->getDefinitionByType(TracyMiddleware::class)]),
+				])
+			);
 		}
 	}
 

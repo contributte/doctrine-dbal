@@ -2,17 +2,17 @@
 
 namespace Nettrine\DBAL\Tracy\QueryPanel;
 
-use Nettrine\DBAL\Logger\ProfilerLogger;
+use Nettrine\DBAL\Middleware\TracyMiddleware;
 use Tracy\IBarPanel;
 
 class QueryPanel implements IBarPanel
 {
 
-	protected ProfilerLogger $profiler;
+	protected TracyMiddleware $middleware;
 
-	public function __construct(ProfilerLogger $profiler)
+	public function __construct(TracyMiddleware $middleware)
 	{
-		$this->profiler = $profiler;
+		$this->middleware = $middleware;
 	}
 
 	/**
@@ -20,13 +20,11 @@ class QueryPanel implements IBarPanel
 	 */
 	public function getTab(): string
 	{
-		assert($this->profiler !== null, 'Profiler must be set'); // @intentionally
-
-		$queries = $this->profiler->getQueries();
+		$queries = $this->middleware->getLogger()->getQueries();
 		$totalTime = 0;
 		$count = count($queries);
 		foreach ($queries as $event) {
-			$totalTime += $event->duration;
+			$totalTime += $event['duration'];
 		}
 
 		$iconNoQuery = '<img style="height: 16px; width: auto; display: inline;" src="data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTkuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iTGF5ZXJfMSIgeD0iMHB4IiB5PSIwcHgiIHZpZXdCb3g9IjAgMCAyODAuMDI3IDI4MC4wMjciIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDI4MC4wMjcgMjgwLjAyNzsiIHhtbDpzcGFjZT0icHJlc2VydmUiIHdpZHRoPSI1MTJweCIgaGVpZ2h0PSI1MTJweCI+CjxnPgoJPHBhdGggc3R5bGU9ImZpbGw6I0NDRDBEMjsiIGQ9Ik0xNy41MDIsNTIuNTA1djE3NS4wMTdjMCwyOC45ODMsNTQuODUsNTIuNTA1LDEyMi41MTIsNTIuNTA1czEyMi41MTItMjMuNTIyLDEyMi41MTItNTIuNTA1VjUyLjUwNSAgIEgxNy41MDJ6Ii8+Cgk8cGF0aCBzdHlsZT0iZmlsbDojQURCMEIyOyIgZD0iTTIyNy41MjIsMTIyLjUxMmM0LjgzOSwwLDguNzUxLTMuOTEyLDguNzUxLTguNzUxYzAtNC44My0zLjkxMi04Ljc1MS04Ljc1MS04Ljc1MSAgIGMtNC44MzksMC04Ljc1MSwzLjkyLTguNzUxLDguNzUxQzIxOC43NzEsMTE4LjYsMjIyLjY4MiwxMjIuNTEyLDIyNy41MjIsMTIyLjUxMnogTTIyNy41MjIsMTY2LjI2NiAgIGMtNC44MzksMC04Ljc1MSwzLjkyLTguNzUxLDguNzUxYzAsNC44MzksMy45MTIsOC43NTEsOC43NTEsOC43NTFjNC44MzksMCw4Ljc1MS0zLjkxMiw4Ljc1MS04Ljc1MSAgIEMyMzYuMjcyLDE3MC4xODcsMjMyLjM1MywxNjYuMjY2LDIyNy41MjIsMTY2LjI2NnogTTIyNy41MjIsMjI3LjUyMmMtNC44MzksMC04Ljc1MSwzLjkxMi04Ljc1MSw4Ljc1MXMzLjkxMiw4Ljc1MSw4Ljc1MSw4Ljc1MSAgIGM0LjgzOSwwLDguNzUxLTMuOTEyLDguNzUxLTguNzUxUzIzMi4zNTMsMjI3LjUyMiwyMjcuNTIyLDIyNy41MjJ6Ii8+Cgk8cGF0aCBzdHlsZT0iZmlsbDojQjdCQkJEOyIgZD0iTTE0MC4wMTQsMTY2LjI3NWM2Ny42NjIsMCwxMjIuNTEyLTI1LjM0MiwxMjIuNTEyLTU2LjYwOWMwLTEuNTkzLTAuMjM2LTMuMTUtMC41MTYtNC43MTcgICBjLTUuMTk4LDI5LjA1My01Ny43ODIsNTEuODkzLTEyMS45OTYsNTEuODkzUzIzLjIyNSwxMzQuMDExLDE4LjAxOCwxMDQuOTQ5Yy0wLjI4LDEuNTY2LTAuNTE2LDMuMTI0LTAuNTE2LDQuNzE3ICAgQzE3LjUwMiwxNDAuOTI0LDcyLjM0MywxNjYuMjc1LDE0MC4wMTQsMTY2LjI3NXogTTE0MC4wMTQsMjE4LjA5OGMtNjQuMjE0LDAtMTE2Ljc4OS0yMi44MjItMTIxLjk5Ni01MS44OTMgICBjLTAuMjgsMS41NjYtMC41MTYsMy4xMjQtMC41MTYsNC43MTdjMCwzMS4yNDksNTQuODUsNTYuNjA5LDEyMi41MTIsNTYuNjA5czEyMi41MTItMjUuMzQyLDEyMi41MTItNTYuNjA5ICAgYzAtMS42MDEtMC4yMzYtMy4xNS0wLjUxNi00LjcxN0MyNTYuODIsMTk1LjI0OSwyMDQuMjM2LDIxOC4wOTgsMTQwLjAxNCwyMTguMDk4eiIvPgoJPHBhdGggc3R5bGU9ImZpbGw6I0MyQzVDNzsiIGQ9Ik00My43NTQsMjU5LjkzNVY1Mi41MDVIMTcuNTAydjE3NS4wMTdDMTcuNTAyLDIzOS43NTYsMjcuMzU1LDI1MS4wMSw0My43NTQsMjU5LjkzNXoiLz4KCTxnPgoJCTxwYXRoIHN0eWxlPSJmaWxsOiNCMkI1Qjc7IiBkPSJNNDMuNzU0LDIwNS44NjR2LTkuNDg2Yy0xNC4zNjktOC40NjItMjMuNjk3LTE4LjgyMy0yNS43MzYtMzAuMTczICAgIGMtMC4yOCwxLjU2Ni0wLjUxNiwzLjEyNC0wLjUxNiw0LjcxN0MxNy41MDIsMTg0LjEyNywyNy4zNTUsMTk2LjIzOCw0My43NTQsMjA1Ljg2NHogTTQzLjc1NCwxNDQuNjA4di05LjQ3NyAgICBjLTE0LjM2OS04LjQ2Mi0yMy42OTctMTguODMyLTI1LjczNi0zMC4xOWMtMC4yOCwxLjU3NS0wLjUxNiwzLjEzMy0wLjUxNiw0LjcyNUMxNy41MDIsMTIyLjg3MSwyNy4zNTUsMTM0Ljk4Miw0My43NTQsMTQ0LjYwOHoiLz4KCTwvZz4KCTxwYXRoIHN0eWxlPSJmaWxsOiNFNEU3RTc7IiBkPSJNMTQwLjAxNCwwYzY3LjY2MiwwLDEyMi41MTIsMjMuNTE0LDEyMi41MTIsNTIuNTA1cy01NC44NSw1Mi41MDUtMTIyLjUxMiw1Mi41MDUgICBTMTcuNTAyLDgxLjQ5NywxNy41MDIsNTIuNTA1UzcyLjM0MywwLDE0MC4wMTQsMHoiLz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8L3N2Zz4K" />';
@@ -37,7 +35,7 @@ class QueryPanel implements IBarPanel
 			. ($count > 0 ? $iconQuery : $iconNoQuery)
 			. '&nbsp;'
 			. ($count > 0 ? $count . ' q' : '')
-			. ($totalTime ? ' / ' . number_format($totalTime * 1000, 1, '.', ' ') . ' ms' : '')
+			. ($totalTime > 0 ? ' / ' . number_format($totalTime * 1000, 1, '.', ' ') . ' ms' : '')
 			. '</span>'
 			. '</span>';
 	}
@@ -47,15 +45,11 @@ class QueryPanel implements IBarPanel
 	 */
 	public function getPanel(): string
 	{
+		// @codingStandardsIgnoreStart
 		ob_start();
-		$parameters = $this->profiler->getConnection()->getParams();
-		$parameters['password'] = '****';
-		$queries = $this->profiler->getQueries();
-		// phpcs:ignore
-		$queriesNum = count($queries);
-		// phpcs:ignore
-		$totalTime = $this->profiler->getTotalTime();
+		$logger = $this->middleware->getLogger();
 		require __DIR__ . '/templates/panel.phtml';
+		// @codingStandardsIgnoreEnd
 
 		return (string) ob_get_clean();
 	}

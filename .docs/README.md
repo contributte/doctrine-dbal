@@ -28,7 +28,7 @@ composer require nettrine/dbal
 
 Register extension
 
-```yaml
+```neon
 extensions:
   nettrine.dbal: Nettrine\DBAL\DI\DbalExtension
 ```
@@ -50,7 +50,7 @@ This package relies on `doctrine/cache`, use prepared [nettrine/cache](https://g
 composer require nettrine/cache
 ```
 
-```yaml
+```neon
 extensions:
   nettrine.cache: Nettrine\Cache\DI\CacheExtension
 ```
@@ -66,7 +66,7 @@ This package relies on `symfony/console`, use prepared [contributte/console](htt
 composer require contributte/console
 ```
 
-```yaml
+```neon
 extensions:
   console: Contributte\Console\DI\ConsoleExtension(%consoleMode%)
 
@@ -83,13 +83,13 @@ Since this moment when you type `bin/console`, there'll be registered commands f
 
 **Schema definition**
 
- ```yaml
+ ```neon
 nettrine.dbal:
   debug:
     panel: <boolean>
     sourcePaths: <string[]>
   configuration:
-    sqlLogger: <service>
+    middlewares: <service[]>
     resultCache: <service>
     filterSchemaAssetsExpression: <string>
     autoCommit: <boolean>
@@ -118,7 +118,7 @@ nettrine.dbal:
 
 Minimal configuration could look like this:
 
-```yaml
+```neon
 nettrine.dbal:
   debug:
     panel: %debugMode%
@@ -138,7 +138,7 @@ Take a look at real **Nettrine DBAL** configuration example at [contributte/weba
 
 Here is an example of how to register custom type for [UUID](https://github.com/ramsey/uuid-doctrine).
 
-```yaml
+```neon
 dbal:
   connection:
     types:
@@ -165,56 +165,84 @@ Enable or disable Tracy panel via `debug.panel` key.
 Alternatively, specify your application root path under the `debug.sourcePaths` key to display correct queries source map in Tracy panel.
 
 
-### Events
+### Middlewares
 
-You can use native [Doctrine DBAL event system](https://www.doctrine-project.org/projects/doctrine-dbal/en/2.10/reference/events.html#events).
+> Since Doctrine v3.6 you have to use middlewares instead of event system, see issue [doctrine/dbal#5784](https://github.com/doctrine/dbal/issues/5784).
 
-Create your subscriber class by implementing the `EventSubscriber` interface. Dependency injection with autowiring is enabled.
+Middlewares are the way how to extend doctrine library or hook to special events.
+
+```neon
+dbal:
+  connection:
+    middlewares:
+      - MyMiddleware
+```
 
 ```php
-namespace App;
+<?php
 
-use Doctrine\Common\EventSubscriber;
-use Doctrine\DBAL\Event\ConnectionEventArgs;
-use Doctrine\DBAL\Events;
+use Doctrine\DBAL\Driver;
+use Doctrine\DBAL\Driver\Middleware;
+use Tests\Fixtures\Driver\TestDriver;
 
-final class PostConnectSubscriber implements EventSubscriber
+final class MyMiddleware implements Middleware
 {
-  public function postConnect(ConnectionEventArgs $args): void
-  {
-    // Magic goes here...
-  }
 
-  public function getSubscribedEvents(): array
-  {
-    return [Events::postConnect];
-  }
+	public function wrap(Driver $driver): Driver
+	{
+		return new MyDriver($driver);
+	}
+
 }
 ```
 
-Register your subscriber as a service in NEON file.
+```php
+<?php
 
-```yaml
-services:
-  subscriber1:
-    class: App\PostConnectSubscriber
+use Doctrine\DBAL\Driver\Connection;
+use Doctrine\DBAL\Driver\Middleware\AbstractDriverMiddleware;
+
+final class MyDriver extends AbstractDriverMiddleware
+{
+
+	public function connect(array $params): Connection
+	{
+		return new MyConnection(parent::connect($params));
+	}
+
+}
 ```
 
+### Logging
 
-## Bridges
+> Since Doctrine v3.6 you have to use middlewares instead of event system, see issue [doctrine/dbal#5784](https://github.com/doctrine/dbal/issues/5784).
 
+To log all queries you should define your own middleware or you can use `Doctrine\DBAL\Logging\Middleware`.
 
-### PSR-3
-
-To log all queries with a PSR-3 logger, define the service under the `configuration.sqlLogger` key.
-[Monolog](https://github.com/contributte/monolog) provides PSR compatible services.
-
-```yaml
+```neon
 dbal:
   configuration:
-    sqlLogger: Nettrine\DBAL\Logger\PsrLogger()
+    middlewares:
+      logger: Doctrine\DBAL\Logging\Middleware(MyLogger())
 ```
 
+You can try our prepared loggers.
+
+
+```neon
+dbal:
+  configuration:
+    middlewares:
+      # Write logs to file
+      logger: Doctrine\DBAL\Logging\Middleware(
+        Nettrine\DBAL\Logger\FileLogger(%tempDir%/db.sql)
+      )
+
+      # Show logs in tracy file
+      logger: Doctrine\DBAL\Logging\Middleware(
+        Nettrine\DBAL\Logger\TracyLogger
+      )
+```
 
 ## Examples
 
@@ -224,7 +252,7 @@ dbal:
 composer require nettrine/annotations nettrine/cache nettrine/migrations nettrine/fixtures nettrine/dbal nettrine/orm
 ```
 
-```yaml
+```neon
 # Extension > Nettrine
 # => order is crucial
 #
