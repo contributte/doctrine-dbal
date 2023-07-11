@@ -3,6 +3,7 @@
 namespace Nettrine\DBAL\DI;
 
 use Doctrine\Common\Cache\Cache;
+use Doctrine\Common\EventSubscriber;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Nette\DI\CompilerExtension;
@@ -12,9 +13,11 @@ use Nette\PhpGenerator\ClassType;
 use Nette\Schema\Expect;
 use Nette\Schema\Schema;
 use Nettrine\DBAL\ConnectionFactory;
+use Nettrine\DBAL\Events\ContainerEventManager;
 use Nettrine\DBAL\Middleware\TracyMiddleware;
 use Nettrine\DBAL\Tracy\BlueScreen\DbalBlueScreen;
 use Nettrine\DBAL\Tracy\QueryPanel\QueryPanel;
+use ReflectionClass;
 use stdClass;
 use Tracy\Bar;
 use Tracy\BlueScreen;
@@ -123,6 +126,10 @@ class DbalExtension extends CompilerExtension
 		$builder = $this->getContainerBuilder();
 		$connectionConfig = $this->config->connection;
 
+		// Event manager
+		$builder->addDefinition($this->prefix('eventManager'))
+			->setFactory(ContainerEventManager::class);
+
 		// Connection factory
 		$builder->addDefinition($this->prefix('connectionFactory'))
 			->setFactory(ConnectionFactory::class, [$connectionConfig['types'], $connectionConfig['typesMapping']]);
@@ -133,6 +140,7 @@ class DbalExtension extends CompilerExtension
 			->setFactory($this->prefix('@connectionFactory') . '::createConnection', [
 				$connectionConfig,
 				$this->prefix('@configuration'),
+				$this->prefix('@eventManager'),
 			]);
 	}
 
@@ -150,6 +158,21 @@ class DbalExtension extends CompilerExtension
 				array_keys($builder->findByTag(self::TAG_MIDDLEWARE))
 			),
 		]);
+
+		/** @var ServiceDefinition $eventManager */
+		$eventManager = $builder->getDefinition($this->prefix('eventManager'));
+
+		foreach ($builder->findByType(EventSubscriber::class) as $serviceName => $serviceDef) {
+			/** @var class-string<EventSubscriber> $serviceClass */
+			$serviceClass = (string) $serviceDef->getType();
+			$rc = new ReflectionClass($serviceClass);
+
+			/** @var EventSubscriber $subscriber */
+			$subscriber = $rc->newInstanceWithoutConstructor();
+			$events = $subscriber->getSubscribedEvents();
+
+			$eventManager->addSetup('?->addServiceSubscriber(?, ?)', ['@self', $events, $serviceName]);
+		}
 	}
 
 	public function afterCompile(ClassType $class): void
