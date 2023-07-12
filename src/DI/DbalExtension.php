@@ -35,6 +35,7 @@ class DbalExtension extends CompilerExtension
 		$expectService = Expect::anyOf(
 			Expect::string()->required()->assert(fn ($input) => str_starts_with($input, '@') || class_exists($input) || interface_exists($input)),
 			Expect::type(Statement::class),
+			Expect::string()->assert(fn (string $input) => is_callable($input)),
 		)->required();
 
 		return Expect::structure([
