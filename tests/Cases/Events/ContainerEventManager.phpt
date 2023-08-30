@@ -8,12 +8,14 @@ use Doctrine\ORM\Event\OnClearEventArgs;
 use Doctrine\ORM\Events;
 use Mockery;
 use Nette\DI\Container;
+use Nette\Utils\Arrays;
 use Nettrine\DBAL\Events\ContainerEventManager;
 use Tester\Assert;
 use Tests\Fixtures\Events\DummyOnClearSubscriber;
 
 require_once __DIR__ . '/../../bootstrap.php';
 
+// Add subscriber as object
 Toolkit::test(function (): void {
 	$entityManager = Mockery::mock(EntityManager::class);
 
@@ -32,6 +34,7 @@ Toolkit::test(function (): void {
 	Assert::same([$event], $subscriber->events);
 });
 
+// Add listener as string (service)
 Toolkit::test(function (): void {
 	$entityManager = Mockery::mock(EntityManager::class);
 	$subscriber = new DummyOnClearSubscriber();
@@ -40,7 +43,7 @@ Toolkit::test(function (): void {
 	$container->addService('dummySubscriber', $subscriber);
 	$eventManager = new ContainerEventManager($container);
 
-	$eventManager->addServiceSubscriber(Events::onClear, 'dummySubscriber');
+	$eventManager->addEventListener(Events::onClear, 'dummySubscriber');
 
 	$event = new OnClearEventArgs($entityManager, 'foo');
 
@@ -49,4 +52,53 @@ Toolkit::test(function (): void {
 	Assert::count(1, $subscriber->events);
 
 	Assert::same([$event], $subscriber->events);
+});
+
+// Remove subscriber as object
+Toolkit::test(function (): void {
+	$entityManager = Mockery::mock(EntityManager::class);
+	$subscriber = new DummyOnClearSubscriber();
+
+	$container = new Container();
+	$container->addService('dummySubscriber', $subscriber);
+	$eventManager = new ContainerEventManager($container);
+
+	$eventManager->addEventSubscriber($subscriber);
+	$eventManager->removeEventSubscriber($subscriber);
+
+	Assert::count(0, $subscriber->events);
+	$eventManager->dispatchEvent(Events::onClear, new OnClearEventArgs($entityManager, 'foo'));
+	Assert::count(0, $subscriber->events);
+});
+
+// Remove listener as string (service)
+Toolkit::test(function (): void {
+	$entityManager = Mockery::mock(EntityManager::class);
+	$subscriber = new DummyOnClearSubscriber();
+
+	$container = new Container();
+	$container->addService('dummySubscriber', $subscriber);
+	$eventManager = new ContainerEventManager($container);
+
+	$eventManager->addEventListener(Events::onClear, 'dummySubscriber');
+	$eventManager->removeEventListener(Events::onClear, 'dummySubscriber');
+
+	Assert::count(0, $subscriber->events);
+	$eventManager->dispatchEvent(Events::onClear, new OnClearEventArgs($entityManager, 'foo'));
+	Assert::count(0, $subscriber->events);
+});
+
+// Get all listener
+Toolkit::test(function (): void {
+	$subscriber = new DummyOnClearSubscriber();
+
+	$container = new Container();
+	$container->addService('dummySubscriber', $subscriber);
+	$eventManager = new ContainerEventManager($container);
+
+	$eventManager->addEventListener(Events::onClear, 'dummySubscriber');
+
+	Assert::count(1, $eventManager->getAllListeners()); // one event
+	Assert::count(1, $eventManager->getAllListeners()[Events::onClear]); // one subscriber
+	Assert::type(DummyOnClearSubscriber::class, Arrays::first($eventManager->getAllListeners()[Events::onClear])); // one subscriber
 });

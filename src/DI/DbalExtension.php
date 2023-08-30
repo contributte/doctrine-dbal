@@ -172,7 +172,7 @@ class DbalExtension extends CompilerExtension
 			$subscriber = $rc->newInstanceWithoutConstructor();
 			$events = $subscriber->getSubscribedEvents();
 
-			$eventManager->addSetup('?->addServiceSubscriber(?, ?)', ['@self', $events, $serviceName]);
+			$eventManager->addSetup('?->addEventListener(?, ?)', ['@self', $events, $serviceName]);
 		}
 	}
 
