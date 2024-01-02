@@ -20,7 +20,7 @@ Website ðŸš€ <a href="https://contributte.org">contributte.org</a> | Contact ðŸ‘
 
 ## Usage
 
-To install latest version of `nettrine/dbal` use [Composer](https://getcomposer.com).
+To install latest version of `nettrine/dbal` use [Composer](https://getcomposer.org).
 
 ```
 composer require nettrine/dbal
