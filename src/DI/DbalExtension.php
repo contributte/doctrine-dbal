@@ -51,6 +51,7 @@ class DbalExtension extends CompilerExtension
 				'resultCache' => Expect::anyOf($expectService),
 				'schemaAssetsFilter' => Expect::anyOf($expectService),
 				'filterSchemaAssetsExpression' => Expect::string()->nullable(),
+				'schemaManagerFactory' => Expect::anyOf($expectService),
 				'autoCommit' => Expect::bool(true),
 			]),
 			'connection' => Expect::structure([
@@ -109,6 +110,11 @@ class DbalExtension extends CompilerExtension
 		// FilterSchemaAssetsExpression
 		if ($configurationConfig->filterSchemaAssetsExpression !== null) {
 			$configuration->addSetup('setFilterSchemaAssetsExpression', [$configurationConfig->filterSchemaAssetsExpression]);
+		}
+
+		// SchemaManagerFactory
+		if ($configurationConfig->schemaManagerFactory !== null) {
+			$configuration->addSetup('setSchemaManagerFactory', [$configurationConfig->schemaManagerFactory]);
 		}
 
 		// AutoCommit
