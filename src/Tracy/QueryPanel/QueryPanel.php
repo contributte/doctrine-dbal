@@ -23,6 +23,7 @@ class QueryPanel implements IBarPanel
 		$queries = $this->middleware->getLogger()->getQueries();
 		$totalTime = 0;
 		$count = count($queries);
+
 		foreach ($queries as $event) {
 			$totalTime += $event['duration'];
 		}
