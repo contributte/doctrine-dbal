@@ -6,9 +6,9 @@
 ## Content
 
 - [Setup](#setup)
-- [Relying](#relying)
+  - [Console](#console)
 - [Configuration](#configuration)
-- [Usage](#usage)
+  - [Caching](#caching)
   - [Types](#types)
   - [Debug](#debug)
   - [Events](#events)
@@ -34,33 +34,9 @@ extensions:
 ```
 
 
-## Relying
+### Console
 
-Take advantage of enpowering this package with 2 extra packages:
-
-- `doctrine/cache`
-- `symfony/console`
-
-
-### `doctrine/cache`
-
-This package relies on `doctrine/cache`, use prepared [nettrine/cache](https://github.com/contributte/doctrine-cache) integration.
-
-```bash
-composer require nettrine/cache
-```
-
-```neon
-extensions:
-  nettrine.cache: Nettrine\Cache\DI\CacheExtension
-```
-
-[Doctrine DBAL](https://www.doctrine-project.org/projects/dbal.html) needs [Doctrine Cache](https://www.doctrine-project.org/projects/cache.html) to be configured. If you register `nettrine/cache` extension it will detect it automatically.
-
-
-### `symfony/console`
-
-This package relies on `symfony/console`, use prepared [contributte/console](https://github.com/contributte/console) integration.
+Take advantage of empowering this package with `symfony/console`and prepared [contributte/console](https://github.com/contributte/console) integration.
 
 ```bash
 composer require contributte/console
@@ -133,6 +109,50 @@ nettrine.dbal:
 
 Take a look at real **Nettrine DBAL** configuration example at [contributte/webapp-project](https://github.com/contributte/webapp-skeleton/blob/d23e6cbac9b91d6d069583f1661dd1171ccfe077/app/config/ext/nettrine.neon).
 
+
+### Caching
+
+By default, [result cache](https://www.doctrine-project.org/projects/doctrine-dbal/en/4.0/reference/caching.html) is configured to the autowired [cache storage](https://doc.nette.org/cs/caching#toc-sluzby-di). You can configure it to other [storage](https://doc.nette.org/cs/caching#toc-uloziste), [cache](https://api.nette.org/caching/master/Nette/Caching/Cache.html) or [cache pool](https://www.php-fig.org/psr/psr-6/#cacheitempoolinterface).
+
+Use different storage:
+
+```neon
+nettrine.dbal:
+  configuration:
+    resultCache: Nette\Caching\Storages\MemoryStorage
+```
+
+Use cache:
+
+```neon
+nettrine.dbal:
+  configuration:
+    resultCache: Nette\Caching\Cache(namespace: 'dbal-result-cache')
+```
+
+Use cache pool:
+
+```neon
+nettrine.dbal:
+  configuration:
+    resultCache: Contributte\Psr6\CachePool(Nette\Caching\Cache(namespace: 'dbal-result-cache'))
+```
+
+Use registered service (service must be of type `Nette\Caching\Storage`, `Nette\Caching\Cache` or `Psr\Cache\CacheItemPoolInterface`):
+
+```neon
+nettrine.dbal:
+  configuration:
+    resultCache: @service
+```
+
+If you want to turn cache off, you can use `DevNullStorage` to do so:
+
+```neon
+nettrine.dbal:
+  configuration:
+    resultCache: Nette\Caching\Storages\DevNullStorage
+```
 
 ### Types
 
