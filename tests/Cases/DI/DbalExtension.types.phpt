@@ -9,8 +9,8 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Types\IntegerType;
 use Doctrine\DBAL\Types\StringType;
 use Doctrine\DBAL\Types\Type;
+use Nette\Bridges\CacheDI\CacheExtension;
 use Nette\DI\Compiler;
-use Nettrine\Cache\DI\CacheExtension;
 use Nettrine\DBAL\DI\DbalExtension;
 use Tester\Assert;
 use Tests\Toolkit\Tests;
@@ -22,8 +22,8 @@ require_once __DIR__ . '/../../bootstrap.php';
 Toolkit::test(function (): void {
 	$container = ContainerBuilder::of()
 		->withCompiler(static function (Compiler $compiler): void {
+			$compiler->addExtension('cache', new CacheExtension(Tests::TEMP_PATH));
 			$compiler->addExtension('nettrine.dbal', new DbalExtension());
-			$compiler->addExtension('nettrine.cache', new CacheExtension());
 			$compiler->addExtension('nette.tracy', new TracyExtension());
 			$compiler->addConfig([
 				'parameters' => [

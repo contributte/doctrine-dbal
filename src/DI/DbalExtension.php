@@ -2,11 +2,15 @@
 
 namespace Nettrine\DBAL\DI;
 
-use Doctrine\Common\Cache\Cache;
+use Contributte\Psr6\CachePool;
+use Contributte\Psr6\CachePoolFactory;
 use Doctrine\Common\EventSubscriber;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
+use Nette\Caching\Cache;
+use Nette\Caching\Storage;
 use Nette\DI\CompilerExtension;
+use Nette\DI\Definitions\Definition;
 use Nette\DI\Definitions\ServiceDefinition;
 use Nette\DI\Definitions\Statement;
 use Nette\PhpGenerator\ClassType;
@@ -19,6 +23,7 @@ use Nettrine\DBAL\Tracy\BlueScreen\DbalBlueScreen;
 use Nettrine\DBAL\Tracy\QueryPanel\QueryPanel;
 use ReflectionClass;
 use stdClass;
+use Throwable;
 use Tracy\Bar;
 use Tracy\BlueScreen;
 
@@ -84,11 +89,6 @@ class DbalExtension extends CompilerExtension
 				->addTag(self::TAG_MIDDLEWARE);
 		}
 
-		// ResultCache
-		$resultCache = $configurationConfig->resultCache !== null ? $builder->addDefinition($this->prefix('resultCache'))
-			->setFactory($configurationConfig->resultCache) : '@' . Cache::class;
-		$configuration->addSetup('setResultCacheImpl', [$resultCache]);
-
 		// SchemaAssetsFilter
 		if ($configurationConfig->schemaAssetsFilter !== null) {
 			$configuration->addSetup('setSchemaAssetsFilter', [$configurationConfig->schemaAssetsFilter]);
@@ -142,10 +142,13 @@ class DbalExtension extends CompilerExtension
 	{
 		$builder = $this->getContainerBuilder();
 
-		// Set middlewares
 		$configurationDef = $builder->getDefinition($this->prefix('configuration'));
 		assert($configurationDef instanceof ServiceDefinition);
 
+		// ResultCache
+		$configurationDef->addSetup('setResultCache', [$this->getResultCacheDefinition($this->config->configuration->resultCache)]);
+
+		// Set middlewares
 		$configurationDef->addSetup('setMiddlewares', [
 			array_map(
 				fn (string $name) => $builder->getDefinition($name),
@@ -189,6 +192,103 @@ class DbalExtension extends CompilerExtension
 				])
 			);
 		}
+	}
+
+	/**
+	 * @param string|mixed[]|Statement|null $cacheConfig
+	 */
+	private function getResultCacheDefinition(string|array|Statement|null $cacheConfig): Definition
+	{
+		$builder = $this->getContainerBuilder();
+
+		if ($cacheConfig !== null) {
+			if (is_string($cacheConfig)) {
+				$cacheConfig = $this->resolveCacheDriverDefinitionString($cacheConfig, $this->prefix('resultCache'));
+			}
+
+			if ($cacheConfig instanceof Statement) {
+				$entity = $cacheConfig->getEntity();
+
+				if (is_string($entity) && is_a($entity, Storage::class, true)) {
+					$entity = Cache::class;
+					$cacheConfig = new Statement(
+						$entity,
+						[
+							'storage' => $cacheConfig,
+							'namespace' => $this->prefix('resultCache'),
+						]
+					);
+				}
+
+				if (is_string($entity) && is_a($entity, Cache::class, true)) {
+					return $builder->addDefinition($this->prefix('resultCache'))
+						->setFactory(new Statement(CachePool::class, [$cacheConfig]))
+						->setAutowired(false);
+				}
+			}
+
+			return $builder->addDefinition($this->prefix('resultCache'))
+				->setFactory($cacheConfig)
+				->setAutowired(false);
+		}
+
+		// No driver provided, create CacheItemPoolInterface with autowired Storage
+
+		// ICachePoolFactory doesn't have to be registered in DI container
+		$builder->addDefinition($this->prefix('cachePoolFactory'))
+			->setFactory(CachePoolFactory::class)
+			->setAutowired(false);
+
+		return $builder->addDefinition($this->prefix('resultCache'))
+			->setFactory('@' . $this->prefix('cachePoolFactory') . '::create', [$this->prefix('resultCache')])
+			->setAutowired(false);
+	}
+
+	private function resolveCacheDriverDefinitionString(string $config, string $cacheNamespace): string|Statement
+	{
+		$builder = $this->getContainerBuilder();
+
+		if (str_starts_with($config, '@')) {
+			$service = substr($config, 1);
+
+			if ($builder->hasDefinition($service)) {
+				$definition = $builder->getDefinition($service);
+			} else {
+				try {
+					$definition = $builder->getDefinitionByType($service);
+				} catch (Throwable) {
+					$definition = null;
+				}
+			}
+
+			$type = $definition?->getType();
+
+			if ($type === null) {
+				return $config;
+			}
+
+			if (is_a($type, Storage::class, true)) {
+				return new Statement(
+					Cache::class,
+					[
+						'storage' => $config,
+						'namespace' => $cacheNamespace,
+					]
+				);
+			}
+
+			if (is_a($type, Cache::class, true)) {
+				return new Statement(CachePool::class, [$config]);
+			}
+
+			return $config;
+		}
+
+		if (is_a($config, Storage::class, true)) {
+			return new Statement($config);
+		}
+
+		return $config;
 	}
 
 }
