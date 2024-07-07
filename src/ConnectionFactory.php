@@ -11,19 +11,16 @@ use Doctrine\DBAL\Types\Type;
 class ConnectionFactory
 {
 
-	/** @var array<string, array{class: class-string<Type>, commented: bool}> */
+	/** @var array<string, class-string<Type>> */
 	private array $typesConfig = [];
 
 	/** @var array<string, string> */
 	private array $typesMapping = [];
 
-	/** @var array<string> */
-	private array $commentedTypes = [];
-
 	private bool $initialized = false;
 
 	/**
-	 * @param array<string, array{class: class-string<Type>, commented: bool}> $typesConfig
+	 * @param array<string, class-string<Type>> $typesConfig
 	 * @param array<string, string> $typesMapping
 	 */
 	public function __construct(array $typesConfig = [], array $typesMapping = [])
@@ -49,24 +46,16 @@ class ConnectionFactory
 			$platform->registerDoctrineTypeMapping($dbType, $doctrineType);
 		}
 
-		foreach ($this->commentedTypes as $type) {
-			$platform->markDoctrineTypeCommented(Type::getType($type));
-		}
-
 		return $connection;
 	}
 
 	private function initializeTypes(): void
 	{
-		foreach ($this->typesConfig as $type => $typeConfig) {
+		foreach ($this->typesConfig as $type => $class) {
 			if (Type::hasType($type)) {
-				Type::overrideType($type, $typeConfig['class']);
+				Type::overrideType($type, $class);
 			} else {
-				Type::addType($type, $typeConfig['class']);
-			}
-
-			if ($typeConfig['commented']) {
-				$this->commentedTypes[] = $type;
+				Type::addType($type, $class);
 			}
 		}
 

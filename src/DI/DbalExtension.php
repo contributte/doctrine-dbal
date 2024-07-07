@@ -56,20 +56,7 @@ class DbalExtension extends CompilerExtension
 			]),
 			'connection' => Expect::structure([
 				'driver' => Expect::mixed()->required(),
-				'types' => Expect::arrayOf(
-					Expect::structure([
-						'class' => Expect::string()->required(),
-						'commented' => Expect::bool(false),
-					])
-						->before(function ($type) {
-							if (is_string($type)) {
-								return ['class' => $type];
-							}
-
-							return $type;
-						})
-						->castTo('array')
-				),
+				'types' => Expect::arrayOf('string', 'string'),
 				'typesMapping' => Expect::array(),
 			])->otherItems()->castTo('array'),
 		]);
