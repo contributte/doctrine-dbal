@@ -60,7 +60,7 @@ Toolkit::test(function (): void {
 					connection:
 						driver: pdo_sqlite
 						types:
-							foo: { class: Doctrine\DBAL\Types\StringType }
+							foo: Doctrine\DBAL\Types\StringType
 							bar: Doctrine\DBAL\Types\IntegerType
 
 				services:

@@ -143,10 +143,7 @@ nettrine.dbal:
   connection:
     types:
       uuid: Ramsey\Uuid\Doctrine\UuidType
-
-      uuid_binary_ordered_time:
-        class: Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType
-        commented: false
+      uuid_binary_ordered_time: Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType
 
     typesMapping:
       uuid_binary_ordered_time: binary
