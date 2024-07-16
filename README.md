@@ -1,8 +1,8 @@
 ![](https://heatbadger.now.sh/github/readme/contributte/doctrine-dbal/)
 
 <p align=center>
-  <a href="https://github.com/contributte/doctrine-dbal/actions"><img src="https://badgen.net/github/checks/nettrine/dbal/master?cache=300"></a>
-  <a href="https://coveralls.io/r/nettrine/dbal"><img src="https://badgen.net/coveralls/c/github/nettrine/dbal?cache=300"></a>
+  <a href="https://github.com/contributte/doctrine-dbal/actions"><img src="https://badgen.net/github/checks/contributte/doctrine-dbal/master?cache=300"></a>
+  <a href="https://coveralls.io/r/contributte/doctrine-dbal"><img src="https://badgen.net/coveralls/c/github/contributte/doctrine-dbal?cache=300"></a>
   <a href="https://packagist.org/packages/nettrine/dbal"><img src="https://badgen.net/packagist/dm/nettrine/dbal"></a>
   <a href="https://packagist.org/packages/nettrine/dbal"><img src="https://badgen.net/packagist/v/nettrine/dbal"></a>
 </p>
