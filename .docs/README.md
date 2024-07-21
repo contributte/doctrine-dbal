@@ -139,7 +139,7 @@ Take a look at real **Nettrine DBAL** configuration example at [contributte/weba
 Here is an example of how to register custom type for [UUID](https://github.com/ramsey/uuid-doctrine).
 
 ```neon
-dbal:
+nettrine.dbal:
   connection:
     types:
       uuid: Ramsey\Uuid\Doctrine\UuidType
@@ -172,7 +172,7 @@ Alternatively, specify your application root path under the `debug.sourcePaths` 
 Middlewares are the way how to extend doctrine library or hook to special events.
 
 ```neon
-dbal:
+nettrine.dbal:
   connection:
     middlewares:
       - MyMiddleware
@@ -220,7 +220,7 @@ final class MyDriver extends AbstractDriverMiddleware
 To log all queries you should define your own middleware or you can use `Doctrine\DBAL\Logging\Middleware`.
 
 ```neon
-dbal:
+nettrine.dbal:
   configuration:
     middlewares:
       logger: Doctrine\DBAL\Logging\Middleware(MyLogger())
@@ -230,7 +230,7 @@ You can try our prepared loggers.
 
 
 ```neon
-dbal:
+nettrine.dbal:
   configuration:
     middlewares:
       # Write logs to file
