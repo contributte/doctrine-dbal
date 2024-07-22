@@ -7,19 +7,20 @@ use Contributte\Tester\Toolkit;
 use Contributte\Tester\Utils\ContainerBuilder;
 use Contributte\Tester\Utils\Neonkit;
 use Doctrine\DBAL\Connection;
+use Nette\Bridges\CacheDI\CacheExtension;
 use Nette\DI\Compiler;
 use Nette\DI\InvalidConfigurationException;
-use Nettrine\Cache\DI\CacheExtension;
 use Nettrine\DBAL\DI\DbalExtension;
 use Tester\Assert;
 use Tests\Fixtures\Driver\TestDriver;
+use Tests\Toolkit\Tests;
 
 require_once __DIR__ . '/../../bootstrap.php';
 
 Toolkit::test(function (): void {
 	$container = ContainerBuilder::of()
 		->withCompiler(function (Compiler $compiler): void {
-			$compiler->addExtension('cache', new CacheExtension());
+			$compiler->addExtension('cache', new CacheExtension(Tests::TEMP_PATH));
 			$compiler->addExtension('dbal', new DbalExtension());
 			$compiler->addConfig(Neonkit::load('
 				dbal:

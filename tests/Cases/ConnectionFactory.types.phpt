@@ -11,10 +11,7 @@ require_once __DIR__ . '/../bootstrap.php';
 
 Toolkit::test(function (): void {
 	$types = [
-		'foo' => [
-			'class' => StringType::class,
-			'commented' => false,
-		],
+		'foo' => StringType::class,
 	];
 	$mapping = [
 		'db_foo' => 'foo',

@@ -6,9 +6,9 @@ use Contributte\Tester\Toolkit;
 use Contributte\Tester\Utils\ContainerBuilder;
 use Contributte\Tester\Utils\Neonkit;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Platforms\PostgreSQL100Platform;
+use Doctrine\DBAL\Platforms\MySQL80Platform;
+use Nette\Bridges\CacheDI\CacheExtension;
 use Nette\DI\Compiler;
-use Nettrine\Cache\DI\CacheExtension;
 use Nettrine\DBAL\DI\DbalExtension;
 use Tester\Assert;
 use Tests\Toolkit\Tests;
@@ -20,8 +20,8 @@ require_once __DIR__ . '/../../bootstrap.php';
 Toolkit::test(function (): void {
 	$container = ContainerBuilder::of()
 		->withCompiler(static function (Compiler $compiler): void {
+			$compiler->addExtension('cache', new CacheExtension(Tests::TEMP_PATH));
 			$compiler->addExtension('nettrine.dbal', new DbalExtension());
-			$compiler->addExtension('nettrine.cache', new CacheExtension());
 			$compiler->addExtension('nette.tracy', new TracyExtension());
 			$compiler->addConfig([
 				'parameters' => [
@@ -32,8 +32,8 @@ Toolkit::test(function (): void {
 			$compiler->addConfig(Neonkit::load(<<<'NEON'
 				nettrine.dbal:
 					connection:
-						driver: pdo_pgsql
-						serverVersion: 10.0
+						driver: pdo_mysql
+						serverVersion: '8.0.0'
 			NEON
 			));
 		})->build();
@@ -41,6 +41,6 @@ Toolkit::test(function (): void {
 	/** @var Connection $connection */
 	$connection = $container->getByType(Connection::class);
 
-	Assert::type(PostgreSQL100Platform::class, $connection->getDatabasePlatform());
+	Assert::type(MySQL80Platform::class, $connection->getDatabasePlatform());
 	Assert::falsey($connection->isConnected());
 });
