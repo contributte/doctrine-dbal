@@ -2,13 +2,8 @@
 
 namespace Nettrine\DBAL\DI;
 
-use Contributte\Psr6\CachePool;
-use Contributte\Psr6\CachePoolFactory;
-use Doctrine\Common\EventSubscriber;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
-use Nette\Caching\Cache;
-use Nette\Caching\Storage;
 use Nette\DI\CompilerExtension;
 use Nette\DI\Definitions\Definition;
 use Nette\DI\Definitions\ServiceDefinition;
@@ -17,7 +12,6 @@ use Nette\PhpGenerator\ClassType;
 use Nette\Schema\Expect;
 use Nette\Schema\Schema;
 use Nettrine\DBAL\ConnectionFactory;
-use Nettrine\DBAL\Events\ContainerEventManager;
 use Nettrine\DBAL\Middleware\TracyMiddleware;
 use Nettrine\DBAL\Tracy\BlueScreen\DbalBlueScreen;
 use Nettrine\DBAL\Tracy\QueryPanel\QueryPanel;

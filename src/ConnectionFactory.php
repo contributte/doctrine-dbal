@@ -2,7 +2,6 @@
 
 namespace Nettrine\DBAL;
 
-use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
@@ -32,14 +31,14 @@ class ConnectionFactory
 	/**
 	 * @param mixed[] $params
 	 */
-	public function createConnection(array $params, ?Configuration $config = null, ?EventManager $em = null): Connection
+	public function createConnection(array $params, ?Configuration $config = null): Connection
 	{
 		if (!$this->initialized) {
 			$this->initializeTypes();
 		}
 
 		/** @phpstan-ignore-next-line */
-		$connection = DriverManager::getConnection($params, $config, $em);
+		$connection = DriverManager::getConnection($params, $config);
 		$platform = $connection->getDatabasePlatform();
 
 		foreach ($this->typesMapping as $dbType => $doctrineType) {
