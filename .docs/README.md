@@ -312,7 +312,7 @@ nettrine.dbal:
 ```php
 <?php declare(strict_types=1);
 
-namspace App;
+namespace App;
 
 use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Driver\Middleware;
@@ -331,7 +331,7 @@ final class InsightMiddleware implements Middleware
 ```php
 <?php declare(strict_types=1);
 
-namspace App;
+namespace App;
 
 use Doctrine\DBAL\Driver\Connection;
 use Doctrine\DBAL\Driver\Middleware\AbstractDriverMiddleware;
@@ -376,7 +376,7 @@ Unfortunately, `Doctrine\DBAL\Logging\Middleware` provides only basic logger. If
 ```php
 <?php declare(strict_types=1);
 
-namspace App;
+namespace App;
 
 use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Driver\Middleware;
@@ -419,7 +419,6 @@ extensions:
   console: Contributte\Console\DI\ConsoleExtension(%consoleMode%)
 
   nettrine.dbal: Nettrine\DBAL\DI\DbalExtension
-  nettrine.dbal.console: Nettrine\DBAL\DI\DbalConsoleExtension(%consoleMode%)
 ```
 
 Since this moment when you type `bin/console`, there'll be registered commands from Doctrine DBAL.
