@@ -2,12 +2,18 @@
 
 namespace Nettrine\DBAL;
 
-use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\ConnectionException;
 use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Exception\DriverException;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\Type;
 
+/**
+ * @see https://github.com/doctrine/DoctrineBundle
+ * @phpstan-import-type Params from DriverManager
+ */
 class ConnectionFactory
 {
 
@@ -30,23 +36,50 @@ class ConnectionFactory
 	}
 
 	/**
-	 * @param mixed[] $params
+	 * @phpstan-param Params $params
+	 * @param array<string, string> $typesMapping
 	 */
-	public function createConnection(array $params, ?Configuration $config = null, ?EventManager $em = null): Connection
+	public function createConnection(
+		array $params,
+		?Configuration $config = null,
+		array $typesMapping = []
+	): Connection
 	{
 		if (!$this->initialized) {
 			$this->initializeTypes();
 		}
 
-		/** @phpstan-ignore-next-line */
-		$connection = DriverManager::getConnection($params, $config, $em);
-		$platform = $connection->getDatabasePlatform();
+		$config ??= new Configuration();
+		$connection = DriverManager::getConnection($params, $config);
+		$platform = $this->getDatabasePlatform($connection);
 
+		// Register types mapping (global)
 		foreach ($this->typesMapping as $dbType => $doctrineType) {
 			$platform->registerDoctrineTypeMapping($dbType, $doctrineType);
 		}
 
+		// Register types mapping (local)
+		foreach ($typesMapping as $dbType => $doctrineType) {
+			$platform->registerDoctrineTypeMapping($dbType, $doctrineType);
+		}
+
 		return $connection;
+	}
+
+	private function getDatabasePlatform(Connection $connection): AbstractPlatform
+	{
+		try {
+			return $connection->getDatabasePlatform();
+		} catch (DriverException $driverException) {
+			throw new ConnectionException(
+				'An exception occurred while establishing a connection to figure out your platform version.' . PHP_EOL .
+				"You can circumvent this by setting a 'serverVersion' configuration value" . PHP_EOL . PHP_EOL .
+				'For further information have a look at:' . PHP_EOL .
+				'https://github.com/doctrine/DoctrineBundle/issues/673',
+				0,
+				$driverException,
+			);
+		}
 	}
 
 	private function initializeTypes(): void
