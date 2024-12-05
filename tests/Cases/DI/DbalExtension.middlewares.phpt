@@ -2,7 +2,6 @@
 
 namespace Tests\Cases\E2E;
 
-use Contributte\Tester\Environment;
 use Contributte\Tester\Toolkit;
 use Contributte\Tester\Utils\ContainerBuilder;
 use Contributte\Tester\Utils\Neonkit;
@@ -42,8 +41,7 @@ Toolkit::test(function (): void {
 Toolkit::test(function (): void {
 	Assert::exception(
 		function (): void {
-
-			$container = ContainerBuilder::of()
+			ContainerBuilder::of()
 				->withCompiler(static function (Compiler $compiler): void {
 					$compiler->addExtension('nettrine.dbal', new DbalExtension());
 					$compiler->addConfig(Neonkit::load(<<<'NEON'

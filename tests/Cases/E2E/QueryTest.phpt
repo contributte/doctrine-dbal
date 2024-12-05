@@ -2,7 +2,6 @@
 
 namespace Tests\Cases\E2E;
 
-use Contributte\Tester\Environment;
 use Contributte\Tester\Toolkit;
 use Contributte\Tester\Utils\ContainerBuilder;
 use Contributte\Tester\Utils\Neonkit;
@@ -71,5 +70,6 @@ Toolkit::test(function (): void {
 				'firstname' => 'Sam',
 			],
 		],
-		actual: $result);
+		actual: $result
+	);
 });

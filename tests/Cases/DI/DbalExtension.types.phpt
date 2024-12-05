@@ -12,8 +12,6 @@ use Doctrine\DBAL\Types\Type;
 use Nette\DI\Compiler;
 use Nettrine\DBAL\DI\DbalExtension;
 use Tester\Assert;
-use Tests\Toolkit\Tests;
-use Tracy\Bridges\Nette\TracyExtension;
 
 require_once __DIR__ . '/../../bootstrap.php';
 

@@ -6,11 +6,9 @@ use Contributte\Tester\Toolkit;
 use Contributte\Tester\Utils\ContainerBuilder;
 use Contributte\Tester\Utils\Liberator;
 use Contributte\Tester\Utils\Neonkit;
-use Doctrine\DBAL\Connection;
 use Nette\DI\Compiler;
 use Nettrine\DBAL\DI\DbalExtension;
 use Tester\Assert;
-use Tests\Toolkit\Tests;
 use Tracy\Bridges\Nette\TracyExtension;
 use Tracy\Debugger;
 

@@ -10,8 +10,6 @@ use Doctrine\DBAL\Platforms\MySQL84Platform;
 use Nette\DI\Compiler;
 use Nettrine\DBAL\DI\DbalExtension;
 use Tester\Assert;
-use Tests\Toolkit\Tests;
-use Tracy\Bridges\Nette\TracyExtension;
 
 require_once __DIR__ . '/../../bootstrap.php';
 
