@@ -67,7 +67,6 @@ class DbalExtension extends CompilerExtension
 
 	public function __construct()
 	{
-		// priority 10
 		$this->passes[] = new DoctrinePass($this);
 		$this->passes[] = new ConsolePass($this);
 		$this->passes[] = new ConnectionPass($this);
