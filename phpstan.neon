@@ -16,4 +16,3 @@ parameters:
 		- .docs
 
 	ignoreErrors:
-		- '#Call to deprecated method formatPhp\(\) of class Nette\\DI\\ContainerBuilder#'
