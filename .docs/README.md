@@ -42,11 +42,10 @@ extensions:
 nettrine.dbal:
   connections:
     default:
-      host: localhost
-      driver: mysqli
-      dbname: nettrine
-      user: root
-      password: root
+      driver: pdo_sqlite
+      password: test
+      user: test
+      path: ":memory:"
 ```
 
 **PostgreSQL**
@@ -56,6 +55,10 @@ nettrine.dbal:
   connections:
     default:
       driver: pdo_pgsql
+      host: localhost
+      port: 5432
+      user: root
+      password: root
 ```
 
 **MySQL / MariaDB**
@@ -65,6 +68,10 @@ nettrine.dbal:
   connections:
     default:
       driver: mysqli
+      host: localhost
+      port: 3306
+      user: root
+      password: root
 ```
 
 **SQLite**
@@ -74,6 +81,9 @@ nettrine.dbal:
   connections:
     default:
       driver: pdo_sqlite
+      password: test
+      user: test
+      path: ":memory:"
 ```
 
 ### Advanced configuration
@@ -84,7 +94,6 @@ Here is the list of all available options with their types.
 nettrine.dbal:
   debug:
     panel: <boolean>
-    sourcePaths: array<string>
 
   types: array<string, class-string>
   typesMapping: array<string, class-string>
@@ -92,26 +101,43 @@ nettrine.dbal:
   connections:
     <name>:
       # Connection
-      url: <string>
-      pdo: <string>
-      memory: <string>
-      driver: <string>
-      driverClass: <string>
-      host: <string>
-      dbname: <string>
-      servicename: <string>
-      user: <string>
-      password: <string>
+      application_name: <string>
       charset: <string>
-      portability: <int>
-      fetchCase: <int>
-      persistent: <boolean>
-      wrapperClass: <class>
+      connectstring: <string>
+      dbname: <string>
+      driver: <'pdo_sqlite', 'sqlite3', 'pdo_mysql', 'mysqli', 'pdo_pgsql', 'pgsql', 'pdo_oci', 'oci8', 'pdo_sqlsrv', 'sqlsrv', 'ibm_db2'>
+      driverOptions: <array<string, mixed>>
+      exclusive: <string>
+      gssencmode: <string>
+      host: <string>
+      instancename: <string>
+      memory: <string>
+      password: <string>
+      path: <string>
+      persistent: <string>
+      pooled: <string>
+      port: <int>
+      protocol: <string>
+      serverVersion: <string>
+      service: <string>
+      servicename: <string>
+      ssl_ca: <string>
+      ssl_capath: <string>
+      ssl_cert: <string>
+      ssl_cipher: <string>
+      ssl_key: <string>
+      sslcert: <string>
+      sslcrl: <string>
+      sslkey: <string>
+      sslmode: <string>
+      sslrootcert: <string>
+      unix_socket: <string>
+      user: <string>
 
       # Config
-      middlewares: <service[]>
-      resultCache: <service>
-      schemaAssetsFilter: <string>
+      middlewares: array<string, <service|class-name>>
+      resultCache: <service|class-name>
+      schemaAssetsFilter: <service|class-name>
       autoCommit: <boolean>
 ```
 
@@ -121,7 +147,6 @@ For example:
 nettrine.dbal:
   debug:
     panel: %debugMode%
-    sourcePaths: [%appDir%]
 
   types:
     uuid: Ramsey\Uuid\Doctrine\UuidType
@@ -260,11 +285,10 @@ nettrine.dbal:
 This library provides Tracy panel for debugging queries. You can enable it by setting `debug.panel` to `true`.
 You can also specify source paths for Tracy panel. This is useful when you want to see the source code of the query.
 
-```
+```neon
 nettrine.dbal:
   debug:
     panel: %debugMode%
-    sourcePaths: [%appDir%]
 ```
 
 ### Middlewares
@@ -286,7 +310,7 @@ nettrine.dbal:
 ```
 
 ```php
-<?php
+<?php declare(strict_types=1);
 
 namspace App;
 
@@ -305,7 +329,9 @@ final class InsightMiddleware implements Middleware
 ```
 
 ```php
-<?php
+<?php declare(strict_types=1);
+
+namspace App;
 
 use Doctrine\DBAL\Driver\Connection;
 use Doctrine\DBAL\Driver\Middleware\AbstractDriverMiddleware;
@@ -348,9 +374,9 @@ nettrine.dbal:
 Unfortunately, `Doctrine\DBAL\Logging\Middleware` provides only basic logger. If you want to measure time or log queries to file, you have to implement your own logger.
 
 ```php
-<?php dec
+<?php declare(strict_types=1);
 
-namespace App;
+namspace App;
 
 use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Driver\Middleware;
