@@ -21,7 +21,7 @@
   ],
   "require": {
     "php": ">=8.2",
-    "doctrine/dbal": "^3.6.7 || ^4.0",
+    "doctrine/dbal": "^4.2.1",
     "nette/di": "^3.2.2",
     "psr/log": "^3.0",
     "psr/cache": "^3.0.0"
