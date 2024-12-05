@@ -42,10 +42,13 @@ extensions:
 nettrine.dbal:
   connections:
     default:
-      driver: pdo_sqlite
-      password: test
-      user: test
-      path: ":memory:"
+      driver: pdo_pgsql
+      host: localhost
+      port: 5432
+      user: root
+      password: root
+      charset: utf8
+      dbname: nettrine
 ```
 
 **PostgreSQL**
@@ -153,14 +156,13 @@ nettrine.dbal:
 
   connections:
     default:
-      driver: pdo_mysql
+      driver: pdo_pgsql
       host: localhost
-      dbname: nettrine
+      port: 5432
       user: root
       password: root
       charset: utf8
-      middlewares: []
-      resultCache: Nette\Caching\Storages\MemoryStorage
+      dbname: nettrine
 ```
 
 Supported drivers:
