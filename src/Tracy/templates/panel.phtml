@@ -1,14 +1,12 @@
-<?php
+<?php declare(strict_types = 1);
 
-use Nettrine\DBAL\Logger\SnapshotLogger;
+namespace Nettrine\DBAL\Tracy;
+
 use Tracy\Dumper;
-use Tracy\Helpers;
 
-/** @var SnapshotLogger $logger */
-$queriesNum = 0;
-$totalTime = 0;
-$queries = [];
-$parameters = [];
+/** @var int $queriesNum */
+/** @var int $totalTime */
+/** @var array<array{sql: string, params: mixed[], types: mixed[], duration: float }> $queries */
 ?>
 <style>
 	#tracy-debug td.tracy-dbal-sql {
@@ -45,34 +43,25 @@ $parameters = [];
 		<table class="tracy-sortable">
 			<tr>
 				<th>Time&nbsp;ms</th>
-				<th>SQL Statement</th>
+				<th>SQL</th>
+				<th>Params</th>
 			</tr>
 
 			<?php foreach ($queries as $q): ?>
 				<tr>
 					<td>
-						<?= sprintf('%0.2f', $q->duration * 1000); ?>
-						<?php if (count($q->source) !== 0): ?>
-							<br><a class="tracy-toggle tracy-collapsed" data-tracy-ref="^tr .nettrine-dbal-backtrace"></a>
-						<?php endif; ?>
+						<?= sprintf('%0.2f', $q['duration'] * 1000); ?>
 					</td>
 					<td class="tracy-dbal-sql">
-						<?= $q->sql; ?>
-						<?php if (count($q->source) !== 0): ?>
-							<table class="nettrine-dbal-backtrace tracy-collapsed">
-								<?php foreach ($q->source as $s): ?>
-									<tr><td><?= Helpers::editorLink($s['file'], $s['line']); ?></td></tr>
-								<?php endforeach; ?>
-							</table>
-						<?php endif; ?>
+						<?= $q['sql']; ?>
+					</td>
+					<td class="tracy-dbal-sql">
+						<?= Dumper::toHtml($q['params']); ?>
+						<?= Dumper::toHtml($q['types'], [Dumper::COLLAPSE => true]); ?>
 					</td>
 				</tr>
 			<?php endforeach; ?>
 
 		</table>
 	<?php endif; ?>
-
-	<div style="margin-top: 2px;">
-		<?= Dumper::toHtml($parameters, [Dumper::COLLAPSE => true]); ?>
-	</div>
 </div>

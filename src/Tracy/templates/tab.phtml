@@ -1,0 +1,18 @@
+<?php declare(strict_types = 1);
+
+namespace Nettrine\DBAL\Tracy;
+
+/** @var int $count */
+/** @var string $iconQuery */
+/** @var string $iconNoQuery */
+/** @var int $totalTime */
+?>
+<span title="dbal">
+	<span class="tracy-label">
+	<?= ($count > 0 ? $iconQuery : $iconNoQuery) ?>
+	&nbsp;
+	<?= ($count > 0 ? $count . ' q' : '') ?>
+		<?= ($totalTime > 0 ? ' / ' . number_format($totalTime * 1000, 1, '.', ' ') . ' ms' : '') ?>
+	</span>
+</span>
+
