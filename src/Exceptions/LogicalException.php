@@ -2,7 +2,7 @@
 
 namespace Nettrine\DBAL\Exceptions;
 
-class LogicalException extends \LogicException
+final class LogicalException extends \LogicException
 {
 
 }

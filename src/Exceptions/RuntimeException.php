@@ -2,7 +2,7 @@
 
 namespace Nettrine\DBAL\Exceptions;
 
-class RuntimeException extends \RuntimeException
+final class RuntimeException extends \RuntimeException
 {
 
 }
