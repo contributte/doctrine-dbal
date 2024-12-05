@@ -6,7 +6,7 @@ use Contributte\Tester\Toolkit;
 use Contributte\Tester\Utils\ContainerBuilder;
 use Contributte\Tester\Utils\Liberator;
 use Contributte\Tester\Utils\Neonkit;
-use Nette\Bridges\CacheDI\CacheExtension;
+use Doctrine\DBAL\Connection;
 use Nette\DI\Compiler;
 use Nettrine\DBAL\DI\DbalExtension;
 use Tester\Assert;
@@ -20,29 +20,32 @@ require_once __DIR__ . '/../../bootstrap.php';
 Toolkit::test(function (): void {
 	$container = ContainerBuilder::of()
 		->withCompiler(static function (Compiler $compiler): void {
-			$compiler->addExtension('cache', new CacheExtension(Tests::TEMP_PATH));
 			$compiler->addExtension('nettrine.dbal', new DbalExtension());
 			$compiler->addExtension('nette.tracy', new TracyExtension());
-			$compiler->addConfig([
-				'parameters' => [
-					'tempDir' => Tests::TEMP_PATH,
-					'appDir' => Tests::APP_PATH,
-				],
-			]);
 			$compiler->addConfig(Neonkit::load(<<<'NEON'
 				nettrine.dbal:
-					connection:
-						driver: pdo_sqlite
+					connections:
+						default:
+							driver: pdo_sqlite
+							password: test
+							user: test
+							path: ":memory:"
+
+						second:
+							driver: pdo_sqlite
+							password: test
+							user: test
+							path: ":memory:"
 					debug:
 						panel: true
 			NEON
 			));
 		})->build();
 
-	call_user_func([$container, 'initialize']);
-
+	$container->getByName('nettrine.dbal.connections.default.connection');
+	$container->getByName('nettrine.dbal.connections.second.connection');
 	$blueScreen = Debugger::getBlueScreen();
 	$panels = Liberator::of($blueScreen)->panels;
 
-	Assert::count(1, $panels);
+	Assert::count(2, $panels);
 });

@@ -2,21 +2,16 @@
 
 namespace Tests\Cases\DI;
 
-use Contributte\Psr6\CachePool;
 use Contributte\Tester\Toolkit;
 use Contributte\Tester\Utils\ContainerBuilder;
 use Contributte\Tester\Utils\Neonkit;
-use Nette\Bridges\CacheDI\CacheExtension;
-use Nette\Caching\Cache;
-use Nette\Caching\Storage;
-use Nette\Caching\Storages\MemoryStorage;
+use Doctrine\DBAL\Connection;
 use Nette\DI\Compiler;
-use Nette\DI\Definitions\Statement;
+use Nettrine\DBAL\Cache\NullCache;
 use Nettrine\DBAL\DI\DbalExtension;
-use Psr\Cache\CacheItemPoolInterface;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Tester\Assert;
 use Tests\Toolkit\Tests;
-use Tracy\Bridges\Nette\TracyExtension;
 
 require_once __DIR__ . '/../../bootstrap.php';
 
@@ -24,70 +19,62 @@ require_once __DIR__ . '/../../bootstrap.php';
 Toolkit::test(function (): void {
 	$container = ContainerBuilder::of()
 		->withCompiler(static function (Compiler $compiler): void {
-			$compiler->addExtension('cache', new CacheExtension(Tests::TEMP_PATH));
 			$compiler->addExtension('nettrine.dbal', new DbalExtension());
-			$compiler->addExtension('nette.tracy', new TracyExtension());
-			$compiler->addConfig([
-				'parameters' => [
-					'tempDir' => Tests::TEMP_PATH,
-					'appDir' => Tests::APP_PATH,
-				],
-			]);
 			$compiler->addConfig(Neonkit::load(<<<'NEON'
 				nettrine.dbal:
-					connection:
-						driver: pdo_sqlite
+					connections:
+						default:
+							driver: pdo_sqlite
+							password: test
+							user: test
+							path: ":memory:"
 			NEON
 			));
 		})->build();
 
-	Assert::type(CacheItemPoolInterface::class, $container->getByName('nettrine.dbal.configuration')->getResultCache());
+	/** @var Connection $connection */
+	$connection = $container->getByName('nettrine.dbal.connections.default.connection');
+
+	Assert::null($connection->getConfiguration()->getResultCache());
 });
 
 // cache configuration
-$cacheDefinitions = [
-	'Contributte\Psr6\CachePool(Nette\Caching\Cache(@Nette\Caching\Storage, "result-cache"))',
-	'Contributte\Psr6\CachePool(Nette\Caching\Cache(namespace: "result-cache"))',
-	'Nette\Caching\Cache(@Nette\Caching\Storage, "result-cache")',
-	'Nette\Caching\Cache(namespace: "result-cache")',
-	'Nette\Caching\Storages\MemoryStorage',
-	'@svcCachePool',
-	'@svcCache',
-	'@svcStorage',
-	'@' . CachePool::class,
-	'@' . Cache::class,
-	'@' . Storage::class,
-];
-foreach ($cacheDefinitions as $cacheDefinition) {
-	Toolkit::test(function () use ($cacheDefinition): void {
-		$container = ContainerBuilder::of()
-			->withCompiler(static function (Compiler $compiler) use ($cacheDefinition): void {
-				$compiler->addExtension('cache', new CacheExtension(Tests::TEMP_PATH));
-				$compiler->addExtension('nettrine.dbal', new DbalExtension());
-				$compiler->addExtension('nette.tracy', new TracyExtension());
-				$compiler->addConfig([
-					'parameters' => [
-						'tempDir' => Tests::TEMP_PATH,
-						'appDir' => Tests::APP_PATH,
-					],
-				]);
-				$compiler->getContainerBuilder()->addDefinition('svcCachePool')
-					->setFactory(new Statement(CachePool::class, [new Statement(Cache::class, [1 => Tests::TEMP_PATH])]));
-				$compiler->getContainerBuilder()->addDefinition('svcCache')
-					->setFactory(new Statement(Cache::class, [1 => Tests::TEMP_PATH]));
-				$compiler->getContainerBuilder()->addDefinition('svcStorage')
-					->setFactory(MemoryStorage::class)
-					->setAutowired(false);
-				$compiler->addConfig(Neonkit::load(<<<NEON
+Toolkit::test(function (): void {
+	$container = ContainerBuilder::of()
+		->withCompiler(static function (Compiler $compiler): void {
+			$compiler->addExtension('nettrine.dbal', new DbalExtension());
+			$compiler->addConfig([
+				'parameters' => [
+					'tempDir' => Tests::TEMP_PATH,
+				],
+			]);
+			$compiler->addConfig(Neonkit::load(<<<'NEON'
 				nettrine.dbal:
-					connection:
-						driver: pdo_sqlite
-					configuration:
-						resultCache: $cacheDefinition
-			NEON
-				));
-			})->build();
+					connections:
+						c1:
+							driver: pdo_sqlite
+							password: test
+							user: test
+							path: ":memory:"
+							resultCache: Symfony\Component\Cache\Adapter\FilesystemAdapter(namespace: doctrine-dbal, defaultLifetime: 0, directory: %tempDir%/cache/dbal)
+						c2:
+							driver: pdo_sqlite
+							password: test
+							user: test
+							path: ":memory:"
+							resultCache: @customCache
 
-		Assert::type(CacheItemPoolInterface::class, $container->getByName('nettrine.dbal.configuration')->getResultCache());
-	});
-}
+				services:
+					customCache: Nettrine\DBAL\Cache\NullCache
+			NEON
+			));
+		})->build();
+
+	/** @var Connection $connection */
+	$connection = $container->getByName('nettrine.dbal.connections.c1.connection');
+	Assert::type(FilesystemAdapter::class, $connection->getConfiguration()->getResultCache());
+
+	/** @var Connection $connection */
+	$connection = $container->getByName('nettrine.dbal.connections.c2.connection');
+	Assert::type(NullCache::class, $connection->getConfiguration()->getResultCache());
+});

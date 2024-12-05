@@ -2,38 +2,31 @@
 
 namespace Tests\Cases\E2E;
 
-use Contributte\Psr6\DI\Psr6CachingExtension;
 use Contributte\Tester\Environment;
 use Contributte\Tester\Toolkit;
 use Contributte\Tester\Utils\ContainerBuilder;
 use Contributte\Tester\Utils\Neonkit;
 use Doctrine\DBAL\Connection;
-use Nette\Bridges\CacheDI\CacheExtension;
 use Nette\DI\Compiler;
 use Nettrine\DBAL\DI\DbalExtension;
 use Tester\Assert;
-use Tests\Toolkit\Tests;
-use Tracy\Bridges\Nette\TracyExtension;
 
 require_once __DIR__ . '/../../bootstrap.php';
 
 Toolkit::test(function (): void {
 	$container = ContainerBuilder::of()
 		->withCompiler(function (Compiler $compiler): void {
-			$compiler->addExtension('cache', new CacheExtension(Tests::TEMP_PATH));
-			$compiler->addExtension('psr6', new Psr6CachingExtension());
-			$compiler->addExtension('tracy', new TracyExtension());
-			$compiler->addExtension('dbal', new DbalExtension());
-			$compiler->addConfig(Neonkit::load('
-				dbal:
-					connection:
-						driver: pdo_sqlite
-			'));
-			$compiler->addConfig([
-				'parameters' => [
-					'tempDir' => Environment::getTestDir(),
-				],
-			]);
+			$compiler->addExtension('nettrine.dbal', new DbalExtension());
+			$compiler->addConfig(Neonkit::load(<<<'NEON'
+				nettrine.dbal:
+					connections:
+						default:
+							driver: pdo_sqlite
+							password: test
+							user: test
+							path: ":memory:"
+			NEON
+			));
 		})
 		->build();
 
@@ -66,16 +59,17 @@ Toolkit::test(function (): void {
 		->from('person')
 		->executeQuery()
 		->fetchAllAssociative();
-	$expected = [
-		[
-			'id' => 1,
-			'firstname' => 'John',
-		],
-		[
-			'id' => 2,
-			'firstname' => 'Sam',
-		],
-	];
 
-	Assert::equal($expected, $result);
+	Assert::equal(
+		expected: [
+			[
+				'id' => 1,
+				'firstname' => 'John',
+			],
+			[
+				'id' => 2,
+				'firstname' => 'Sam',
+			],
+		],
+		actual: $result);
 });

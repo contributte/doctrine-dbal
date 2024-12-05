@@ -6,7 +6,6 @@ use Contributte\Tester\Toolkit;
 use Contributte\Tester\Utils\ContainerBuilder;
 use Contributte\Tester\Utils\Neonkit;
 use Doctrine\DBAL\Configuration;
-use Nette\Bridges\CacheDI\CacheExtension;
 use Nette\DI\Compiler;
 use Nettrine\DBAL\DI\DbalExtension;
 use Tester\Assert;
@@ -19,27 +18,22 @@ require_once __DIR__ . '/../../bootstrap.php';
 Toolkit::test(function (): void {
 	$container = ContainerBuilder::of()
 		->withCompiler(static function (Compiler $compiler): void {
-			$compiler->addExtension('cache', new CacheExtension(Tests::TEMP_PATH));
 			$compiler->addExtension('nettrine.dbal', new DbalExtension());
-			$compiler->addExtension('nette.tracy', new TracyExtension());
-			$compiler->addConfig([
-				'parameters' => [
-					'tempDir' => Tests::TEMP_PATH,
-					'appDir' => Tests::APP_PATH,
-				],
-			]);
 			$compiler->addConfig(Neonkit::load(<<<'NEON'
 				nettrine.dbal:
-					configuration:
-						schemaAssetsFilter: Tests\Fixtures\DummySchemaFilter::filter
-					connection:
-						driver: pdo_sqlite
+					connections:
+						default:
+							driver: pdo_sqlite
+							password: test
+							user: test
+							path: ":memory:"
+							schemaAssetsFilter: Tests\Fixtures\DummySchemaFilter
 			NEON
 			));
 		})->build();
 
 	/** @var Configuration $configuration */
-	$configuration = $container->getByName('nettrine.dbal.configuration');
+	$configuration = $container->getByName('nettrine.dbal.connections.default.configuration');
 
 	Assert::type('callable', $configuration->getSchemaAssetsFilter());
 	Assert::true($configuration->getSchemaAssetsFilter()('fake'));
@@ -49,30 +43,31 @@ Toolkit::test(function (): void {
 Toolkit::test(function (): void {
 	$container = ContainerBuilder::of()
 		->withCompiler(static function (Compiler $compiler): void {
-			$compiler->addExtension('cache', new CacheExtension(Tests::TEMP_PATH));
 			$compiler->addExtension('nettrine.dbal', new DbalExtension());
-			$compiler->addExtension('nette.tracy', new TracyExtension());
-			$compiler->addConfig([
-				'parameters' => [
-					'tempDir' => Tests::TEMP_PATH,
-					'appDir' => Tests::APP_PATH,
-				],
-			]);
 			$compiler->addConfig(Neonkit::load(<<<'NEON'
 				nettrine.dbal:
-					configuration:
-						schemaAssetsFilter: @Tests\Fixtures\DummySchemaFilter
-					connection:
-						driver: pdo_sqlite
+					connections:
+						default:
+							driver: pdo_sqlite
+							password: test
+							user: test
+							path: "sqlite:///:memory:"
+							schemaAssetsFilter: @filter
+						second:
+							driver: pdo_sqlite
+							password: test
+							user: test
+							path: "sqlite:///:memory:"
+							schemaAssetsFilter: @Tests\Fixtures\DummySchemaFilter
 
 				services:
-					- Tests\Fixtures\DummySchemaFilter
+					filter: Tests\Fixtures\DummySchemaFilter
 			NEON
 			));
 		})->build();
 
 	/** @var Configuration $configuration */
-	$configuration = $container->getByName('nettrine.dbal.configuration');
+	$configuration = $container->getByName('nettrine.dbal.connections.default.configuration');
 
 	Assert::type('callable', $configuration->getSchemaAssetsFilter());
 	Assert::true($configuration->getSchemaAssetsFilter()('fake'));
