@@ -186,7 +186,7 @@ Supported drivers:
 > Take a look at more information in official Doctrine documentation:
 > - https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/caching.html
 
-A Doctrine can automatically cache result sets. The feature is optional though, and by default, no result set is cached.
+A Doctrine DBAL can automatically cache result sets. The feature is optional though, and by default, no result set is cached.
 You can enable the result cache by setting the `resultCache` configuration option to an instance of a cache driver.
 
 > [!WARNING]
@@ -221,9 +221,7 @@ nettrine.dbal:
     connections:
       default:
         # Creat cache manually
-        resultCache: Symfony\Component\Cache\Adapter\Psr16Adapter(
-            Symfony\Component\Cache\Adapter\FilesystemAdapter(%tempDir%/cache/dbal)
-        )
+        resultCache: Symfony\Component\Cache\Adapter\FilesystemAdapter(namespace: doctrine-dbal, defaultLifetime: 0, directory: %tempDir%/cache/dbal)
 
         # Use registered cache service
         resultCache: @cacheFilesystem
