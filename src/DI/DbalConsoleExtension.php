@@ -11,9 +11,9 @@ class DbalConsoleExtension extends CompilerExtension
 
 	private bool $cliMode;
 
-	public function __construct(?bool $cliMode = null)
+	public function __construct(bool $cliMode = false)
 	{
-		$this->cliMode = $cliMode ?? PHP_SAPI === 'cli';
+		$this->cliMode = $cliMode;
 	}
 
 	/**

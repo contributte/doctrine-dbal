@@ -2,153 +2,341 @@
 
 namespace Nettrine\DBAL\DI;
 
-use Contributte\Psr6\CachePool;
-use Contributte\Psr6\CachePoolFactory;
-use Doctrine\Common\EventSubscriber;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
-use Nette\Caching\Cache;
-use Nette\Caching\Storage;
 use Nette\DI\CompilerExtension;
-use Nette\DI\Definitions\Definition;
 use Nette\DI\Definitions\ServiceDefinition;
 use Nette\DI\Definitions\Statement;
-use Nette\PhpGenerator\ClassType;
+use Nette\Schema\Context;
+use Nette\Schema\Elements\Structure;
 use Nette\Schema\Expect;
+use Nette\Schema\Processor;
 use Nette\Schema\Schema;
 use Nettrine\DBAL\ConnectionFactory;
-use Nettrine\DBAL\Events\ContainerEventManager;
-use Nettrine\DBAL\Middleware\TracyMiddleware;
-use Nettrine\DBAL\Tracy\BlueScreen\DbalBlueScreen;
-use Nettrine\DBAL\Tracy\QueryPanel\QueryPanel;
-use ReflectionClass;
+use Nettrine\DBAL\DI\Helpers\SmartStatement;
+use Nettrine\DBAL\Middleware\Debug\DebugMiddleware;
+use Nettrine\DBAL\Middleware\Debug\DebugStack;
+use Nettrine\DBAL\Tracy\ConnectionPanel;
 use stdClass;
-use Throwable;
-use Tracy\Bar;
-use Tracy\BlueScreen;
 
 /**
  * @property-read stdClass $config
+ * @phpstan-type TConnectionConfig object{
+ *      application_name: string,
+ *      autoCommit: bool,
+ *      charset: string,
+ *      connectstring: string,
+ *      dbname: string,
+ *      driver: string,
+ *      driverOptions: mixed[],
+ *      exclusive: bool,
+ *      gssencmode: string,
+ *      host: string,
+ *      instancename: string,
+ *      memory: bool,
+ *      middlewares: array<string, string|array<string>|Statement>,
+ *      password: string,
+ *      path: string,
+ *      persistent: bool,
+ *      pooled: bool,
+ *      port: int,
+ *      protocol: string,
+ *      resultCache: mixed,
+ *      schemaAssetsFilter: mixed,
+ *      schemaManagerFactory: mixed,
+ *      serverVersion: string,
+ *      service: bool,
+ *      servicename: string,
+ *      ssl_ca: string,
+ *      ssl_capath: string,
+ *      ssl_cert: string,
+ *      ssl_cipher: string,
+ *      ssl_key: string,
+ *      sslcert: string,
+ *      sslcrl: string,
+ *      sslkey: string,
+ *      sslmode: string,
+ *      sslrootcert: string,
+ *      unix_socket: string,
+ *      user: string
+ *  }
  */
 class DbalExtension extends CompilerExtension
 {
 
 	public const TAG_MIDDLEWARE = 'nettrine.dbal.middleware';
+	public const TAG_MIDDLEWARE_INTERNAL = 'nettrine.dbal.middleware.internal';
+	public const TAG_CONNECTION = 'nettrine.dbal.connection';
 
 	public function getConfigSchema(): Schema
 	{
 		$expectService = Expect::anyOf(
 			Expect::string()->required()->assert(fn ($input) => str_starts_with($input, '@') || class_exists($input) || interface_exists($input)),
-			Expect::type(Statement::class),
-			Expect::string()->assert(fn (string $input) => is_callable($input)),
-		)->required();
+			Expect::type(Statement::class)->required(),
+		);
 
 		return Expect::structure([
 			'debug' => Expect::structure([
 				'panel' => Expect::bool(false),
 				'sourcePaths' => Expect::arrayOf('string'),
 			]),
-			'configuration' => Expect::structure([
-				'middlewares' => Expect::arrayOf(
-					$expectService,
-					Expect::string()->required()
-				),
-				'resultCache' => Expect::anyOf($expectService),
-				'schemaAssetsFilter' => Expect::anyOf($expectService),
-				'filterSchemaAssetsExpression' => Expect::string()->nullable(),
-				'schemaManagerFactory' => Expect::anyOf($expectService),
-				'autoCommit' => Expect::bool(true),
-			]),
-			'connection' => Expect::structure([
-				'driver' => Expect::mixed()->required(),
-				'types' => Expect::arrayOf('string', 'string'),
-				'typesMapping' => Expect::array(),
-			])->otherItems()->castTo('array'),
+			'types' => Expect::arrayOf('string', 'string'),
+			'typesMapping' => Expect::arrayOf('string', 'string'),
+			'connections' => Expect::arrayOf(
+				Expect::structure([
+					'application_name' => Expect::string(),
+					'charset' => Expect::string(),
+					'connectstring' => Expect::string(),
+					'dbname' => Expect::string(),
+					'driver' => Expect::anyOf('pdo_sqlite', 'sqlite3', 'pdo_mysql', 'mysqli', 'pdo_pgsql', 'pgsql', 'pdo_oci', 'oci8', 'pdo_sqlsrv', 'sqlsrv', 'ibm_db2'),
+					'driverOptions' => Expect::anyOf(Expect::null(), Expect::array()),
+					'exclusive' => Expect::bool(),
+					'gssencmode' => Expect::string(),
+					'host' => Expect::string(),
+					'instancename' => Expect::string(),
+					'memory' => Expect::bool(),
+					'password' => Expect::string(),
+					'path' => Expect::string(),
+					'persistent' => Expect::bool(),
+					'pooled' => Expect::bool(),
+					'port' => Expect::int(),
+					'protocol' => Expect::string(),
+					'serverVersion' => Expect::string(),
+					'service' => Expect::bool(),
+					'servicename' => Expect::string(),
+					'ssl_ca' => Expect::string(),
+					'ssl_capath' => Expect::string(),
+					'ssl_cert' => Expect::string(),
+					'ssl_cipher' => Expect::string(),
+					'ssl_key' => Expect::string(),
+					'sslcert' => Expect::string(),
+					'sslcrl' => Expect::string(),
+					'sslkey' => Expect::string(),
+					'sslmode' => Expect::string(),
+					'sslrootcert' => Expect::string(),
+					'unix_socket' => Expect::string(),
+					'user' => Expect::string(),
+					// Configuration
+					'middlewares' => Expect::arrayOf($expectService, Expect::string()->required()),
+					'resultCache' => (clone $expectService),
+					'schemaAssetsFilter' => (clone $expectService),
+					'schemaManagerFactory' => (clone $expectService),
+					'autoCommit' => Expect::bool(true),
+				]),
+				Expect::string()->required(),
+			)->min(1)->required(),
 		]);
+	}
+
+	/**
+	 * @return array<string, Structure>
+	 */
+	public function getDriverConfigSchema(): array
+	{
+		return [
+			'pdo_sqlite' => Expect::structure([
+				'driver' => Expect::anyOf('pdo_sqlite'),
+				'memory' => Expect::bool(),
+				'password' => Expect::string()->required(),
+				'path' => Expect::string()->required(),
+				'serverVersion' => Expect::string(),
+				'user' => Expect::string()->required(),
+			]),
+			'sqlite3' => Expect::structure([
+				'driver' => Expect::anyOf('sqlite3'),
+				'memory' => Expect::bool(),
+				'path' => Expect::string()->required(),
+				'serverVersion' => Expect::string(),
+			]),
+			'pdo_mysql' => Expect::structure([
+				'charset' => Expect::string(),
+				'dbname' => Expect::string()->required(),
+				'driver' => Expect::anyOf('pdo_mysql'),
+				'host' => Expect::string()->required(),
+				'password' => Expect::string()->required(),
+				'port' => Expect::int(),
+				'serverVersion' => Expect::string(),
+				'unix_socket' => Expect::string(),
+				'user' => Expect::string()->required(),
+			]),
+			'mysqli' => Expect::structure([
+				'charset' => Expect::string(),
+				'dbname' => Expect::string()->required(),
+				'driver' => Expect::anyOf('mysqli'),
+				'driverOptions' => Expect::array(),
+				'host' => Expect::string()->required(),
+				'password' => Expect::string()->required(),
+				'port' => Expect::int(),
+				'serverVersion' => Expect::string(),
+				'ssl_ca' => Expect::string(),
+				'ssl_capath' => Expect::string(),
+				'ssl_cert' => Expect::string(),
+				'ssl_cipher' => Expect::string(),
+				'ssl_key' => Expect::string(),
+				'unix_socket' => Expect::string(),
+				'user' => Expect::string()->required(),
+			]),
+			'pdo_pgsql' => Expect::structure([
+				'application_name' => Expect::string(),
+				'charset' => Expect::string(),
+				'dbname' => Expect::string()->required(),
+				'driver' => Expect::anyOf('pdo_pgsql'),
+				'gssencmode' => Expect::string(),
+				'host' => Expect::string()->required(),
+				'password' => Expect::string()->required(),
+				'port' => Expect::int(),
+				'serverVersion' => Expect::string(),
+				'sslcert' => Expect::string(),
+				'sslcrl' => Expect::string(),
+				'sslkey' => Expect::string(),
+				'sslmode' => Expect::string(),
+				'sslrootcert' => Expect::string(),
+				'user' => Expect::string()->required(),
+			]),
+			'pdo_oci' => Expect::structure([
+				'charset' => Expect::string(),
+				'connectstring' => Expect::string(),
+				'dbname' => Expect::string()->required(),
+				'driver' => Expect::anyOf('pdo_oci'),
+				'driverOptions' => Expect::array(),
+				'exclusive' => Expect::bool(),
+				'host' => Expect::string(),
+				'instancename' => Expect::string(),
+				'password' => Expect::string()->required(),
+				'persistent' => Expect::bool(),
+				'pooled' => Expect::bool(),
+				'port' => Expect::int(),
+				'protocol' => Expect::string(),
+				'serverVersion' => Expect::string(),
+				'service' => Expect::bool(),
+				'servicename' => Expect::string(),
+				'user' => Expect::string()->required(),
+			]),
+			'pdo_sqlsrv' => Expect::structure([
+				'dbname' => Expect::string()->required(),
+				'driver' => Expect::anyOf('pdo_sqlsrv'),
+				'driverOptions' => Expect::array(),
+				'host' => Expect::string()->required(),
+				'password' => Expect::string()->required(),
+				'port' => Expect::int(),
+				'serverVersion' => Expect::string(),
+				'user' => Expect::string()->required(),
+			]),
+			'ibm_db2' => Expect::structure([
+				'dbname' => Expect::string()->required(),
+				'driver' => Expect::anyOf('ibm_db2'),
+				'driverOptions' => Expect::array(),
+				'host' => Expect::string()->required(),
+				'password' => Expect::string()->required(),
+				'persistent' => Expect::bool(),
+				'port' => Expect::int(),
+				'serverVersion' => Expect::string(),
+				'user' => Expect::string()->required(),
+			]),
+		];
 	}
 
 	public function loadConfiguration(): void
 	{
-		$this->loadDoctrineConfiguration();
-		$this->loadConnectionConfiguration();
+		$builder = $this->getContainerBuilder();
+
+		// ConnectionFactory
+		$builder->addDefinition($this->prefix('connectionFactory'))
+			->setFactory(ConnectionFactory::class, [$this->config->types ?? [], $this->config->typesMapping ?? []]);
+
+		// Configure connections
+		foreach ($this->config->connections as $connectionName => $connectionConfig) {
+			// Validate connection configuration
+			$this->validateConnectionConfig($connectionName, $connectionConfig);
+
+			// Load connection configuration
+			$this->loadConnectionConfiguration($connectionName, $connectionConfig);
+		}
 	}
 
-	public function loadDoctrineConfiguration(): void
+	/**
+	 * @phpstan-param TConnectionConfig $connectionConfig
+	 */
+	public function loadConnectionConfiguration(string $connectionName, mixed $connectionConfig): void
 	{
 		$builder = $this->getContainerBuilder();
-		$configurationConfig = $this->config->configuration;
 
-		$configuration = $builder->addDefinition($this->prefix('configuration'));
+		// Configuration
+		$configuration = $builder->addDefinition($this->prefix(sprintf('connections.%s.configuration', $connectionName)));
 		$configuration->setFactory(Configuration::class)
 			->setAutowired(false);
 
+		// Configuration: schema assets filter
+		if ($connectionConfig->schemaAssetsFilter !== null) {
+			$configuration->addSetup('setSchemaAssetsFilter', [SmartStatement::from($connectionConfig->schemaAssetsFilter)]);
+		}
+
+		// Configuration: schema manager factory
+		if ($connectionConfig->schemaManagerFactory !== null) {
+			$configuration->addSetup('setSchemaManagerFactory', [SmartStatement::from($connectionConfig->schemaManagerFactory)]);
+		}
+
+		// Configuration: auto commit
+		$configuration->addSetup('setAutoCommit', [$connectionConfig->autoCommit]);
+
 		// Middlewares
-		foreach ($configurationConfig->middlewares as $name => $middleware) {
-			$builder->addDefinition($this->prefix('middleware.' . $name))
+		foreach ($connectionConfig->middlewares as $middlewareName => $middleware) {
+			$builder->addDefinition($this->prefix(sprintf('connections.%s.middleware.%s', $connectionName, $middlewareName)))
 				->setFactory($middleware)
-				->addTag(self::TAG_MIDDLEWARE);
+				->addTag(self::TAG_MIDDLEWARE, ['name' => $middlewareName])
+				->setAutowired(false);
 		}
 
-		// SchemaAssetsFilter
-		if ($configurationConfig->schemaAssetsFilter !== null) {
-			$configuration->addSetup('setSchemaAssetsFilter', [$configurationConfig->schemaAssetsFilter]);
-		}
-
-		// FilterSchemaAssetsExpression
-		if ($configurationConfig->filterSchemaAssetsExpression !== null) {
-			$configuration->addSetup('setFilterSchemaAssetsExpression', [$configurationConfig->filterSchemaAssetsExpression]);
-		}
-
-		// SchemaManagerFactory
-		if ($configurationConfig->schemaManagerFactory !== null) {
-			$configuration->addSetup('setSchemaManagerFactory', [$configurationConfig->schemaManagerFactory]);
-		}
-
-		// AutoCommit
-		$configuration->addSetup('setAutoCommit', [$configurationConfig->autoCommit]);
-
-		// Tracy middleware
+		// Middlewares: debug
 		if ($this->config->debug->panel) {
-			$builder->addDefinition($this->prefix('middleware.internal.tracy'))
-				->setFactory(TracyMiddleware::class)
-				->addTag(self::TAG_MIDDLEWARE);
+			$builder->addDefinition($this->prefix(sprintf('connections.%s.middleware.internal.debug.stack', $connectionName)))
+				->setFactory(DebugStack::class)
+				->setAutowired(false);
+			$builder->addDefinition($this->prefix(sprintf('connections.%s.middleware.internal.debug', $connectionName)))
+				->setFactory(DebugMiddleware::class, [$this->prefix(sprintf('@connections.%s.middleware.internal.debug.stack', $connectionName))])
+				->addTag(self::TAG_MIDDLEWARE_INTERNAL, ['name' => 'debug'])
+				->setAutowired(false);
 		}
-	}
-
-	public function loadConnectionConfiguration(): void
-	{
-		$builder = $this->getContainerBuilder();
-		$connectionConfig = $this->config->connection;
-
-		// Event manager
-		$builder->addDefinition($this->prefix('eventManager'))
-			->setFactory(ContainerEventManager::class);
-
-		// Connection factory
-		$builder->addDefinition($this->prefix('connectionFactory'))
-			->setFactory(ConnectionFactory::class, [$connectionConfig['types'], $connectionConfig['typesMapping']]);
 
 		// Connection
-		$builder->addDefinition($this->prefix('connection'))
+		$builder->addDefinition($this->prefix(sprintf('connections.%s.connection', $connectionName)))
 			->setType(Connection::class)
 			->setFactory($this->prefix('@connectionFactory') . '::createConnection', [
-				$connectionConfig,
-				$this->prefix('@configuration'),
-				$this->prefix('@eventManager'),
-			]);
+				(array) $connectionConfig,
+				$this->prefix(sprintf('@connections.%s.configuration', $connectionName)),
+				[],
+			])
+			->addTag(self::TAG_CONNECTION, ['name' => $connectionName])
+			->setAutowired($connectionName === 'default');
 	}
 
 	public function beforeCompile(): void
 	{
+		// Configure connections
+		foreach ($this->config->connections as $connectionName => $connectionConfig) {
+			$this->beforeConnectionCompile($connectionName, $connectionConfig);
+		}
+	}
+
+	/**
+	 * @phpstan-param TConnectionConfig $connectionConfig
+	 */
+	public function beforeConnectionCompile(string $connectionName, mixed $connectionConfig): void
+	{
 		$builder = $this->getContainerBuilder();
 
-		$configurationDef = $builder->getDefinition($this->prefix('configuration'));
+		$configurationDef = $builder->getDefinition($this->prefix(sprintf('connections.%s.configuration', $connectionName)));
 		assert($configurationDef instanceof ServiceDefinition);
 
-		// ResultCache
-		$configurationDef->addSetup('setResultCache', [$this->getResultCacheDefinition($this->config->configuration->resultCache)]);
+		$connectionDef = $builder->getDefinition($this->prefix(sprintf('connections.%s.connection', $connectionName)));
+		assert($connectionDef instanceof ServiceDefinition);
 
-		// Set middlewares
+		// Configuration: result cache
+		if ($connectionConfig->resultCache !== null) {
+			$configurationDef->addSetup('setResultCache', [SmartStatement::from($connectionConfig->resultCache)]);
+		}
+
+		// Configuration: middlewares
 		$configurationDef->addSetup('setMiddlewares', [
 			array_map(
 				fn (string $name) => $builder->getDefinition($name),
@@ -156,139 +344,39 @@ class DbalExtension extends CompilerExtension
 			),
 		]);
 
-		/** @var ServiceDefinition $eventManager */
-		$eventManager = $builder->getDefinition($this->prefix('eventManager'));
-
-		foreach ($builder->findByType(EventSubscriber::class) as $serviceName => $serviceDef) {
-			/** @var class-string<EventSubscriber> $serviceClass */
-			$serviceClass = (string) $serviceDef->getType();
-			$rc = new ReflectionClass($serviceClass);
-
-			/** @var EventSubscriber $subscriber */
-			$subscriber = $rc->newInstanceWithoutConstructor();
-			$events = $subscriber->getSubscribedEvents();
-
-			$eventManager->addSetup('?->addEventListener(?, ?)', ['@self', $events, $serviceName]);
-		}
-	}
-
-	public function afterCompile(ClassType $class): void
-	{
-		$builder = $this->getContainerBuilder();
-		$initialization = $this->getInitialization();
-
+		// Connection: tracy panel
 		if ($this->config->debug->panel) {
-			$initialization->addBody(
-				$builder->formatPhp('?->addPanel(?);', [
-					$builder->getDefinitionByType(BlueScreen::class),
-					[DbalBlueScreen::class, 'renderException'],
-				])
-			);
-
-			$initialization->addBody(
-				$builder->formatPhp('?->addPanel(?);', [
-					$builder->getDefinitionByType(Bar::class),
-					new Statement(QueryPanel::class, [$builder->getDefinitionByType(TracyMiddleware::class)]),
-				])
+			$debugStackDef = $builder->getDefinition($this->prefix(sprintf('connections.%s.middleware.internal.debug.stack', $connectionName)));
+			assert($debugStackDef instanceof ServiceDefinition);
+			$connectionDef->addSetup(
+				[ConnectionPanel::class, 'initialize'],
+				[$debugStackDef, $connectionName],
 			);
 		}
 	}
 
 	/**
-	 * @param string|mixed[]|Statement|null $cacheConfig
+	 * @phpstan-param TConnectionConfig $connectionConfig
 	 */
-	private function getResultCacheDefinition(string|array|Statement|null $cacheConfig): Definition
+	private function validateConnectionConfig(string $connectionName, mixed $connectionConfig): void
 	{
-		$builder = $this->getContainerBuilder();
+		$config = (array) $connectionConfig;
 
-		if ($cacheConfig !== null) {
-			if (is_string($cacheConfig)) {
-				$cacheConfig = $this->resolveCacheDriverDefinitionString($cacheConfig, $this->prefix('resultCache'));
-			}
+		// Unset unrelevant configuration
+		unset($config['middlewares']);
+		unset($config['resultCache']);
+		unset($config['schemaAssetsFilter']);
+		unset($config['schemaManagerFactory']);
+		unset($config['autoCommit']);
 
-			if ($cacheConfig instanceof Statement) {
-				$entity = $cacheConfig->getEntity();
+		// Filter out null values
+		$config = array_filter($config, fn ($value) => $value !== null);
 
-				if (is_string($entity) && is_a($entity, Storage::class, true)) {
-					$entity = Cache::class;
-					$cacheConfig = new Statement(
-						$entity,
-						[
-							'storage' => $cacheConfig,
-							'namespace' => $this->prefix('resultCache'),
-						]
-					);
-				}
-
-				if (is_string($entity) && is_a($entity, Cache::class, true)) {
-					return $builder->addDefinition($this->prefix('resultCache'))
-						->setFactory(new Statement(CachePool::class, [$cacheConfig]))
-						->setAutowired(false);
-				}
-			}
-
-			return $builder->addDefinition($this->prefix('resultCache'))
-				->setFactory($cacheConfig)
-				->setAutowired(false);
-		}
-
-		// No driver provided, create CacheItemPoolInterface with autowired Storage
-
-		// ICachePoolFactory doesn't have to be registered in DI container
-		$builder->addDefinition($this->prefix('cachePoolFactory'))
-			->setFactory(CachePoolFactory::class)
-			->setAutowired(false);
-
-		return $builder->addDefinition($this->prefix('resultCache'))
-			->setFactory('@' . $this->prefix('cachePoolFactory') . '::create', [$this->prefix('resultCache')])
-			->setAutowired(false);
-	}
-
-	private function resolveCacheDriverDefinitionString(string $config, string $cacheNamespace): string|Statement
-	{
-		$builder = $this->getContainerBuilder();
-
-		if (str_starts_with($config, '@')) {
-			$service = substr($config, 1);
-
-			if ($builder->hasDefinition($service)) {
-				$definition = $builder->getDefinition($service);
-			} else {
-				try {
-					$definition = $builder->getDefinitionByType($service);
-				} catch (Throwable) {
-					$definition = null;
-				}
-			}
-
-			$type = $definition?->getType();
-
-			if ($type === null) {
-				return $config;
-			}
-
-			if (is_a($type, Storage::class, true)) {
-				return new Statement(
-					Cache::class,
-					[
-						'storage' => $config,
-						'namespace' => $cacheNamespace,
-					]
-				);
-			}
-
-			if (is_a($type, Cache::class, true)) {
-				return new Statement(CachePool::class, [$config]);
-			}
-
-			return $config;
-		}
-
-		if (is_a($config, Storage::class, true)) {
-			return new Statement($config);
-		}
-
-		return $config;
+		$processor = new Processor();
+		$processor->onNewContext[] = function (Context $context) use ($connectionName): void {
+			$context->path = array_merge(['connections', $connectionName], $context->path);
+		};
+		$processor->process($this->getDriverConfigSchema()[$connectionConfig->driver], $config);
 	}
 
 }
