@@ -11,11 +11,11 @@ class ConnectionProvider implements DoctrineConnectionProvider
 {
 
 	/**
-	 * @param array<string, string> $connectionMap
+	 * @param array<string, string> $connectionsMap
 	 */
 	public function __construct(
 		private Container $container,
-		private array $connectionMap
+		private array $connectionsMap
 	)
 	{
 	}
@@ -27,7 +27,7 @@ class ConnectionProvider implements DoctrineConnectionProvider
 
 	public function getConnection(string $name): Connection
 	{
-		$service = $this->connectionMap[$name] ?? null;
+		$service = $this->connectionsMap[$name] ?? null;
 
 		if ($service === null) {
 			throw new LogicalException(sprintf('Service for connection "%s" not found', $name));
