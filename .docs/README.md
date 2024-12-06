@@ -291,6 +291,8 @@ nettrine.dbal:
     panel: %debugMode%
 ```
 
+![Tracy](https://raw.githubusercontent.com/nettrine/dbal/master/.docs/assets/tracy.png)
+
 ### Middlewares
 
 > [!TIP]
