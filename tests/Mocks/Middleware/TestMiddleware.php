@@ -1,10 +1,10 @@
 <?php declare(strict_types = 1);
 
-namespace Tests\Fixtures\Middleware;
+namespace Tests\Mocks\Middleware;
 
 use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Driver\Middleware;
-use Tests\Fixtures\Driver\TestDriver;
+use Tests\Mocks\Driver\TestDriver;
 
 final class TestMiddleware implements Middleware
 {

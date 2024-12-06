@@ -10,7 +10,7 @@ use Nette\DI\Compiler;
 use Nette\DI\InvalidConfigurationException;
 use Nettrine\DBAL\DI\DbalExtension;
 use Tester\Assert;
-use Tests\Fixtures\Driver\TestDriver;
+use Tests\Mocks\Driver\TestDriver;
 
 require_once __DIR__ . '/../../bootstrap.php';
 
@@ -27,7 +27,7 @@ Toolkit::test(function (): void {
 							user: test
 							path: ":memory:"
 							middlewares:
-								test: Tests\Fixtures\Middleware\TestMiddleware
+								test: Tests\Mocks\Middleware\TestMiddleware
 			NEON
 			));
 		})->build();

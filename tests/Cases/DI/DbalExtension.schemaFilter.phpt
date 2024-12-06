@@ -25,7 +25,7 @@ Toolkit::test(function (): void {
 							password: test
 							user: test
 							path: ":memory:"
-							schemaAssetsFilter: Tests\Fixtures\DummySchemaFilter
+							schemaAssetsFilter: Tests\Mocks\DummySchemaFilter
 			NEON
 			));
 		})->build();
@@ -56,10 +56,10 @@ Toolkit::test(function (): void {
 							password: test
 							user: test
 							path: "sqlite:///:memory:"
-							schemaAssetsFilter: @Tests\Fixtures\DummySchemaFilter
+							schemaAssetsFilter: @Tests\Mocks\DummySchemaFilter
 
 				services:
-					filter: Tests\Fixtures\DummySchemaFilter
+					filter: Tests\Mocks\DummySchemaFilter
 			NEON
 			));
 		})->build();
