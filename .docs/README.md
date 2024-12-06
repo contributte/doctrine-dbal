@@ -201,7 +201,7 @@ nettrine.dbal:
     default:
       configuration:
         # Create cache manually
-        resultCache: App\CacheService(%tempDir%/cache/orm)
+        resultCache: App\CacheService(%tempDir%/cache/dbal)
 
         # Use registered cache service
         resultCache: @cacheService
@@ -229,7 +229,7 @@ nettrine.dbal:
         resultCache: @cacheFilesystem
 ```
 
-If you like [`nette/caching`](https://github.com/nette/caching) you can use it as well. Be aware that `nette/caching` is not PSR-6 compatible, you need `contributte/psr16-caching`.
+If you like [`nette/caching`](https://github.com/nette/caching) you can use it as well. Be aware that `nette/caching` is not PSR-6 + PSR-16 compatible, you need `contributte/psr16-caching`.
 
 ```neon
 nettrine.dbal:
@@ -408,7 +408,7 @@ nettrine.dbal:
 ### Console
 
 > [!TIP]
-> Doctrine needs Symfony Console to work. You can use `symfony/console` or [contributte/console](https://github.com/contributte/console).
+> Doctrine DBAL needs Symfony Console to work. You can use `symfony/console` or [contributte/console](https://github.com/contributte/console).
 
 ```bash
 composer require contributte/console
