@@ -10,6 +10,7 @@ use Nette\Schema\Elements\Structure;
 use Nette\Schema\Expect;
 use Nette\Schema\Processor;
 use Nettrine\DBAL\DI\DbalExtension;
+use Nettrine\DBAL\DI\Helpers\BuilderMan;
 use Nettrine\DBAL\DI\Helpers\SmartStatement;
 use Nettrine\DBAL\Middleware\Debug\DebugMiddleware;
 use Nettrine\DBAL\Middleware\Debug\DebugStack;
@@ -75,7 +76,7 @@ class ConnectionPass extends AbstractPass
 		foreach ($connectionConfig->middlewares as $middlewareName => $middleware) {
 			$builder->addDefinition($this->prefix(sprintf('connections.%s.middleware.%s', $connectionName, $middlewareName)))
 				->setFactory($middleware)
-				->addTag(DbalExtension::MIDDLEWARE_TAG, ['name' => $middlewareName])
+				->addTag(DbalExtension::MIDDLEWARE_TAG, ['connection' => $connectionName, 'middleware' => $middlewareName])
 				->setAutowired(false);
 		}
 
@@ -85,8 +86,8 @@ class ConnectionPass extends AbstractPass
 				->setFactory(DebugStack::class)
 				->setAutowired(false);
 			$builder->addDefinition($this->prefix(sprintf('connections.%s.middleware.internal.debug', $connectionName)))
-				->setFactory(DebugMiddleware::class, [$this->prefix(sprintf('@connections.%s.middleware.internal.debug.stack', $connectionName))])
-				->addTag(DbalExtension::MIDDLEWARE_INTERNAL_TAG, ['name' => 'debug'])
+				->setFactory(DebugMiddleware::class, [$this->prefix(sprintf('@connections.%s.middleware.internal.debug.stack', $connectionName)), $connectionName])
+				->addTag(DbalExtension::MIDDLEWARE_INTERNAL_TAG, ['connection' => $connectionName, 'middleware' => 'debug'])
 				->setAutowired(false);
 		}
 
@@ -122,12 +123,7 @@ class ConnectionPass extends AbstractPass
 		}
 
 		// Configuration: middlewares
-		$configurationDef->addSetup('setMiddlewares', [
-			array_map(
-				fn (string $name) => $builder->getDefinition($name),
-				array_keys($builder->findByTag(DbalExtension::MIDDLEWARE_TAG))
-			),
-		]);
+		$configurationDef->addSetup('setMiddlewares', [BuilderMan::of($this)->getMiddlewaresBy($connectionName)]);
 
 		// Connection: tracy panel
 		if ($config->debug->panel) {

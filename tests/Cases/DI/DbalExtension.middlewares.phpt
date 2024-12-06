@@ -14,6 +14,7 @@ use Tests\Mocks\Driver\TestDriver;
 
 require_once __DIR__ . '/../../bootstrap.php';
 
+// Register middleware
 Toolkit::test(function (): void {
 	$container = ContainerBuilder::of()
 		->withCompiler(static function (Compiler $compiler): void {
@@ -38,6 +39,7 @@ Toolkit::test(function (): void {
 	Assert::type(TestDriver::class, $connection->getDriver());
 });
 
+// Invalid middleware
 Toolkit::test(function (): void {
 	Assert::exception(
 		function (): void {

@@ -7,6 +7,9 @@ use Stringable;
 use Tracy\Debugger;
 use Tracy\Dumper;
 
+/**
+ * @TODO
+ */
 class TracyBarLogger extends AbstractLogger
 {
 

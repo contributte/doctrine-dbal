@@ -40,6 +40,14 @@ class DebugStack
 		return $data;
 	}
 
+	/**
+	 * @return array<int, array{sql: string, params: mixed[], types: mixed[], duration: float }>
+	 */
+	public function getDataBy(string $connectionName): array
+	{
+		return $this->getData()[$connectionName] ?? [];
+	}
+
 	public function reset(): void
 	{
 		$this->data = [];

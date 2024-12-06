@@ -28,40 +28,39 @@ use Tracy\Dumper;
 	}
 </style>
 
-<?php if ($queriesNum === 0): ?>
+<?php if ($queriesNum === 0) { ?>
 	<h1>No queries</h1>
-<?php else: ?>
+<?php } else { ?>
 	<h1>Queries:
 		<?= $queriesNum ?>,
 		time:
 		<?= $totalTime ? sprintf('%0.3f', $totalTime * 1000) : ''; ?> ms
 	</h1>
-<?php endif; ?>
-
-<div class="tracy-inner nettrine-dbal">
-	<?php if ($queries !== []): ?>
-		<table class="tracy-sortable">
-			<tr>
-				<th>Time&nbsp;ms</th>
-				<th>SQL</th>
-				<th>Params</th>
-			</tr>
-
-			<?php foreach ($queries as $q): ?>
+	<div class="tracy-inner nettrine-dbal">
+		<?php if ($queries !== []): ?>
+			<table class="tracy-sortable">
 				<tr>
-					<td>
-						<?= sprintf('%0.2f', $q['duration'] * 1000); ?>
-					</td>
-					<td class="tracy-dbal-sql">
-						<?= $q['sql']; ?>
-					</td>
-					<td class="tracy-dbal-sql">
-						<?= Dumper::toHtml($q['params']); ?>
-						<?= Dumper::toHtml($q['types'], [Dumper::COLLAPSE => true]); ?>
-					</td>
+					<th>Time&nbsp;ms</th>
+					<th>SQL</th>
+					<th>Params</th>
 				</tr>
-			<?php endforeach; ?>
 
-		</table>
-	<?php endif; ?>
-</div>
+				<?php foreach ($queries as $q): ?>
+					<tr>
+						<td>
+							<?= sprintf('%0.2f', $q['duration'] * 1000); ?>
+						</td>
+						<td class="tracy-dbal-sql">
+							<?= $q['sql']; ?>
+						</td>
+						<td class="tracy-dbal-sql">
+							<?= Dumper::toHtml($q['params']); ?>
+							<?= Dumper::toHtml($q['types'], [Dumper::COLLAPSE => true]); ?>
+						</td>
+					</tr>
+				<?php endforeach; ?>
+
+			</table>
+		<?php endif; ?>
+	</div>
+<?php } ?>

@@ -42,6 +42,31 @@ final class BuilderMan
 	/**
 	 * @return array<string, Definition>
 	 */
+	public function getMiddlewaresBy(string $connectionName): array
+	{
+		$builder = $this->pass->getContainerBuilder();
+		$definitions = [];
+
+		/** @var array{connection: string, middleware: string} $tagValue */
+		foreach ($builder->findByTag(DbalExtension::MIDDLEWARE_INTERNAL_TAG) as $serviceName => $tagValue) {
+			if ($tagValue['connection'] === $connectionName) {
+				$definitions[$tagValue['middleware']] = $builder->getDefinition($serviceName);
+			}
+		}
+
+		/** @var array{connection: string, middleware: string} $tagValue */
+		foreach ($builder->findByTag(DbalExtension::MIDDLEWARE_TAG) as $serviceName => $tagValue) {
+			if ($tagValue['connection'] === $connectionName) {
+				$definitions[$tagValue['middleware']] = $builder->getDefinition($serviceName);
+			}
+		}
+
+		return $definitions;
+	}
+
+	/**
+	 * @return array<string, Definition>
+	 */
 	public function getServiceDefinitionsByTag(string $tag): array
 	{
 		$builder = $this->pass->getContainerBuilder();
