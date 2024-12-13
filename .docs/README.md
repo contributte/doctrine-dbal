@@ -8,6 +8,8 @@ Integration of [Doctrine DBAL](https://www.doctrine-project.org/projects/dbal.ht
 - [Configuration](#configuration)
   - [Minimal configuration](#minimal-configuration)
   - [Advanced configuration](#advanced-configuration)
+  - [Encoding](#encoding)
+  - [Replicas](#replicas)
   - [Caching](#caching)
   - [Types](#types)
   - [Debug](#debug)
@@ -43,12 +45,7 @@ nettrine.dbal:
   connections:
     default:
       driver: pdo_pgsql
-      host: localhost
-      port: 5432
-      user: root
-      password: root
-      charset: utf8
-      dbname: nettrine
+      url: "postgresql://user:password@localhost:5432/dbname"
 ```
 
 **PostgreSQL**
@@ -58,10 +55,7 @@ nettrine.dbal:
   connections:
     default:
       driver: pdo_pgsql
-      host: localhost
-      port: 5432
-      user: root
-      password: root
+      url: "postgresql://user:password@localhost:5432/dbname"
 ```
 
 **MySQL / MariaDB**
@@ -71,10 +65,7 @@ nettrine.dbal:
   connections:
     default:
       driver: mysqli
-      host: localhost
-      port: 3306
-      user: root
-      password: root
+      url: "mysql://user:passoword@localhost:3306/dbname"
 ```
 
 **SQLite**
@@ -84,9 +75,7 @@ nettrine.dbal:
   connections:
     default:
       driver: pdo_sqlite
-      password: test
-      user: test
-      path: ":memory:"
+      url: "sqlite:///:memory:"
 ```
 
 ### Advanced configuration
@@ -108,22 +97,28 @@ nettrine.dbal:
       charset: <string>
       connectstring: <string>
       dbname: <string>
+      defaultTableOptions: <array<string, mixed>>
       driver: <'pdo_sqlite', 'sqlite3', 'pdo_mysql', 'mysqli', 'pdo_pgsql', 'pgsql', 'pdo_oci', 'oci8', 'pdo_sqlsrv', 'sqlsrv', 'ibm_db2'>
+      driverClass: <string>
       driverOptions: <array<string, mixed>>
       exclusive: <string>
       gssencmode: <string>
       host: <string>
       instancename: <string>
-      memory: <string>
+      keepReplica: <bool>
+      memory: <bool>
       password: <string>
       path: <string>
-      persistent: <string>
+      persistent: <bool>
       pooled: <string>
       port: <int>
+      primary: <connection-config>
       protocol: <string>
+      replica: array<string, connection-config>
       serverVersion: <string>
       service: <string>
       servicename: <string>
+      sessionMode: <int>
       ssl_ca: <string>
       ssl_capath: <string>
       ssl_cert: <string>
@@ -135,7 +130,9 @@ nettrine.dbal:
       sslmode: <string>
       sslrootcert: <string>
       unix_socket: <string>
+      url: <string>
       user: <string>
+      wrapperClass: <string>
 
       # Config
       middlewares: array<string, <service|class-name>>
@@ -155,14 +152,20 @@ nettrine.dbal:
     uuid: Ramsey\Uuid\Doctrine\UuidType
 
   connections:
+    # Short DSN configuration
     default:
+      driver: pdo_pgsql
+      url: "postgresql://user:password@localhost:5432/dbname?charset=utf8"
+
+    # Explicit configuration
+    second:
       driver: pdo_pgsql
       host: localhost
       port: 5432
-      user: root
-      password: root
+      user: user
+      password: password
+      dbname: dbname
       charset: utf8
-      dbname: nettrine
 ```
 
 Supported drivers:
@@ -181,6 +184,38 @@ Supported drivers:
 
 > [!TIP]
 > Take a look at real **Nettrine DBAL** configuration example at [contributte/doctrine-project](https://github.com/contributte/doctrine-project/blob/f226bcf46b9bcce2f68961769a02e507936e4682/config/config.neon).
+
+### Encoding
+
+You can set encoding for your connection.
+
+```neon
+nettrine.dbal:
+  connections:
+    default:
+      charset: utf8
+      defaultTableOptions:
+        charset: utf8
+        collate: utf8_unicode_ci
+```
+
+### Replicas
+
+Doctrine DBAL supports read replicas. You can define them in the configuration.
+
+```neon
+nettrine.dbal:
+  connections:
+    default:
+      driver: pdo_pgsql
+      wrapperClass: Doctrine\DBAL\Connections\PrimaryReadReplicaConnection
+      url: "postgresql://user:password@localhost:5432/table?charset=utf8&serverVersion=15.0"
+      replica:
+        read1:
+          url: "postgresql://user:password@read-db1:5432/table?charset=utf8"
+        read2:
+          url: "postgresql://user:password@read-db2:5432/table?charset=utf8"
+```
 
 ### Caching
 
