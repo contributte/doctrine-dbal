@@ -13,6 +13,7 @@ use Nettrine\DBAL\DI\Pass\ConnectionPass;
 use Nettrine\DBAL\DI\Pass\ConsolePass;
 use Nettrine\DBAL\DI\Pass\DoctrinePass;
 use stdClass;
+use Tracy\Debugger;
 
 /**
  * @property-read stdClass $config
@@ -79,8 +80,14 @@ class DbalExtension extends CompilerExtension
 	/** @var AbstractPass[] */
 	protected array $passes = [];
 
-	public function __construct()
+	public function __construct(
+		private ?bool $debugMode = null
+	)
 	{
+		if ($this->debugMode === null) {
+			$this->debugMode = class_exists(Debugger::class) && Debugger::$productionMode === false;
+		}
+
 		$this->passes[] = new DoctrinePass($this);
 		$this->passes[] = new ConsolePass($this);
 		$this->passes[] = new ConnectionPass($this);
@@ -107,7 +114,7 @@ class DbalExtension extends CompilerExtension
 
 		return Expect::structure([
 			'debug' => Expect::structure([
-				'panel' => Expect::bool(false),
+				'panel' => Expect::bool($this->debugMode),
 				'sourcePaths' => Expect::arrayOf('string'),
 			]),
 			'types' => Expect::arrayOf('string', 'string'),

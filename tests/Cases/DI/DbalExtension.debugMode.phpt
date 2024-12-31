@@ -16,10 +16,36 @@ use Tracy\Debugger;
 
 require_once __DIR__ . '/../../bootstrap.php';
 
-// Debug mode
+// Disabled debug mode
 Toolkit::test(function (): void {
 	$container = ContainerBuilder::of()
 		->withCompiler(static function (Compiler $compiler): void {
+			$compiler->addExtension('nettrine.dbal', new DbalExtension());
+			$compiler->addExtension('nette.tracy', new TracyExtension());
+			$compiler->addConfig(Neonkit::load(<<<'NEON'
+				nettrine.dbal:
+					connections:
+						default:
+							driver: pdo_sqlite
+							password: test
+							user: test
+							path: ":memory:"
+			NEON
+			));
+		})->build();
+
+	$container->getByName('nettrine.dbal.connections.default.connection');
+	$blueScreen = Debugger::getBlueScreen();
+	$panels = Liberator::of($blueScreen)->panels;
+
+	Assert::count(0, $panels);
+});
+
+// Debug mode auto-detection from Tracy/Debugger with multiple panels
+Toolkit::test(function (): void {
+	$container = ContainerBuilder::of()
+		->withCompiler(static function (Compiler $compiler): void {
+			Debugger::$productionMode = false;
 			$compiler->addExtension('nettrine.dbal', new DbalExtension());
 			$compiler->addExtension('nette.tracy', new TracyExtension());
 			$compiler->addConfig(Neonkit::load(<<<'NEON'
@@ -36,10 +62,9 @@ Toolkit::test(function (): void {
 							password: test
 							user: test
 							path: ":memory:"
-					debug:
-						panel: true
 			NEON
 			));
+			Debugger::$productionMode = null;
 		})->build();
 
 	$container->getByName('nettrine.dbal.connections.default.connection');
@@ -50,7 +75,32 @@ Toolkit::test(function (): void {
 	Assert::count(2, $panels);
 });
 
-// Debug mode
+// Debug mode passed via constructor
+Toolkit::test(function (): void {
+	$container = ContainerBuilder::of()
+		->withCompiler(static function (Compiler $compiler): void {
+			$compiler->addExtension('nettrine.dbal', new DbalExtension(true));
+			$compiler->addExtension('nette.tracy', new TracyExtension());
+			$compiler->addConfig(Neonkit::load(<<<'NEON'
+				nettrine.dbal:
+					connections:
+						default:
+							driver: pdo_sqlite
+							password: test
+							user: test
+							path: ":memory:"
+			NEON
+			));
+		})->build();
+
+	$container->getByName('nettrine.dbal.connections.default.connection');
+	$blueScreen = Debugger::getBlueScreen();
+	$panels = Liberator::of($blueScreen)->panels;
+
+	Assert::count(3, $panels); // 2 are from previous test
+});
+
+// Debug mode defined in debug.panel, testing DebugStack middleware
 Toolkit::test(function (): void {
 	$container = ContainerBuilder::of()
 		->withCompiler(static function (Compiler $compiler): void {

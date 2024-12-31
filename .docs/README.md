@@ -33,6 +33,8 @@ extensions:
   nettrine.dbal: Nettrine\DBAL\DI\DbalExtension
 ```
 
+Debug mode can be passed in extension constructor `DbalExtension(%debugMode%)`, but it's optional and determined automatically from `Tracy\Debugger::$productionMode`.
+
 > [!NOTE]
 > This is just **DBAL**, for **ORM** please use [nettrine/orm](https://github.com/contributte/doctrine-orm).
 
@@ -85,7 +87,7 @@ Here is the list of all available options with their types.
  ```neon
 nettrine.dbal:
   debug:
-    panel: <boolean>
+    panel: <boolean> # optional, it's determined automatically or passed to constructor when extension is registered
 
   types: array<string, class-string>
   typesMapping: array<string, class-string>
