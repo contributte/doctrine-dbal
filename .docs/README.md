@@ -147,9 +147,6 @@ For example:
 
 ```neon
 nettrine.dbal:
-  debug:
-    panel: %debugMode%
-
   types:
     uuid: Ramsey\Uuid\Doctrine\UuidType
 
@@ -320,6 +317,7 @@ nettrine.dbal:
 ### Debug
 
 This library provides Tracy panel for debugging queries. You can enable it by setting `debug.panel` to `true`.
+Default value is reversed value of `Tracy\Debugger::$productionMode`, or you can pass it to extension constructor.
 You can also specify source paths for Tracy panel. This is useful when you want to see the source code of the query.
 
 ```neon
