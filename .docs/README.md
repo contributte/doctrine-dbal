@@ -33,6 +33,8 @@ extensions:
   nettrine.dbal: Nettrine\DBAL\DI\DbalExtension
 ```
 
+Debug mode can be passed in extension constructor `DbalExtension(%debugMode%)`, but it's optional and determined automatically from `Tracy\Debugger::$productionMode`.
+
 > [!NOTE]
 > This is just **DBAL**, for **ORM** please use [nettrine/orm](https://github.com/contributte/doctrine-orm).
 
@@ -85,7 +87,7 @@ Here is the list of all available options with their types.
  ```neon
 nettrine.dbal:
   debug:
-    panel: <boolean>
+    panel: <boolean> # optional, it's determined automatically or passed to constructor when extension is registered
 
   types: array<string, class-string>
   typesMapping: array<string, class-string>
@@ -145,9 +147,6 @@ For example:
 
 ```neon
 nettrine.dbal:
-  debug:
-    panel: %debugMode%
-
   types:
     uuid: Ramsey\Uuid\Doctrine\UuidType
 
@@ -318,6 +317,7 @@ nettrine.dbal:
 ### Debug
 
 This library provides Tracy panel for debugging queries. You can enable it by setting `debug.panel` to `true`.
+Default value is reversed value of `Tracy\Debugger::$productionMode`, or you can pass it to extension constructor.
 You can also specify source paths for Tracy panel. This is useful when you want to see the source code of the query.
 
 ```neon
