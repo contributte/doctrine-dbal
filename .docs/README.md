@@ -33,7 +33,12 @@ extensions:
   nettrine.dbal: Nettrine\DBAL\DI\DbalExtension
 ```
 
-Debug mode can be passed in extension constructor `DbalExtension(%debugMode%)`, but it's optional and determined automatically from `Tracy\Debugger::$productionMode`.
+For better integration with Nette Framework and Tracy, pass `%debugMode%` to the extension constructor. Learn more in [debug chapter](#debug).
+
+```neon
+extensions:
+  nettrine.dbal: Nettrine\DBAL\DI\DbalExtension(%debugMode%)
+```
 
 > [!NOTE]
 > This is just **DBAL**, for **ORM** please use [nettrine/orm](https://github.com/contributte/doctrine-orm).
@@ -41,14 +46,6 @@ Debug mode can be passed in extension constructor `DbalExtension(%debugMode%)`, 
 ## Configuration
 
 ### Minimal configuration
-
-```neon
-nettrine.dbal:
-  connections:
-    default:
-      driver: pdo_pgsql
-      url: "postgresql://user:password@localhost:5432/dbname"
-```
 
 **PostgreSQL**
 
@@ -316,15 +313,30 @@ nettrine.dbal:
 
 ### Debug
 
-This library provides Tracy panel for debugging queries. You can enable it by setting `debug.panel` to `true`.
-Default value is reversed value of `Tracy\Debugger::$productionMode`, or you can pass it to extension constructor.
-You can also specify source paths for Tracy panel. This is useful when you want to see the source code of the query.
+This library provides Tracy panel(s) for debugging queries.
 
-```neon
-nettrine.dbal:
-  debug:
-    panel: %debugMode%
-```
+You can enable Tracy panels(s) multiple ways:
+
+1. Autodetect in development mode (`Tracy\Debugger::$productionMode = FALSE`). [Learn more about Nette & Tracy](https://doc.nette.org/en/application/bootstrap).
+
+  ```php
+  $configurator->enableTracy(...);
+  ```
+
+2. Manually provide `%debugMode%` to the extension.
+
+  ```neon
+  extensions:
+    nettrine.dbal: Nettrine\DBAL\DI\DbalExtension(%debugMode%)
+  ```
+
+3. Manually set `debug.panel` to `true` in NEON configuration.
+
+  ```neon
+  nettrine.dbal:
+    debug:
+      panel: %debugMode%
+  ```
 
 ![Tracy](https://raw.githubusercontent.com/nettrine/dbal/master/.docs/assets/tracy.png)
 

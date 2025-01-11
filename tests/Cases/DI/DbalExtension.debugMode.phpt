@@ -38,7 +38,7 @@ Toolkit::test(function (): void {
 	$blueScreen = Debugger::getBlueScreen();
 	$panels = Liberator::of($blueScreen)->panels;
 
-	Assert::count(0, $panels);
+	Assert::count(0, $panels); // no debug mode = no panel
 });
 
 // Debug mode auto-detection from Tracy/Debugger with multiple panels
@@ -72,7 +72,10 @@ Toolkit::test(function (): void {
 	$blueScreen = Debugger::getBlueScreen();
 	$panels = Liberator::of($blueScreen)->panels;
 
-	Assert::count(2, $panels);
+	Assert::count(2, $panels); // 2 connections = 2 panels
+
+	// Cleanup panels
+	Liberator::of($blueScreen)->panels = [];
 });
 
 // Debug mode passed via constructor
@@ -97,7 +100,10 @@ Toolkit::test(function (): void {
 	$blueScreen = Debugger::getBlueScreen();
 	$panels = Liberator::of($blueScreen)->panels;
 
-	Assert::count(3, $panels); // 2 are from previous test
+	Assert::count(1, $panels); // 1 connection = 1 panel
+
+	// Cleanup panels
+	Liberator::of($blueScreen)->panels = [];
 });
 
 // Debug mode defined in debug.panel, testing DebugStack middleware
