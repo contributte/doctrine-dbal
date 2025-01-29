@@ -19,6 +19,7 @@ class DebugStack
 			'params' => $query->getParams(),
 			'types' => $query->getTypes(),
 			'duration' => $query->getDuration(...), // stop() may not be called at this point
+			'source' => $query->getSource(),
 		];
 	}
 
