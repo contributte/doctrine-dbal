@@ -6,6 +6,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\Exception;
 use Doctrine\DBAL\Query\QueryException;
 use Nettrine\DBAL\Middleware\Debug\DebugStack;
+use Nettrine\DBAL\Utils\Formatter;
 use PDO;
 use PDOException;
 use Throwable;
@@ -22,15 +23,19 @@ class ConnectionPanel implements IBarPanel
 
 	protected string $connectionName;
 
-	private function __construct(DebugStack $stack, string $connectionName)
+	protected Connection $connection;
+
+	private function __construct(DebugStack $stack, string $connectionName, Connection $connection)
 	{
 		$this->stack = $stack;
 		$this->connectionName = $connectionName;
+		$this->connection = $connection;;
 	}
 
 	public static function initialize(
 		DebugStack $stack,
 		string $connectionName,
+		Connection $connection,
 		?Bar $bar = null,
 		?BlueScreen $blueScreen = null,
 	): self
@@ -38,7 +43,7 @@ class ConnectionPanel implements IBarPanel
 		$blueScreen ??= Debugger::getBlueScreen();
 		$blueScreen->addPanel(self::renderException(...));
 
-		$panel = new self($stack, $connectionName);
+		$panel = new self($stack, $connectionName, $connection);
 		$bar ??= Debugger::getBar();
 		$bar->addPanel($panel);
 
@@ -107,6 +112,7 @@ class ConnectionPanel implements IBarPanel
 	{
 		// phpcs:disable
 		return Helpers::capture(function (): void {
+			$connection = $this->connection;
 			$queries = $this->stack->getDataBy($this->connectionName);
 			$queriesNum = count($queries);
 			$totalTime = 0;
@@ -114,6 +120,8 @@ class ConnectionPanel implements IBarPanel
 			foreach ($queries as $query) {
 				$totalTime += $query['duration'];
 			}
+
+			$formatter = new Formatter();
 
 			require __DIR__ . '/templates/panel.phtml';
 		});
