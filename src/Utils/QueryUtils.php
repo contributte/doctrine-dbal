@@ -34,4 +34,31 @@ final class QueryUtils
 		return trim((string) $sql);
 	}
 
+	/**
+	 * @return mixed[]
+	 */
+	public static function getSource(array $sourcePaths, array $backtrace): array
+	{
+		$result = [];
+		if (count($sourcePaths) === 0) {
+			return $result;
+		}
+
+		foreach ($backtrace as $i) {
+			if (!isset($i['file'], $i['line'])) {
+				continue;
+			}
+
+			foreach ($sourcePaths as $path) {
+				$path = realpath($path);
+
+				if (str_contains($i['file'], $path)) {
+					$result[] = $i;
+				}
+			}
+		}
+
+		return $result;
+	}
+
 }

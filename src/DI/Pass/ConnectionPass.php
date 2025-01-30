@@ -82,8 +82,9 @@ class ConnectionPass extends AbstractPass
 
 		// Middlewares: debug
 		if ($config->debug->panel) {
+			$sourcePaths = $config->debug->sourcePaths;
 			$builder->addDefinition($this->prefix(sprintf('connections.%s.middleware.internal.debug.stack', $connectionName)))
-				->setFactory(DebugStack::class)
+				->setFactory(DebugStack::class, ['sourcePaths' => $sourcePaths])
 				->setAutowired(false);
 			$builder->addDefinition($this->prefix(sprintf('connections.%s.middleware.internal.debug', $connectionName)))
 				->setFactory(DebugMiddleware::class, [$this->prefix(sprintf('@connections.%s.middleware.internal.debug.stack', $connectionName)), $connectionName])

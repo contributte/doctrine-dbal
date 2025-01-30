@@ -10,27 +10,27 @@ use Tracy\Helpers;
 /** @var int $totalTime */
 /** @var array<array{sql: string, params: mixed[], types: mixed[], duration: float }> $queries */
 ?>
-<style>
-	#tracy-debug td.tracy-dbal-sql {
-		background: white !important
-	}
+	<style>
+		#tracy-debug td.tracy-dbal-sql {
+			background: white !important
+		}
 
-	#tracy-debug .tracy-dbal-source {
-		color: #999 !important
-	}
+		#tracy-debug .tracy-dbal-source {
+			color: #999 !important
+		}
 
-	#tracy-debug .tracy-dbal tr table {
-		margin: 8px 0;
-		max-height: 150px;
-		overflow: auto
-	}
+		#tracy-debug .tracy-dbal tr table {
+			margin: 8px 0;
+			max-height: 150px;
+			overflow: auto
+		}
 
-	#tracy-debug .nettrine-dbal td > a.tracy-toggle::before {
-		content: 'source';
-	}
-</style>
+		#tracy-debug .nettrine-dbal td > a.tracy-toggle::before {
+			content: 'source';
+		}
+	</style>
 
-<?php if ($queriesNum === 0) { ?>
+	<?php if ($queriesNum === 0) { ?>
 	<h1>No queries</h1>
 <?php } else { ?>
 	<h1>Queries:
@@ -44,7 +44,7 @@ use Tracy\Helpers;
 				<tr>
 					<th>Time&nbsp;ms</th>
 					<th>SQL</th>
-					<?php //<th>Params</th> ?>
+					<th>Params</th>
 				</tr>
 
 				<?php foreach ($queries as $q): ?>
@@ -64,6 +64,10 @@ use Tracy\Helpers;
 									<?php endforeach; ?>
 								</table>
 							<?php endif; ?>
+						</td>
+						<td class="tracy-dbal-sql">
+							<?= Dumper::toHtml($q['params']); ?>
+							<?= Dumper::toHtml($q['types'], [Dumper::COLLAPSE => true]); ?>
 						</td>
 					</tr>
 				<?php endforeach; ?>

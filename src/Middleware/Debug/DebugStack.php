@@ -2,6 +2,8 @@
 
 namespace Nettrine\DBAL\Middleware\Debug;
 
+use Nettrine\DBAL\Utils\QueryUtils;
+
 /**
  * @see https://github.com/symfony/doctrine-bridge
  * @internal
@@ -12,14 +14,22 @@ class DebugStack
 	/** @var array<string, array<int, array{sql: string, params: mixed[], types: mixed[], duration: callable|float }>> */
 	private array $data = [];
 
+	public function __construct(
+		private array $sourcePaths
+	)
+	{
+	}
+
 	public function addQuery(string $connectionName, DebugQuery $query): void
 	{
+		$backtrace = debug_backtrace();
+		$backtrace = QueryUtils::getSource($this->sourcePaths, $backtrace);
 		$this->data[$connectionName][] = [
 			'sql' => $query->getSql(),
 			'params' => $query->getParams(),
 			'types' => $query->getTypes(),
 			'duration' => $query->getDuration(...), // stop() may not be called at this point
-			'source' => $query->getSource(),
+			'source' => $backtrace,
 		];
 	}
 

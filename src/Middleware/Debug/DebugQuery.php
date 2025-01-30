@@ -21,8 +21,6 @@ class DebugQuery
 
 	private ?float $duration = null;
 
-	private ?array $sourcePaths = [];
-
 	public function __construct(
 		private readonly string $sql,
 	)
@@ -77,29 +75,6 @@ class DebugQuery
 	public function getDuration(): ?float
 	{
 		return $this->duration;
-	}
-
-	public function getSource()
-	{
-		$result = [];
-		/*if (count($this->sourcePaths) === 0) {
-			return $result;
-		}*/
-		bdump($this->sourcePaths);
-
-		foreach (debug_backtrace() as $i) {
-			if (!isset($i['file'], $i['line'])) {
-				continue;
-			}
-
-			//foreach ($this->sourcePaths as $path) {
-				//if (str_contains($i['file'], $path)) {
-					$result[] = $i;
-				//}
-			//}
-		}
-
-		return $result;
 	}
 
 	public function __clone()
