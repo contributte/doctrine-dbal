@@ -5,12 +5,14 @@ namespace Nettrine\DBAL\Tracy;
 use Doctrine\DBAL\Connection;
 use Nettrine\DBAL\Utils\Formatter;
 use Nettrine\DBAL\Utils\QueryUtils;
+use Tracy\Dumper;
 use Tracy\Helpers;
 
 /** @var Connection $connection */
 /** @var Formatter $formatter  */
 /** @var int $queriesNum */
 /** @var int $totalTime */
+/** @var array $dbParams */
 /** @var array<array{sql: string, params: mixed[], types: mixed[], duration: float }> $queries */
 ?>
 	<style>
@@ -33,7 +35,7 @@ use Tracy\Helpers;
 		}
 	</style>
 
-	<?php if ($queriesNum === 0) { ?>
+<?php if ($queriesNum === 0) { ?>
 	<h1>No queries</h1>
 <?php } else { ?>
 	<h1>Queries:
@@ -70,8 +72,11 @@ use Tracy\Helpers;
 						</td>
 					</tr>
 				<?php endforeach; ?>
-
 			</table>
 		<?php endif; ?>
+
+		<div style="margin-top: 2px;">
+			<?= Dumper::toHtml($dbParams, [Dumper::COLLAPSE => true]); ?>
+		</div>
 	</div>
 <?php } ?>

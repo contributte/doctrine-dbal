@@ -123,6 +123,18 @@ class ConnectionPanel implements IBarPanel
 
 			$formatter = new Formatter();
 
+			$params = $this->connection->getParams();
+
+			$dbParams = [
+				'driver' => $params['driver'],
+				'host' => $params['host'],
+				'user' => $params['user'],
+				'password' => '*****',
+				'dbname' => $params['dbname'],
+				'port' => $params['port'],
+				'charset' => $params['charset'],
+			];
+
 			require __DIR__ . '/templates/panel.phtml';
 		});
 		// phpcs:enable
