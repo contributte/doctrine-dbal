@@ -49,6 +49,8 @@ use Tracy\Helpers;
 				<tr>
 					<th>Time&nbsp;ms</th>
 					<th>SQL</th>
+					<th>Params</th>
+					<th>Types</th>
 				</tr>
 
 				<?php foreach ($queries as $q): ?>
@@ -60,6 +62,41 @@ use Tracy\Helpers;
 							<?php endif; ?>
 						</td>
 						<td class="tracy-dbal-sql">
+							<?= QueryUtils::highlight($q['sql']); ?>
+							<?php if (count($q['source']) !== 0): ?>
+								<table class="nettrine-dbal-backtrace tracy-collapsed">
+									<?php foreach ($q['source'] as $s): ?>
+										<tr><td><?= Helpers::editorLink($s['file'], $s['line']); ?></td></tr>
+									<?php endforeach; ?>
+								</table>
+							<?php endif; ?>
+						</td>
+						<td class="tracy-dbal-sql">
+							<?= Dumper::toHtml($q['params']); ?>
+						</td>
+						<td class="tracy-dbal-sql">
+							<?= Dumper::toHtml($q['types'], [Dumper::COLLAPSE => true]); ?>
+						</td>
+					</tr>
+				<?php endforeach; ?>
+			</table>
+		<?php endif; ?>
+		<?php if ($queries !== []): ?>
+			<table class="tracy-sortable">
+				<tr>
+					<th>Time&nbsp;ms</th>
+					<th>SQL</th>
+				</tr>
+
+				<?php foreach ($queries as $q): ?>
+					<tr>
+						<td>
+							<?= sprintf('%0.2f', $q['duration'] * 1000); ?>
+							<?php if (count($q['source']) !== 0): ?>
+								<br><a class="tracy-toggle tracy-collapsed" data-tracy-ref="^tr .nettrine-dbal-backtrace"></a>
+							<?php endif; ?>
+						</td>
+						<td class="tracy-dbal-sql">z
 							<?php $sql = $formatter->formatSql($connection, $q['sql'], $q['params']); ?>
 							<?= QueryUtils::highlight($sql); ?>
 							<?php if (count($q['source']) !== 0): ?>
