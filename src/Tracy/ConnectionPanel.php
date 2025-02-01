@@ -29,7 +29,7 @@ class ConnectionPanel implements IBarPanel
 	{
 		$this->stack = $stack;
 		$this->connectionName = $connectionName;
-		$this->connection = $connection;;
+		$this->connection = $connection;
 	}
 
 	public static function initialize(
@@ -123,6 +123,9 @@ class ConnectionPanel implements IBarPanel
 
 			$formatter = new Formatter();
 
+			/**
+			 * @var string[] $params
+			 */
 			$params = $this->connection->getParams();
 
 			$dbParams = [

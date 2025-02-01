@@ -60,7 +60,7 @@ use Tracy\Helpers;
 							<?php endif; ?>
 						</td>
 						<td class="tracy-dbal-sql">
-							<?php $sql = $formatter->formatSql($connection, $q['sql'], $q['types'], $q['params']); ?>
+							<?php $sql = $formatter->formatSql($connection, $q['sql'], $q['params']); ?>
 							<?= QueryUtils::highlight($sql); ?>
 							<?php if (count($q['source']) !== 0): ?>
 								<table class="nettrine-dbal-backtrace tracy-collapsed">

@@ -7,9 +7,6 @@ final class QueryUtils
 
 	/**
 	 * Highlight given SQL parts
-	 *
-	 * @copyright https://github.com/nextras/dbal/blob/master/src/Bridges/NetteTracy/ConnectionPanel.php#L112
-	 * @copyright Nextras DBAL
 	 */
 	public static function highlight(string $sql): string
 	{
@@ -35,6 +32,8 @@ final class QueryUtils
 	}
 
 	/**
+	 * @param string[] $sourcePaths
+	 * @param mixed[] $backtrace
 	 * @return mixed[]
 	 */
 	public static function getSource(array $sourcePaths, array $backtrace): array

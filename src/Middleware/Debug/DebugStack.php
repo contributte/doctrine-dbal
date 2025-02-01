@@ -15,6 +15,7 @@ class DebugStack
 	private array $data = [];
 
 	public function __construct(
+		/** @var array<string> */
 		private array $sourcePaths
 	)
 	{
