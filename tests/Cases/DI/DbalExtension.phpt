@@ -32,3 +32,49 @@ Toolkit::test(function (): void {
 
 	Assert::type(Connection::class, $container->getByName('nettrine.dbal.connections.default.connection'));
 });
+
+// MariaDB
+Toolkit::test(function (): void {
+	$container = ContainerBuilder::of()
+		->withCompiler(static function (Compiler $compiler): void {
+			$compiler->addExtension('nettrine.dbal', new DbalExtension());
+			$compiler->addConfig(Neonkit::load(
+				<<<'NEON'
+				nettrine.dbal:
+					connections:
+						default:
+							driver: mysqli
+							host: localhost
+							port: "3306"
+							user: test
+							password: test
+							serverVersion: 11.0.0
+				NEON
+			));
+		})->build();
+
+	Assert::type(Connection::class, $container->getByName('nettrine.dbal.connections.default.connection'));
+});
+
+// PostgreSQL
+Toolkit::test(function (): void {
+	$container = ContainerBuilder::of()
+		->withCompiler(static function (Compiler $compiler): void {
+			$compiler->addExtension('nettrine.dbal', new DbalExtension());
+			$compiler->addConfig(Neonkit::load(
+				<<<'NEON'
+				nettrine.dbal:
+					connections:
+						default:
+							driver: pdo_pgsql
+							host: localhost
+							port: 3306
+							user: test
+							password: test
+							serverVersion: 17.0.0
+				NEON
+			));
+		})->build();
+
+	Assert::type(Connection::class, $container->getByName('nettrine.dbal.connections.default.connection'));
+});

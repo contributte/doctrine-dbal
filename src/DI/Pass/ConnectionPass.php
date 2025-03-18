@@ -11,6 +11,7 @@ use Nette\Schema\Expect;
 use Nette\Schema\Processor;
 use Nettrine\DBAL\DI\DbalExtension;
 use Nettrine\DBAL\DI\Helpers\BuilderMan;
+use Nettrine\DBAL\DI\Helpers\Expecto;
 use Nettrine\DBAL\DI\Helpers\SmartStatement;
 use Nettrine\DBAL\Middleware\Debug\DebugMiddleware;
 use Nettrine\DBAL\Middleware\Debug\DebugStack;
@@ -182,7 +183,7 @@ class ConnectionPass extends AbstractPass
 				'driver' => Expect::anyOf('pdo_mysql'),
 				'host' => Expect::string(),
 				'password' => Expect::string(),
-				'port' => Expect::int(),
+				'port' => Expecto::port(),
 				'unix_socket' => Expect::string(),
 				'user' => Expect::string(),
 				...$shared,
@@ -193,7 +194,7 @@ class ConnectionPass extends AbstractPass
 				'driver' => Expect::anyOf('mysqli'),
 				'host' => Expect::string(),
 				'password' => Expect::string(),
-				'port' => Expect::int(),
+				'port' => Expecto::port(),
 				'ssl_ca' => Expect::string(),
 				'ssl_capath' => Expect::string(),
 				'ssl_cert' => Expect::string(),
@@ -211,7 +212,7 @@ class ConnectionPass extends AbstractPass
 				'gssencmode' => Expect::string(),
 				'host' => Expect::string(),
 				'password' => Expect::string(),
-				'port' => Expect::int(),
+				'port' => Expecto::port(),
 				'sslcert' => Expect::string(),
 				'sslcrl' => Expect::string(),
 				'sslkey' => Expect::string(),
@@ -231,7 +232,7 @@ class ConnectionPass extends AbstractPass
 				'password' => Expect::string(),
 				'persistent' => Expect::bool(),
 				'pooled' => Expect::bool(),
-				'port' => Expect::int(),
+				'port' => Expecto::port(),
 				'protocol' => Expect::string(),
 				'service' => Expect::bool(),
 				'servicename' => Expect::string(),
@@ -243,7 +244,7 @@ class ConnectionPass extends AbstractPass
 				'driver' => Expect::anyOf('pdo_sqlsrv'),
 				'host' => Expect::string(),
 				'password' => Expect::string(),
-				'port' => Expect::int(),
+				'port' => Expecto::port(),
 				'user' => Expect::string(),
 				...$shared,
 			]),
@@ -253,7 +254,7 @@ class ConnectionPass extends AbstractPass
 				'host' => Expect::string(),
 				'password' => Expect::string(),
 				'persistent' => Expect::bool(),
-				'port' => Expect::int(),
+				'port' => Expecto::port(),
 				'user' => Expect::string(),
 				...$shared,
 			]),

@@ -8,6 +8,7 @@ use Nette\DI\Definitions\Statement;
 use Nette\PhpGenerator\ClassType;
 use Nette\Schema\Expect;
 use Nette\Schema\Schema;
+use Nettrine\DBAL\DI\Helpers\Expecto;
 use Nettrine\DBAL\DI\Pass\AbstractPass;
 use Nettrine\DBAL\DI\Pass\ConnectionPass;
 use Nettrine\DBAL\DI\Pass\ConsolePass;
@@ -139,7 +140,7 @@ class DbalExtension extends CompilerExtension
 					'path' => Expect::string(),
 					'persistent' => Expect::bool(),
 					'pooled' => Expect::bool(),
-					'port' => Expect::int(),
+					'port' => Expecto::port(),
 					'protocol' => Expect::string(),
 					'serverVersion' => Expect::string(),
 					'service' => Expect::bool(),
