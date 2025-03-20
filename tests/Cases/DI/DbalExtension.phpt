@@ -25,7 +25,7 @@ Toolkit::test(function (): void {
 							driver: pdo_sqlite
 							password: test
 							user: test
-							path: ":memory:"
+							path: ::strtolower(":memory:") # Dynamic parameter
 				NEON
 			));
 		})->build();
@@ -33,7 +33,7 @@ Toolkit::test(function (): void {
 	Assert::type(Connection::class, $container->getByName('nettrine.dbal.connections.default.connection'));
 });
 
-// MariaDB
+// MariaDB and Postgres
 Toolkit::test(function (): void {
 	$container = ContainerBuilder::of()
 		->withCompiler(static function (Compiler $compiler): void {
@@ -42,39 +42,32 @@ Toolkit::test(function (): void {
 				<<<'NEON'
 				nettrine.dbal:
 					connections:
-						default:
+						mariadb:
 							driver: mysqli
 							host: localhost
 							port: "3306"
 							user: test
 							password: test
 							serverVersion: 11.0.0
-				NEON
-			));
-		})->build();
-
-	Assert::type(Connection::class, $container->getByName('nettrine.dbal.connections.default.connection'));
-});
-
-// PostgreSQL
-Toolkit::test(function (): void {
-	$container = ContainerBuilder::of()
-		->withCompiler(static function (Compiler $compiler): void {
-			$compiler->addExtension('nettrine.dbal', new DbalExtension());
-			$compiler->addConfig(Neonkit::load(
-				<<<'NEON'
-				nettrine.dbal:
-					connections:
-						default:
+						postgres:
 							driver: pdo_pgsql
 							host: localhost
-							port: 3306
+							port: 5432
 							user: test
 							password: test
 							serverVersion: 17.0.0
+						dynamic:
+							driver: pdo_mysql
+							host: ::strtolower('localhost')
+							port: ::strtolower('3306')
+							user: ::strtolower('test')
+							password: ::strtolower('test')
+							serverVersion: ::strtolower('11.0.0')
 				NEON
 			));
 		})->build();
 
-	Assert::type(Connection::class, $container->getByName('nettrine.dbal.connections.default.connection'));
+	Assert::type(Connection::class, $container->getByName('nettrine.dbal.connections.mariadb.connection'));
+	Assert::type(Connection::class, $container->getByName('nettrine.dbal.connections.postgres.connection'));
+	Assert::type(Connection::class, $container->getByName('nettrine.dbal.connections.dynamic.connection'));
 });

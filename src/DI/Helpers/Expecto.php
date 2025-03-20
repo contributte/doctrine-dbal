@@ -10,7 +10,7 @@ final class Expecto
 
 	public static function port(): Schema
 	{
-		return Expect::anyOf(Expect::int(), Expect::string())->castTo('int');
+		return Expect::anyOf(Expect::int()->dynamic(), Expect::string()->dynamic()->castTo('int'));
 	}
 
 }
