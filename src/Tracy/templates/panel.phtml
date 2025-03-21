@@ -2,10 +2,17 @@
 
 namespace Nettrine\DBAL\Tracy;
 
+use Doctrine\DBAL\Connection;
+use Nettrine\DBAL\Utils\Formatter;
+use Nettrine\DBAL\Utils\QueryUtils;
 use Tracy\Dumper;
+use Tracy\Helpers;
 
+/** @var Connection $connection */
+/** @var Formatter $formatter  */
 /** @var int $queriesNum */
 /** @var int $totalTime */
+/** @var array $dbParams */
 /** @var array<array{sql: string, params: mixed[], types: mixed[], duration: float }> $queries */
 ?>
 <style>
@@ -38,29 +45,77 @@ use Tracy\Dumper;
 	</h1>
 	<div class="tracy-inner nettrine-dbal">
 		<?php if ($queries !== []): ?>
+			<h2>Queries with params</h2>
 			<table class="tracy-sortable">
 				<tr>
 					<th>Time&nbsp;ms</th>
 					<th>SQL</th>
 					<th>Params</th>
+					<th>Types</th>
 				</tr>
 
 				<?php foreach ($queries as $q): ?>
 					<tr>
 						<td>
 							<?= sprintf('%0.2f', $q['duration'] * 1000); ?>
+							<?php if (count($q['source']) !== 0): ?>
+								<br><a class="tracy-toggle tracy-collapsed" data-tracy-ref="^tr .nettrine-dbal-backtrace"></a>
+							<?php endif; ?>
 						</td>
 						<td class="tracy-dbal-sql">
-							<?= $q['sql']; ?>
+							<?= QueryUtils::highlight($q['sql']); ?>
+							<?php if (count($q['source']) !== 0): ?>
+								<table class="nettrine-dbal-backtrace tracy-collapsed">
+									<?php foreach ($q['source'] as $s): ?>
+										<tr><td><?= Helpers::editorLink($s['file'], $s['line']); ?></td></tr>
+									<?php endforeach; ?>
+								</table>
+							<?php endif; ?>
 						</td>
 						<td class="tracy-dbal-sql">
 							<?= Dumper::toHtml($q['params']); ?>
+						</td>
+						<td class="tracy-dbal-sql">
 							<?= Dumper::toHtml($q['types'], [Dumper::COLLAPSE => true]); ?>
 						</td>
 					</tr>
 				<?php endforeach; ?>
-
 			</table>
 		<?php endif; ?>
+		<?php if ($queries !== []): ?>
+			<h2>Plain queries</h2>
+			<table class="tracy-sortable">
+				<tr>
+					<th>Time&nbsp;ms</th>
+					<th>SQL</th>
+				</tr>
+
+				<?php foreach ($queries as $q): ?>
+					<tr>
+						<td>
+							<?= sprintf('%0.2f', $q['duration'] * 1000); ?>
+							<?php if (count($q['source']) !== 0): ?>
+								<br><a class="tracy-toggle tracy-collapsed" data-tracy-ref="^tr .nettrine-dbal-backtrace"></a>
+							<?php endif; ?>
+						</td>
+						<td class="tracy-dbal-sql">
+							<?php $sql = $formatter->formatSql($connection, $q['sql'], $q['params']); ?>
+							<?= QueryUtils::highlight($sql); ?>
+							<?php if (count($q['source']) !== 0): ?>
+								<table class="nettrine-dbal-backtrace tracy-collapsed">
+									<?php foreach ($q['source'] as $s): ?>
+										<tr><td><?= Helpers::editorLink($s['file'], $s['line']); ?></td></tr>
+									<?php endforeach; ?>
+								</table>
+							<?php endif; ?>
+						</td>
+					</tr>
+				<?php endforeach; ?>
+			</table>
+		<?php endif; ?>
+
+		<div style="margin-top: 25px;">
+			<?= Dumper::toHtml($dbParams, [Dumper::COLLAPSE => true]); ?>
+		</div>
 	</div>
 <?php } ?>
