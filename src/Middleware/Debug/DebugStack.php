@@ -2,6 +2,8 @@
 
 namespace Nettrine\DBAL\Middleware\Debug;
 
+use Nettrine\DBAL\Utils\QueryUtils;
+
 /**
  * @see https://github.com/symfony/doctrine-bridge
  * @internal
@@ -9,21 +11,33 @@ namespace Nettrine\DBAL\Middleware\Debug;
 class DebugStack
 {
 
-	/** @var array<string, array<int, array{sql: string, params: mixed[], types: mixed[], duration: callable|float }>> */
+	/** @var array<string, array<int, array{sql: string, params: mixed[], types: mixed[], duration: callable|float, source: array<mixed> }>> */
 	private array $data = [];
+
+	/**
+	 * @param array<string> $sourcePaths
+	 */
+	public function __construct(
+		private array $sourcePaths = []
+	)
+	{
+	}
 
 	public function addQuery(string $connectionName, DebugQuery $query): void
 	{
+		$backtrace = QueryUtils::getSource($this->sourcePaths, debug_backtrace()); // @phpstan-ignore-line
+
 		$this->data[$connectionName][] = [
 			'sql' => $query->getSql(),
 			'params' => $query->getParams(),
 			'types' => $query->getTypes(),
 			'duration' => $query->getDuration(...), // stop() may not be called at this point
+			'source' => $backtrace,
 		];
 	}
 
 	/**
-	 * @return array<string, array<int, array{sql: string, params: mixed[], types: mixed[], duration: float }>>
+	 * @return array<string, array<int, array{sql: string, params: mixed[], types: mixed[], duration: float, source: array<mixed> }>>
 	 */
 	public function getData(): array
 	{
@@ -41,7 +55,7 @@ class DebugStack
 	}
 
 	/**
-	 * @return array<int, array{sql: string, params: mixed[], types: mixed[], duration: float }>
+	 * @return array<int, array{sql: string, params: mixed[], types: mixed[], duration: float, source: array<mixed> }>
 	 */
 	public function getDataBy(string $connectionName): array
 	{

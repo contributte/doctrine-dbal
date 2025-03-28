@@ -60,7 +60,7 @@ final class DebugConnection extends AbstractConnectionMiddleware
 
 	public function beginTransaction(): void
 	{
-		$this->stack->addQuery($this->connectionName, $query = new DebugQuery('"START TRANSACTION"'));
+		$this->stack->addQuery($this->connectionName, $query = new DebugQuery('START TRANSACTION'));
 		$query->start();
 
 		try {
@@ -72,7 +72,7 @@ final class DebugConnection extends AbstractConnectionMiddleware
 
 	public function commit(): void
 	{
-		$this->stack->addQuery($this->connectionName, $query = new DebugQuery('"COMMIT"'));
+		$this->stack->addQuery($this->connectionName, $query = new DebugQuery('COMMIT'));
 		$query->start();
 
 		try {
@@ -84,7 +84,7 @@ final class DebugConnection extends AbstractConnectionMiddleware
 
 	public function rollBack(): void
 	{
-		$this->stack->addQuery($this->connectionName, $query = new DebugQuery('"ROLLBACK"'));
+		$this->stack->addQuery($this->connectionName, $query = new DebugQuery('ROLLBACK'));
 		$query->start();
 
 		try {

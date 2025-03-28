@@ -85,6 +85,7 @@ Here is the list of all available options with their types.
 nettrine.dbal:
   debug:
     panel: <boolean> # optional, it's determined automatically or passed to constructor when extension is registered
+    sourcePaths: array<string>
 
   types: array<string, class-string>
   typesMapping: array<string, class-string>
@@ -339,6 +340,15 @@ You can enable Tracy panels(s) multiple ways:
   ```
 
 ![Tracy](https://raw.githubusercontent.com/nettrine/dbal/master/.docs/assets/tracy.png)
+
+> [!TIP]
+> You can also use `sourcePaths` to backtrace queries to your source code.
+
+```neon
+nettrine.dbal:
+  debug:
+    sourcePaths: [%appDir%]
+```
 
 ### Middlewares
 

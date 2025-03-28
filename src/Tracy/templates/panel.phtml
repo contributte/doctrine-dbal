@@ -2,11 +2,16 @@
 
 namespace Nettrine\DBAL\Tracy;
 
+use Doctrine\DBAL\Connection;
+use Nettrine\DBAL\Utils\QueryUtils;
 use Tracy\Dumper;
+use Tracy\Helpers;
 
+/** @var Connection $connection */
 /** @var int $queriesNum */
 /** @var int $totalTime */
-/** @var array<array{sql: string, params: mixed[], types: mixed[], duration: float }> $queries */
+/** @var string $connectionName */
+/** @var array<array{fullsql: string, sql: string, params: mixed[], types: mixed[], duration: float, source: array<mixed> }> $queries */
 ?>
 <style>
 	#tracy-debug td.tracy-dbal-sql {
@@ -31,36 +36,54 @@ use Tracy\Dumper;
 <?php if ($queriesNum === 0) { ?>
 	<h1>No queries</h1>
 <?php } else { ?>
-	<h1>Queries:
-		<?= $queriesNum ?>,
-		time:
-		<?= $totalTime ? sprintf('%0.3f', $totalTime * 1000) : ''; ?> ms
+	<h1>
+		Connection: <?= $connectionName ?> (<?= ($connection->getParams()['driver'] ?? 'N/A') ?>)
 	</h1>
+	<h2>
+		Queries: <?= $queriesNum ?>,
+		time: <?= $totalTime ? sprintf('%0.3f', $totalTime * 1000) : ''; ?> ms
+	</h2>
 	<div class="tracy-inner nettrine-dbal">
-		<?php if ($queries !== []): ?>
-			<table class="tracy-sortable">
+		<div>
+			<?= Dumper::toHtml($connection->getParams(), [Dumper::COLLAPSE => true]); ?>
+		</div>
+
+		<table class="tracy-sortable">
+			<tr>
+				<th>Time&nbsp;(ms)</th>
+				<th>SQL</th>
+				<th>Params</th>
+				<th>Types</th>
+			</tr>
+
+			<?php foreach ($queries as $q): ?>
 				<tr>
-					<th>Time&nbsp;ms</th>
-					<th>SQL</th>
-					<th>Params</th>
+					<td>
+						<?= sprintf('%0.2f', $q['duration'] * 1000); ?>
+						<?php if (count($q['source']) !== 0): ?>
+							<br><a class="tracy-toggle tracy-collapsed" data-tracy-ref="^tr .nettrine-dbal-backtrace"></a>
+						<?php endif; ?>
+					</td>
+					<td class="tracy-dbal-sql">
+						<?= QueryUtils::highlight($q['sql2']); ?>
+						<?php if (count($q['source']) !== 0): ?>
+							<table class="nettrine-dbal-backtrace tracy-collapsed">
+								<?php foreach ($q['source'] as $s): ?>
+									<tr>
+										<td><?= Helpers::editorLink($s['file'], $s['line']); ?></td>
+									</tr>
+								<?php endforeach; ?>
+							</table>
+						<?php endif; ?>
+					</td>
+					<td class="tracy-dbal-sql">
+						<?= Dumper::toHtml($q['params']); ?>
+					</td>
+					<td class="tracy-dbal-sql">
+						<?= Dumper::toHtml($q['types'], [Dumper::COLLAPSE => true]); ?>
+					</td>
 				</tr>
-
-				<?php foreach ($queries as $q): ?>
-					<tr>
-						<td>
-							<?= sprintf('%0.2f', $q['duration'] * 1000); ?>
-						</td>
-						<td class="tracy-dbal-sql">
-							<?= $q['sql']; ?>
-						</td>
-						<td class="tracy-dbal-sql">
-							<?= Dumper::toHtml($q['params']); ?>
-							<?= Dumper::toHtml($q['types'], [Dumper::COLLAPSE => true]); ?>
-						</td>
-					</tr>
-				<?php endforeach; ?>
-
-			</table>
-		<?php endif; ?>
+			<?php endforeach; ?>
+		</table>
 	</div>
 <?php } ?>

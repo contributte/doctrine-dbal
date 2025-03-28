@@ -6,6 +6,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\Exception;
 use Doctrine\DBAL\Query\QueryException;
 use Nettrine\DBAL\Middleware\Debug\DebugStack;
+use Nettrine\DBAL\Utils\QueryUtils;
 use PDO;
 use PDOException;
 use Throwable;
@@ -20,16 +21,20 @@ class ConnectionPanel implements IBarPanel
 
 	protected DebugStack $stack;
 
+	protected Connection $connection;
+
 	protected string $connectionName;
 
-	private function __construct(DebugStack $stack, string $connectionName)
+	private function __construct(DebugStack $stack, Connection $connection, string $connectionName)
 	{
 		$this->stack = $stack;
+		$this->connection = $connection;
 		$this->connectionName = $connectionName;
 	}
 
 	public static function initialize(
 		DebugStack $stack,
+		Connection $connection,
 		string $connectionName,
 		?Bar $bar = null,
 		?BlueScreen $blueScreen = null,
@@ -38,7 +43,7 @@ class ConnectionPanel implements IBarPanel
 		$blueScreen ??= Debugger::getBlueScreen();
 		$blueScreen->addPanel(self::renderException(...));
 
-		$panel = new self($stack, $connectionName);
+		$panel = new self($stack, $connection, $connectionName);
 		$bar ??= Debugger::getBar();
 		$bar->addPanel($panel);
 
@@ -90,7 +95,7 @@ class ConnectionPanel implements IBarPanel
 	{
 		// phpcs:disable
 		return Helpers::capture(function (): void {
-			$queries = $this->stack->getDataBy($this->connectionName);
+			$queries = $this->getQueries();
 			$queriesNum = count($queries);
 			$totalTime = 0;
 
@@ -107,7 +112,10 @@ class ConnectionPanel implements IBarPanel
 	{
 		// phpcs:disable
 		return Helpers::capture(function (): void {
-			$queries = $this->stack->getDataBy($this->connectionName);
+			$connection = $this->connection;
+			$connectionName = $this->connectionName;
+
+			$queries = $this->getQueries();
 			$queriesNum = count($queries);
 			$totalTime = 0;
 
@@ -118,6 +126,27 @@ class ConnectionPanel implements IBarPanel
 			require __DIR__ . '/templates/panel.phtml';
 		});
 		// phpcs:enable
+	}
+
+	/**
+	 * @return array<int, array{sql2: string, sql: string, params: mixed[], types: mixed[], duration: float, source: array<mixed> }>
+	 */
+	private function getQueries(): array
+	{
+		$queries = $this->stack->getDataBy($this->connectionName);
+
+		$output = [];
+		foreach ($queries as $idx => $query) {
+			[$sql, $params, $types] = QueryUtils::expand($query['sql'], $query['params'], $query['types']); // @phpstan-ignore-line
+
+			$query['sql2'] = QueryUtils::expandSql($sql, $params);
+			$query['params'] = $params;
+			$query['types'] = $types;
+
+			$output[$idx] = $query;
+		}
+
+		return $output;
 	}
 
 }
