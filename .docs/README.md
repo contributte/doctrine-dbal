@@ -233,7 +233,7 @@ nettrine.dbal:
     default:
       configuration:
         # Create cache manually
-        resultCache: App\CacheService(%tempDir%/cache/dbal)
+        resultCache: App\CacheService(%tempDir%/cache/doctrine/dbal)
 
         # Use registered cache service
         resultCache: @cacheService
@@ -255,7 +255,7 @@ nettrine.dbal:
     connections:
       default:
         # Creat cache manually
-        resultCache: Symfony\Component\Cache\Adapter\FilesystemAdapter(namespace: doctrine-dbal, defaultLifetime: 0, directory: %tempDir%/cache/dbal)
+        resultCache: Symfony\Component\Cache\Adapter\FilesystemAdapter(namespace: dbal, defaultLifetime: 0, directory: %tempDir%/cache/doctrine/dbal)
 
         # Use registered cache service
         resultCache: @cacheFilesystem

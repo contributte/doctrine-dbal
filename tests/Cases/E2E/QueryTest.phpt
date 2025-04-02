@@ -90,7 +90,7 @@ Toolkit::test(function (): void {
 							password: test
 							user: test
 							path: ":memory:"
-							resultCache: Symfony\Component\Cache\Adapter\FilesystemAdapter(namespace: dbal, defaultLifetime: 0, directory: %tempDir%/cache/nettrine)
+							resultCache: Symfony\Component\Cache\Adapter\FilesystemAdapter(namespace: dbal, defaultLifetime: 0, directory: %tempDir%/cache/doctrine/dbal)
 			NEON
 			));
 			$compiler->addConfig([
