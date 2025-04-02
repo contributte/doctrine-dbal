@@ -29,10 +29,6 @@ class ConnectionPass extends AbstractPass
 
 		// Configure connections
 		foreach ($config->connections as $connectionName => $connectionConfig) {
-			// Validate connection configuration
-			$this->validateConnectionConfig($connectionName, $connectionConfig);
-
-			// Load connection configuration
 			$this->loadConnectionConfiguration($connectionName, $connectionConfig);
 		}
 	}
@@ -54,6 +50,9 @@ class ConnectionPass extends AbstractPass
 	{
 		$builder = $this->getContainerBuilder();
 		$config = $this->getConfig();
+
+		// Validate connection configuration
+		$processedConnectionConfig = $this->validateConnectionConfig($connectionName, $connectionConfig);
 
 		// Configuration
 		$configuration = $builder->addDefinition($this->prefix(sprintf('connections.%s.configuration', $connectionName)));
@@ -96,7 +95,7 @@ class ConnectionPass extends AbstractPass
 		$builder->addDefinition($this->prefix(sprintf('connections.%s.connection', $connectionName)))
 			->setType(Connection::class)
 			->setFactory($this->prefix('@connectionFactory') . '::createConnection', [
-				(array) $connectionConfig,
+				$processedConnectionConfig,
 				$this->prefix(sprintf('@connections.%s.configuration', $connectionName)),
 				[],
 			])
@@ -169,14 +168,14 @@ class ConnectionPass extends AbstractPass
 				'user' => Expect::string()->dynamic(),
 				'host' => Expect::string()->dynamic(),
 				...$shared,
-			]),
+			])->castTo('array'),
 			'sqlite3' => Expect::structure([
 				'driver' => Expect::anyOf('sqlite3'),
 				'memory' => Expect::bool()->dynamic(),
 				'path' => Expect::string()->dynamic(),
 				'host' => Expect::string()->dynamic(),
 				...$shared,
-			]),
+			])->castTo('array'),
 			'pdo_mysql' => Expect::structure([
 				'charset' => Expect::string()->dynamic(),
 				'dbname' => Expect::string()->dynamic(),
@@ -187,7 +186,7 @@ class ConnectionPass extends AbstractPass
 				'unix_socket' => Expect::string()->dynamic(),
 				'user' => Expect::string()->dynamic(),
 				...$shared,
-			]),
+			])->castTo('array'),
 			'mysqli' => Expect::structure([
 				'charset' => Expect::string()->dynamic(),
 				'dbname' => Expect::string()->dynamic(),
@@ -203,7 +202,7 @@ class ConnectionPass extends AbstractPass
 				'unix_socket' => Expect::string()->dynamic(),
 				'user' => Expect::string()->dynamic(),
 				...$shared,
-			]),
+			])->castTo('array'),
 			'pdo_pgsql' => Expect::structure([
 				'application_name' => Expect::string()->dynamic(),
 				'charset' => Expect::string()->dynamic(),
@@ -220,7 +219,7 @@ class ConnectionPass extends AbstractPass
 				'sslrootcert' => Expect::string()->dynamic(),
 				'user' => Expect::string()->dynamic(),
 				...$shared,
-			]),
+			])->castTo('array'),
 			'pdo_oci' => Expect::structure([
 				'charset' => Expect::string()->dynamic(),
 				'connectstring' => Expect::string()->dynamic(),
@@ -238,7 +237,7 @@ class ConnectionPass extends AbstractPass
 				'servicename' => Expect::string()->dynamic(),
 				'user' => Expect::string()->dynamic(),
 				...$shared,
-			]),
+			])->castTo('array'),
 			'oci8' => Expect::structure([
 				'charset' => Expect::string()->dynamic(),
 				'connectstring' => Expect::string()->dynamic(),
@@ -256,7 +255,7 @@ class ConnectionPass extends AbstractPass
 				'servicename' => Expect::string()->dynamic(),
 				'user' => Expect::string()->dynamic(),
 				...$shared,
-			]),
+			])->castTo('array'),
 			'pdo_sqlsrv' => Expect::structure([
 				'dbname' => Expect::string()->dynamic(),
 				'driver' => Expect::anyOf('pdo_sqlsrv'),
@@ -265,7 +264,7 @@ class ConnectionPass extends AbstractPass
 				'port' => Expecto::port(),
 				'user' => Expect::string()->dynamic(),
 				...$shared,
-			]),
+			])->castTo('array'),
 			'ibm_db2' => Expect::structure([
 				'dbname' => Expect::string()->dynamic(),
 				'driver' => Expect::anyOf('ibm_db2'),
@@ -275,14 +274,15 @@ class ConnectionPass extends AbstractPass
 				'port' => Expecto::port(),
 				'user' => Expect::string()->dynamic(),
 				...$shared,
-			]),
+			])->castTo('array'),
 		];
 	}
 
 	/**
 	 * @phpstan-param TConnectionConfig $connectionConfig
+	 * @return array<string, mixed>
 	 */
-	private function validateConnectionConfig(string $connectionName, mixed $connectionConfig): void
+	private function validateConnectionConfig(string $connectionName, mixed $connectionConfig): array
 	{
 		$config = (array) $connectionConfig;
 
@@ -301,7 +301,11 @@ class ConnectionPass extends AbstractPass
 		$processor->onNewContext[] = function (Context $context) use ($connectionName): void {
 			$context->path = array_merge(['connections', $connectionName], $context->path);
 		};
-		$processor->process($this->getDriverConfigSchema()[$connectionConfig->driver], $config);
+
+		/** @var array<string, mixed> $processed */
+		$processed = $processor->process($this->getDriverConfigSchema()[$connectionConfig->driver], $config);
+
+		return $processed;
 	}
 
 }
