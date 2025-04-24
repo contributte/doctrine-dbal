@@ -68,18 +68,7 @@ class ConnectionFactory
 
 	private function getDatabasePlatform(Connection $connection): AbstractPlatform
 	{
-		try {
-			return $connection->getDatabasePlatform();
-		} catch (DriverException $driverException) {
-			throw new ConnectionException(
-				'An exception occurred while establishing a connection to figure out your platform version.' . PHP_EOL .
-				"You can circumvent this by setting a 'serverVersion' configuration value" . PHP_EOL . PHP_EOL .
-				'For further information have a look at:' . PHP_EOL .
-				'https://github.com/doctrine/DoctrineBundle/issues/673',
-				0,
-				$driverException,
-			);
-		}
+		return $connection->getDatabasePlatform();
 	}
 
 	private function initializeTypes(): void
