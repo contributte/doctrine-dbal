@@ -45,7 +45,7 @@ use Tracy\Helpers;
 	</h2>
 	<div class="tracy-inner nettrine-dbal">
 		<div>
-			<?= Dumper::toHtml($connection->getParams(), [Dumper::COLLAPSE => true]); ?>
+			<?= Dumper::toHtml($connectionParams, [Dumper::COLLAPSE => true]); ?>
 		</div>
 
 		<table class="tracy-sortable">
