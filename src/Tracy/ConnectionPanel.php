@@ -114,6 +114,8 @@ class ConnectionPanel implements IBarPanel
 		return Helpers::capture(function (): void {
 			$connection = $this->connection;
 			$connectionName = $this->connectionName;
+			$connectionParams = $connection->getParams();
+			$connectionParams['password'] = '****';
 
 			$queries = $this->getQueries();
 			$queriesNum = count($queries);
