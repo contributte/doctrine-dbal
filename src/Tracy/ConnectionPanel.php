@@ -58,14 +58,10 @@ class ConnectionPanel implements IBarPanel
 		}
 
 		if ($e instanceof Exception) {
-			if (($e->getPrevious() !== null) && ($item = Helpers::findTrace($e->getTrace(), Exception::class . '::driverExceptionDuringQuery')) !== null) {
-				if (!isset($item['args'][2]) || !is_string($item['args'][2])) {
-					return null;
-				}
-
+			if (($e->getPrevious() !== null) && ($panel = self::findTraceArg($e, Exception::class . '::driverExceptionDuringQuery', 2)) !== null) {
 				return [
 					'tab' => 'SQL',
-					'panel' => $item['args'][2],
+					'panel' => $panel,
 				];
 			}
 		} elseif ($e instanceof QueryException) {
@@ -76,21 +72,9 @@ class ConnectionPanel implements IBarPanel
 				];
 			}
 		} elseif ($e instanceof PDOException) {
-			$sql = null;
-
-			if (($item = Helpers::findTrace($e->getTrace(), Connection::class . '::executeQuery')) !== null) {
-				if (isset($item['args'][0]) && is_string($item['args'][0])) {
-					$sql = $item['args'][0];
-				}
-			} elseif (($item = Helpers::findTrace($e->getTrace(), PDO::class . '::query')) !== null) {
-				if (isset($item['args'][0]) && is_string($item['args'][0])) {
-					$sql = $item['args'][0];
-				}
-			} elseif (($item = Helpers::findTrace($e->getTrace(), PDO::class . '::prepare')) !== null) {
-				if (isset($item['args'][0]) && is_string($item['args'][0])) {
-					$sql = $item['args'][0];
-				}
-			}
+			$sql = self::findTraceArg($e, Connection::class . '::executeQuery')
+				?? self::findTraceArg($e, PDO::class . '::query')
+				?? self::findTraceArg($e, PDO::class . '::prepare');
 
 			return $sql !== null ? [
 				'tab' => 'SQL',
@@ -138,6 +122,14 @@ class ConnectionPanel implements IBarPanel
 			require __DIR__ . '/templates/panel.phtml';
 		});
 		// phpcs:enable
+	}
+
+	private static function findTraceArg(Throwable $e, string $method, int $index = 0): ?string
+	{
+		$item = Helpers::findTrace($e->getTrace(), $method);
+		$value = $item['args'][$index] ?? null;
+
+		return is_string($value) ? $value : null;
 	}
 
 	/**

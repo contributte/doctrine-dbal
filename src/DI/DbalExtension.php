@@ -97,7 +97,7 @@ class DbalExtension extends CompilerExtension
 	public function getConfigSchema(): Schema
 	{
 		$expectService = Expect::anyOf(
-			Expect::string()->required()->assert(static fn (mixed $input): bool => is_string($input) && (str_starts_with($input, '@') || class_exists($input) || interface_exists($input))),
+			Expect::string()->required()->assert(self::isServiceDefinition(...)),
 			Expect::type(Statement::class)->required(),
 		);
 
@@ -179,20 +179,7 @@ class DbalExtension extends CompilerExtension
 					'autoCommit' => Expect::bool(true)->dynamic(),
 				])
 					->assert(
-						static function (mixed $connection): bool {
-							if (!$connection instanceof stdClass) {
-								return false;
-							}
-
-							return !(
-								$connection->url === null
-								&& $connection->host === null
-								&& $connection->port === null
-								&& $connection->path === null
-								&& $connection->user === null
-								&& $connection->password === null
-							);
-						},
+						self::hasConnectionDefinition(...),
 						'Configure DNS url or explicit host, port, user, password, dbname and others.'
 					)
 					->before($dsnTransformer),
@@ -229,6 +216,29 @@ class DbalExtension extends CompilerExtension
 		foreach ($this->passes as $pass) {
 			$pass->afterPassCompile($class);
 		}
+	}
+
+	private static function isServiceDefinition(mixed $input): bool
+	{
+		return is_string($input)
+			&& (
+				str_starts_with($input, '@')
+				|| class_exists($input)
+				|| interface_exists($input)
+			);
+	}
+
+	private static function hasConnectionDefinition(mixed $connection): bool
+	{
+		return $connection instanceof stdClass
+			&& (
+				$connection->url !== null
+				|| $connection->host !== null
+				|| $connection->port !== null
+				|| $connection->path !== null
+				|| $connection->user !== null
+				|| $connection->password !== null
+			);
 	}
 
 }
