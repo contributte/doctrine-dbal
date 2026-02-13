@@ -90,7 +90,7 @@ Toolkit::test(function (): void {
 	$stack = new DebugStack();
 
 	for ($i = 0; $i < 5; $i++) {
-		$query = new DebugQuery("SELECT $i");
+		$query = new DebugQuery(sprintf('SELECT %d', $i));
 		$query->start();
 		$query->stop();
 		$stack->addQuery('default', $query);

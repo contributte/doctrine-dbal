@@ -13,6 +13,7 @@ use Doctrine\DBAL\ServerVersionProvider;
 final class MockDriver implements Driver
 {
 
+	/** @param array<string, mixed> $params */
 	public function connect(array $params): DriverConnection
 	{
 		throw new \RuntimeException('Not implemented');

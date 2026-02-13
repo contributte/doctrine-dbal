@@ -41,13 +41,22 @@ class DebugStack
 	 */
 	public function getData(): array
 	{
-		$data = $this->data;
+		$data = [];
 
-		foreach ($data as $connectionName => $queries) {
+		foreach ($this->data as $connectionName => $queries) {
 			foreach ($queries as $idx => $query) {
-				if (is_callable($query['duration'])) {
-					$data[$connectionName][$idx]['duration'] = $query['duration']();
+				$duration = $query['duration'];
+				if (is_callable($duration)) {
+					$duration = $duration();
 				}
+
+				$data[$connectionName][$idx] = [
+					'sql' => $query['sql'],
+					'params' => $query['params'],
+					'types' => $query['types'],
+					'duration' => (float) $duration,
+					'source' => $query['source'],
+				];
 			}
 		}
 

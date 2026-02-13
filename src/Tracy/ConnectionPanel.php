@@ -50,9 +50,7 @@ class ConnectionPanel implements IBarPanel
 		return $panel;
 	}
 
-	/**
-	 * @return mixed[]|null
-	 */
+	/** @phpstan-return array{tab: string, panel: string}|null */
 	public static function renderException(?Throwable $e): ?array
 	{
 		if ($e === null) {
@@ -61,6 +59,10 @@ class ConnectionPanel implements IBarPanel
 
 		if ($e instanceof Exception) {
 			if (($e->getPrevious() !== null) && ($item = Helpers::findTrace($e->getTrace(), Exception::class . '::driverExceptionDuringQuery')) !== null) {
+				if (!isset($item['args'][2]) || !is_string($item['args'][2])) {
+					return null;
+				}
+
 				return [
 					'tab' => 'SQL',
 					'panel' => $item['args'][2],
@@ -74,15 +76,23 @@ class ConnectionPanel implements IBarPanel
 				];
 			}
 		} elseif ($e instanceof PDOException) {
+			$sql = null;
+
 			if (($item = Helpers::findTrace($e->getTrace(), Connection::class . '::executeQuery')) !== null) {
-				$sql = $item['args'][0];
+				if (isset($item['args'][0]) && is_string($item['args'][0])) {
+					$sql = $item['args'][0];
+				}
 			} elseif (($item = Helpers::findTrace($e->getTrace(), PDO::class . '::query')) !== null) {
-				$sql = $item['args'][0];
+				if (isset($item['args'][0]) && is_string($item['args'][0])) {
+					$sql = $item['args'][0];
+				}
 			} elseif (($item = Helpers::findTrace($e->getTrace(), PDO::class . '::prepare')) !== null) {
-				$sql = $item['args'][0];
+				if (isset($item['args'][0]) && is_string($item['args'][0])) {
+					$sql = $item['args'][0];
+				}
 			}
 
-			return isset($sql) ? [
+			return $sql !== null ? [
 				'tab' => 'SQL',
 				'panel' => $sql,
 			] : null;
