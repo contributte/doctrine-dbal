@@ -57,8 +57,15 @@ class ConnectionPanel implements IBarPanel
 			return null;
 		}
 
+		$getTraceArg = static function (Throwable $throwable, string $method, int $index = 0): ?string {
+			$item = Helpers::findTrace($throwable->getTrace(), $method);
+			$value = $item['args'][$index] ?? null;
+
+			return is_string($value) ? $value : null;
+		};
+
 		if ($e instanceof Exception) {
-			if (($e->getPrevious() !== null) && ($panel = self::findTraceArg($e, Exception::class . '::driverExceptionDuringQuery', 2)) !== null) {
+			if (($e->getPrevious() !== null) && ($panel = $getTraceArg($e, Exception::class . '::driverExceptionDuringQuery', 2)) !== null) {
 				return [
 					'tab' => 'SQL',
 					'panel' => $panel,
@@ -72,9 +79,9 @@ class ConnectionPanel implements IBarPanel
 				];
 			}
 		} elseif ($e instanceof PDOException) {
-			$sql = self::findTraceArg($e, Connection::class . '::executeQuery')
-				?? self::findTraceArg($e, PDO::class . '::query')
-				?? self::findTraceArg($e, PDO::class . '::prepare');
+			$sql = $getTraceArg($e, Connection::class . '::executeQuery')
+				?? $getTraceArg($e, PDO::class . '::query')
+				?? $getTraceArg($e, PDO::class . '::prepare');
 
 			return $sql !== null ? [
 				'tab' => 'SQL',
@@ -122,14 +129,6 @@ class ConnectionPanel implements IBarPanel
 			require __DIR__ . '/templates/panel.phtml';
 		});
 		// phpcs:enable
-	}
-
-	private static function findTraceArg(Throwable $e, string $method, int $index = 0): ?string
-	{
-		$item = Helpers::findTrace($e->getTrace(), $method);
-		$value = $item['args'][$index] ?? null;
-
-		return is_string($value) ? $value : null;
 	}
 
 	/**
