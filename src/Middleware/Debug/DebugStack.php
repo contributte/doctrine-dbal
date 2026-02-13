@@ -45,11 +45,16 @@ class DebugStack
 
 		foreach ($this->data as $connectionName => $queries) {
 			foreach ($queries as $idx => $query) {
+				$duration = $query['duration'];
+				if (is_callable($duration)) {
+					$duration = $duration();
+				}
+
 				$data[$connectionName][$idx] = [
 					'sql' => $query['sql'],
 					'params' => $query['params'],
 					'types' => $query['types'],
-					'duration' => self::resolveDuration($query['duration']),
+					'duration' => (float) $duration,
 					'source' => $query['source'],
 				];
 			}
@@ -69,11 +74,6 @@ class DebugStack
 	public function reset(): void
 	{
 		$this->data = [];
-	}
-
-	private static function resolveDuration(callable|float $duration): float
-	{
-		return (float) (is_callable($duration) ? $duration() : $duration);
 	}
 
 }
