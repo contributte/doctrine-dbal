@@ -41,7 +41,7 @@ class ConnectionPanel implements IBarPanel
 	): self
 	{
 		$blueScreen ??= Debugger::getBlueScreen();
-		$blueScreen->addPanel(self::renderException(...));
+		$blueScreen->addPanel(self::renderException(...)); // @phpstan-ignore-line
 
 		$panel = new self($stack, $connection, $connectionName);
 		$bar ??= Debugger::getBar();
@@ -50,25 +50,20 @@ class ConnectionPanel implements IBarPanel
 		return $panel;
 	}
 
-	/** @phpstan-return array{tab: string, panel: string}|null */
+	/**
+	 * @return mixed[]|null
+	 */
 	public static function renderException(?Throwable $e): ?array
 	{
 		if ($e === null) {
 			return null;
 		}
 
-		$getTraceArg = static function (Throwable $throwable, string $method, int $index = 0): ?string {
-			$item = Helpers::findTrace($throwable->getTrace(), $method);
-			$value = $item['args'][$index] ?? null;
-
-			return is_string($value) ? $value : null;
-		};
-
 		if ($e instanceof Exception) {
-			if (($e->getPrevious() !== null) && ($panel = $getTraceArg($e, Exception::class . '::driverExceptionDuringQuery', 2)) !== null) {
+			if (($e->getPrevious() !== null) && ($item = Helpers::findTrace($e->getTrace(), Exception::class . '::driverExceptionDuringQuery')) !== null) {
 				return [
 					'tab' => 'SQL',
-					'panel' => $panel,
+					'panel' => $item['args'][2], // @phpstan-ignore-line
 				];
 			}
 		} elseif ($e instanceof QueryException) {
@@ -79,9 +74,15 @@ class ConnectionPanel implements IBarPanel
 				];
 			}
 		} elseif ($e instanceof PDOException) {
-			$sql = $getTraceArg($e, Connection::class . '::executeQuery')
-				?? $getTraceArg($e, PDO::class . '::query')
-				?? $getTraceArg($e, PDO::class . '::prepare');
+			$sql = null;
+
+			if (($item = Helpers::findTrace($e->getTrace(), Connection::class . '::executeQuery')) !== null) {
+				$sql = $item['args'][0]; // @phpstan-ignore-line
+			} elseif (($item = Helpers::findTrace($e->getTrace(), PDO::class . '::query')) !== null) {
+				$sql = $item['args'][0]; // @phpstan-ignore-line
+			} elseif (($item = Helpers::findTrace($e->getTrace(), PDO::class . '::prepare')) !== null) {
+				$sql = $item['args'][0]; // @phpstan-ignore-line
+			}
 
 			return $sql !== null ? [
 				'tab' => 'SQL',
