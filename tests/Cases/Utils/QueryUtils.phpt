@@ -123,7 +123,7 @@ Toolkit::test(function (): void {
 	$params = ['1'];
 	$types = [0 => ParameterType::STRING];
 
-	[$resultSql, $resultParams, $resultTypes] = QueryUtils::expand($sql, $params, $types);
+	[$resultSql, $resultParams] = QueryUtils::expand($sql, $params, $types);
 
 	Assert::equal($sql, $resultSql);
 	Assert::equal($params, $resultParams);
@@ -135,7 +135,7 @@ Toolkit::test(function (): void {
 	$params = ['id' => '1'];
 	$types = ['id' => ParameterType::STRING];
 
-	[$resultSql, $resultParams, $resultTypes] = QueryUtils::expand($sql, $params, $types);
+	[$resultSql] = QueryUtils::expand($sql, $params, $types);
 
 	Assert::notEqual($sql, $resultSql);
 	Assert::contains('?', $resultSql);
@@ -147,7 +147,7 @@ Toolkit::test(function (): void {
 	$params = [[1, 2, 3]];
 	$types = [ArrayParameterType::INTEGER];
 
-	[$resultSql, $resultParams, $resultTypes] = QueryUtils::expand($sql, $params, $types);
+	[$resultSql, $resultParams] = QueryUtils::expand($sql, $params, $types);
 
 	Assert::contains('?, ?, ?', $resultSql);
 	Assert::count(3, $resultParams);

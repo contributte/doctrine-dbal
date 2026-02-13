@@ -97,7 +97,7 @@ class DbalExtension extends CompilerExtension
 	public function getConfigSchema(): Schema
 	{
 		$expectService = Expect::anyOf(
-			Expect::string()->required()->assert(fn ($input) => str_starts_with($input, '@') || class_exists($input) || interface_exists($input)),
+			Expect::string()->required()->assert(static fn (mixed $input): bool => is_string($input) && (str_starts_with($input, '@') || class_exists($input) || interface_exists($input))),
 			Expect::type(Statement::class)->required(),
 		);
 
@@ -179,14 +179,18 @@ class DbalExtension extends CompilerExtension
 					'autoCommit' => Expect::bool(true)->dynamic(),
 				])
 					->assert(
-						fn (stdClass $connection) => !(
-							$connection->url === null
-							&& $connection->host === null
-							&& $connection->port === null
-							&& $connection->path === null
-							&& $connection->user === null
-							&& $connection->password === null
-						),
+						static function (mixed $connection): bool {
+							if (!$connection instanceof stdClass) {
+								return false;
+							}
+
+							return $connection->url !== null
+								|| $connection->host !== null
+								|| $connection->port !== null
+								|| $connection->path !== null
+								|| $connection->user !== null
+								|| $connection->password !== null;
+						},
 						'Configure DNS url or explicit host, port, user, password, dbname and others.'
 					)
 					->before($dsnTransformer),

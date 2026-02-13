@@ -41,7 +41,7 @@ class ConnectionPanel implements IBarPanel
 	): self
 	{
 		$blueScreen ??= Debugger::getBlueScreen();
-		$blueScreen->addPanel(self::renderException(...));
+		$blueScreen->addPanel(self::renderException(...)); // @phpstan-ignore-line
 
 		$panel = new self($stack, $connection, $connectionName);
 		$bar ??= Debugger::getBar();
@@ -63,7 +63,7 @@ class ConnectionPanel implements IBarPanel
 			if (($e->getPrevious() !== null) && ($item = Helpers::findTrace($e->getTrace(), Exception::class . '::driverExceptionDuringQuery')) !== null) {
 				return [
 					'tab' => 'SQL',
-					'panel' => $item['args'][2],
+					'panel' => $item['args'][2], // @phpstan-ignore-line
 				];
 			}
 		} elseif ($e instanceof QueryException) {
@@ -74,15 +74,17 @@ class ConnectionPanel implements IBarPanel
 				];
 			}
 		} elseif ($e instanceof PDOException) {
+			$sql = null;
+
 			if (($item = Helpers::findTrace($e->getTrace(), Connection::class . '::executeQuery')) !== null) {
-				$sql = $item['args'][0];
+				$sql = $item['args'][0]; // @phpstan-ignore-line
 			} elseif (($item = Helpers::findTrace($e->getTrace(), PDO::class . '::query')) !== null) {
-				$sql = $item['args'][0];
+				$sql = $item['args'][0]; // @phpstan-ignore-line
 			} elseif (($item = Helpers::findTrace($e->getTrace(), PDO::class . '::prepare')) !== null) {
-				$sql = $item['args'][0];
+				$sql = $item['args'][0]; // @phpstan-ignore-line
 			}
 
-			return isset($sql) ? [
+			return $sql !== null ? [
 				'tab' => 'SQL',
 				'panel' => $sql,
 			] : null;
