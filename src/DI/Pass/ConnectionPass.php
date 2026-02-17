@@ -274,6 +274,7 @@ class ConnectionPass extends AbstractPass
 				...$shared,
 			])->castTo('array'),
 			'pdo_sqlsrv' => Expect::structure([
+				'charset' => Expect::string()->dynamic(),
 				'dbname' => Expect::string()->dynamic(),
 				'driver' => Expect::anyOf('pdo_sqlsrv'),
 				'host' => Expect::string()->dynamic(),
@@ -283,6 +284,7 @@ class ConnectionPass extends AbstractPass
 				...$shared,
 			])->castTo('array'),
 			'sqlsrv' => Expect::structure([
+				'charset' => Expect::string()->dynamic(),
 				'dbname' => Expect::string()->dynamic(),
 				'driver' => Expect::anyOf('sqlsrv'),
 				'host' => Expect::string()->dynamic(),
