@@ -231,12 +231,11 @@ You can enable the result cache by setting the `resultCache` configuration optio
 nettrine.dbal:
   connections:
     default:
-      configuration:
-        # Create cache manually
-        resultCache: App\CacheService(%tempDir%/cache/doctrine/dbal)
+      # Create cache manually
+      resultCache: App\CacheService(%tempDir%/cache/doctrine/dbal)
 
-        # Use registered cache service
-        resultCache: @cacheService
+      # Use registered cache service
+      resultCache: @cacheService
 ```
 
 If you want to disable cache, you can use provided `NullCacheAdapter`.
@@ -254,7 +253,7 @@ If you like [`symfony/cache`](https://github.com/symfony/cache) you can use it a
 nettrine.dbal:
     connections:
       default:
-        # Creat cache manually
+        # Create cache manually
         resultCache: Symfony\Component\Cache\Adapter\FilesystemAdapter(namespace: dbal, defaultLifetime: 0, directory: %tempDir%/cache/doctrine/dbal)
 
         # Use registered cache service
@@ -421,7 +420,7 @@ nettrine.dbal:
   connections:
     default:
       middlewares:
-        # Create logger manualy
+        # Create logger manually
         logger: Doctrine\DBAL\Logging\Middleware(
             Monolog\Logger(doctrine, [Monolog\Handler\StreamHandler(%tempDir%/doctrine.log)])
         )
@@ -455,9 +454,10 @@ final class InspectorMiddleware implements Middleware
 
 ```neon
 nettrine.dbal:
-  configuration:
-    middlewares:
-      inspector: App\InspectorMiddleware()
+  connections:
+    default:
+      middlewares:
+        inspector: App\InspectorMiddleware()
 ```
 
 > [!TIP]
